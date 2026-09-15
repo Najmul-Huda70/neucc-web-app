@@ -1,0 +1,68 @@
+import type { Announcement } from './types';
+
+export const announcements: Announcement[] = [
+  {
+    id: 'ann-01',
+    title: 'Registration open for Inter-Department Hackathon 2026',
+    content: 'Teams of up to 4 members can now register for the upcoming 24-hour hackathon. Deadline to register is November 10.',
+    date: '2026-09-10',
+    pinned: true,
+    category: 'Event Update',
+  },
+  {
+    id: 'ann-02',
+    title: 'ICPC Regional Preliminary results published',
+    content: 'Congratulations to Team ByteForce and Team LogicGate for qualifying for the ICPC Asia Regionals.',
+    date: '2026-02-12',
+    pinned: true,
+    category: 'Result',
+  },
+  {
+    id: 'ann-03',
+    title: 'Club room relocated to 2nd floor',
+    content: 'Effective this semester, the NEUCC club room has moved to Room 214, 2nd Floor, CSE Building.',
+    date: '2026-01-20',
+    pinned: false,
+    category: 'Notice',
+  },
+  {
+    id: 'ann-04',
+    title: 'Cybersecurity & CTF Fundamentals seminar announced',
+    content: 'Join us for a hands-on introduction to CTF concepts on September 20. Seats are limited to 60 participants.',
+    date: '2026-09-01',
+    pinned: false,
+    category: 'Event Update',
+  },
+  {
+    id: 'ann-05',
+    title: 'New executive committee for 2026 announced',
+    content: 'The newly elected executive committee for the 2026 term has been announced. Meet the team on the Executives page.',
+    date: '2026-01-05',
+    pinned: false,
+    category: 'Notice',
+  },
+  {
+    id: 'ann-06',
+    title: 'National CTF Championship — NEUCC wins first place',
+    content: 'Team RootAccess brought home the championship trophy from the National CTF Championship 2025.',
+    date: '2025-09-06',
+    pinned: false,
+    category: 'Result',
+  },
+  {
+    id: 'ann-07',
+    title: 'Membership drive extended by one week',
+    content: 'Due to high demand, the Join Us membership form will remain open for one additional week.',
+    date: '2025-08-25',
+    pinned: false,
+    category: 'Notice',
+  },
+  {
+    id: 'ann-08',
+    title: 'Web Development Bootcamp — recordings available',
+    content: 'Session recordings and slides from the Web Development Bootcamp are now available to registered participants.',
+    date: '2026-07-20',
+    pinned: false,
+    category: 'Event Update',
+  },
+];
