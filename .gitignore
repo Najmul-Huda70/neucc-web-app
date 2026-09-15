@@ -145,3 +145,5 @@ vite.config.ts.timestamp-*
 # Prisma local artifacts
 prisma/*.db
 prisma/*.db-journal
+.vercel
+.env*
