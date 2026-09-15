@@ -1,0 +1,68 @@
+import type { Achievement } from '@/types/types';
+
+export const achievements: Achievement[] = [
+  {
+    id: 'ach-01',
+    title: 'ICPC Asia Regional Qualification',
+    description: 'Two teams from NEUCC qualified for the ICPC Asia Regional finals after a strong showing at the preliminary round.',
+    date: '2026-02-14',
+    organization: 'ICPC Foundation',
+    image: 'https://picsum.photos/seed/neucc-ach-01/700/450',
+  },
+  {
+    id: 'ach-02',
+    title: 'Champion — National CTF Championship',
+    description: 'Team RootAccess secured first place among 60+ competing university teams nationwide.',
+    date: '2025-09-05',
+    organization: 'BD Cyber Security Alliance',
+    image: 'https://picsum.photos/seed/neucc-ach-02/700/450',
+  },
+  {
+    id: 'ach-03',
+    title: 'Best Innovation Award — Summer Hackfest',
+    description: 'Team EcoTrack received the Best Innovation award for a campus sustainability tracking app.',
+    date: '2025-06-21',
+    organization: 'TechFest Bangladesh',
+    image: 'https://picsum.photos/seed/neucc-ach-03/700/450',
+  },
+  {
+    id: 'ach-04',
+    title: 'IUPC Rank 5 — National Standing',
+    description: 'NEUCC placed 5th nationally at the Inter-University Programming Contest, its best result to date.',
+    date: '2025-05-30',
+    organization: 'Bangladesh Computer Council',
+    image: 'https://picsum.photos/seed/neucc-ach-04/700/450',
+  },
+  {
+    id: 'ach-05',
+    title: 'Outstanding Club Award',
+    description: 'Recognized by the university administration for outstanding contribution to student tech culture.',
+    date: '2025-03-12',
+    organization: 'Netrokona University',
+    image: 'https://picsum.photos/seed/neucc-ach-05/700/450',
+  },
+  {
+    id: 'ach-06',
+    title: 'Runner-up — Inter-University CTF Challenge',
+    description: 'Team CipherSquad finished as runner-up in a closely contested CTF final.',
+    date: '2026-04-20',
+    organization: 'National CTF Circuit',
+    image: 'https://picsum.photos/seed/neucc-ach-06/700/450',
+  },
+  {
+    id: 'ach-07',
+    title: 'Best Workshop Series Award',
+    description: 'NEUCC\'s beginner-to-advanced programming workshop series was recognized for consistency and turnout.',
+    date: '2024-12-01',
+    organization: 'Netrokona University',
+    image: 'https://picsum.photos/seed/neucc-ach-07/700/450',
+  },
+  {
+    id: 'ach-08',
+    title: 'Champion — NEUCC Hackathon 2025',
+    description: 'Team CampusConnect won first place for building a real-time campus resource-sharing platform.',
+    date: '2025-11-08',
+    organization: 'NEUCC Internal',
+    image: 'https://picsum.photos/seed/neucc-ach-08/700/450',
+  },
+];
