@@ -1,0 +1,477 @@
+// ============================================================================
+// NEUCC Web Application — Prisma Schema
+// Part 2: Database Schema Design
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // needed for pooled providers like Neon/PgBouncer
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Role {
+  ELECTION_COMMITTEE
+  EXECUTIVE_COMMITTEE
+}
+
+enum CommitteeType {
+  ELECTION
+  EXECUTIVE
+}
+
+enum CommitteeStatus {
+  ACTIVE
+  DISSOLVED
+}
+
+enum UserStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum NoticeScope {
+  GENERAL
+  INTERNAL
+  ELECTION
+}
+
+enum EventCategory {
+  WORKSHOP
+  SEMINAR
+  COMPETITION
+  MEETUP
+}
+
+enum EventStatus {
+  UPCOMING
+  PAST
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  PENDING
+  VERIFIED
+  SYMBOL_ALLOTTED
+  UNOPPOSED
+  REJECTED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  PAID_TO_MEMBER
+  ONLINE_PLACEHOLDER
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum MembershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ElectionStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  RESULTS_PUBLISHED
+}
+
+enum SponsorTier {
+  PLATINUM
+  GOLD
+  SILVER
+}
+
+enum ContestType {
+  PROGRAMMING
+  CTF
+  HACKATHON
+}
+
+// ============================================================================
+// CORE: Users, Posts, Committees
+// ============================================================================
+
+// The 20 constitutional posts (President, VP, Treasurer, ...)
+model Post {
+  id             String   @id @default(cuid())
+  name           String   @unique // e.g. "President", "Treasurer"
+  description    String? // pulled into dashboard "post responsibility" widget
+  eligibleYear   Int? // academic year required to contest this post (Constitution §3.3)
+  isAssistant    Boolean  @default(false)
+  rank           Int      @default(999) // display order for the Executives page hierarchy grid
+  createdAt      DateTime @default(now())
+
+  users      User[]
+  candidates Candidate[]
+
+  @@index([eligibleYear])
+}
+
+// Only Election Committee & Executive Committee members ever get a User row —
+// Club Members / Advisory Board are NOT modeled as Users (no login, per SRS §5.1).
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         Role
+  status       UserStatus @default(ACTIVE)
+
+  postId String?
+  post   Post?   @relation(fields: [postId], references: [id])
+
+  committeeId String?
+  committee   Committee? @relation(fields: [committeeId], references: [id])
+
+  studentId String?
+  batch     Int? // admission year, drives election-eligibility checks
+
+  // Set true only for the Chief Election Commissioner, only after the
+  // outgoing President runs the "Grant Election Module Access" action
+  // (SRS §5.3). Powers the one-time "Dissolve Executive Committee" permission.
+  electionAccessGranted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations to actions taken by this user
+  eventsCreated       Event[]              @relation("EventCreatedBy")
+  noticesPublished    Notice[]             @relation("NoticePublishedBy")
+  resolutionsCreated  Resolution[]         @relation("ResolutionCreatedBy")
+  attendanceFormsMade AttendanceForm[]     @relation("AttendanceFormCreatedBy")
+  transactionsLogged  Transaction[]        @relation("TransactionCreatedBy")
+  auditLogs           AuditLog[]           @relation("AuditActor")
+
+  @@index([role, status])
+  @@index([committeeId])
+}
+
+// One row per Election Committee term and per Executive Committee term.
+model Committee {
+  id           String          @id @default(cuid())
+  type         CommitteeType
+  status       CommitteeStatus @default(ACTIVE)
+  startDate    DateTime        @default(now())
+  endDate      DateTime? // Executive Committee: startDate + 1 year
+  dissolvedAt  DateTime?
+
+  members    User[]
+  elections  Election[] // an Election Committee runs elections
+  createdAt  DateTime   @default(now())
+
+  @@index([type, status])
+}
+
+// ============================================================================
+// ELECTION MODULE (SRS §6.1 / §6.1.1)
+// ============================================================================
+
+model Election {
+  id                    String         @id @default(cuid())
+  committeeId           String // the Election Committee running it
+  committee             Committee      @relation(fields: [committeeId], references: [id])
+  status                ElectionStatus @default(DRAFT)
+  applicationDeadline   DateTime
+  votingDate            DateTime
+  applicationFee        Int // in Taka
+  createdAt             DateTime       @default(now())
+
+  candidates Candidate[]
+
+  @@index([status])
+}
+
+model Candidate {
+  id          String             @id @default(cuid())
+  electionId  String
+  election    Election           @relation(fields: [electionId], references: [id])
+  postId      String
+  post        Post               @relation(fields: [postId], references: [id])
+
+  applicantName String
+  studentId     String
+  batch         Int
+  email         String
+
+  status ApplicationStatus @default(PENDING)
+
+  symbolId String?
+  symbol   Symbol? @relation(fields: [symbolId], references: [id])
+
+  isUnopposed        Boolean  @default(false)
+  eligibilityWaived  Boolean  @default(false) // set true when the "reopen to all members" fallback applied
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment Payment?
+
+  @@index([electionId, postId])
+  @@index([status])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  candidateId   String        @unique
+  candidate     Candidate     @relation(fields: [candidateId], references: [id])
+  method        PaymentMethod
+  amount        Int
+  transactionRef String? // required for BANK_TRANSFER
+  paidToMember   String? // committee member name, required for PAID_TO_MEMBER
+  paidAt         DateTime      @default(now())
+}
+
+model Symbol {
+  id        String      @id @default(cuid())
+  name      String
+  imageUrl  String?
+  candidates Candidate[]
+}
+
+// ============================================================================
+// EVENTS (SRS §6.2, public Event Tab §3.2)
+// ============================================================================
+
+model Event {
+  id               String        @id @default(cuid())
+  title            String
+  description      String
+  date             DateTime
+  venue            String
+  guests           String? // Chief Guest / Special Guests, comma-separated or JSON
+  registrationLink String?
+  category         EventCategory
+  status           EventStatus   @default(UPCOMING)
+
+  createdById String
+  createdBy   User   @relation("EventCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, category, date])
+}
+
+// ============================================================================
+// NOTICE, RESOLUTION & DOCUMENTS (SRS §6.3)
+// ============================================================================
+
+model Notice {
+  id          String      @id @default(cuid())
+  subject     String
+  body        String
+  scope       NoticeScope
+  memoNo      String
+  date        DateTime
+  pdfUrl      String?
+  imageUrl    String?
+  isPinned    Boolean     @default(false)
+
+  publishedById String
+  publishedBy   User   @relation("NoticePublishedBy", fields: [publishedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([scope, date])
+}
+
+model Resolution {
+  id             String   @id @default(cuid())
+  meetingNo      String
+  memoNo         String
+  date           DateTime
+  venue          String
+  agenda         String
+  discussion     String
+  decisions      String
+  attendeeCount  Int
+  pdfUrl         String?
+
+  createdById String
+  createdBy   User   @relation("ResolutionCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([date])
+}
+
+// ============================================================================
+// ATTENDANCE (SRS §6.4) — strict row-level privacy
+// ============================================================================
+
+model AttendanceForm {
+  id          String   @id @default(cuid())
+  title       String
+  shareToken  String   @unique @default(cuid()) // powers the public no-login link
+
+  createdById String
+  createdBy   User   @relation("AttendanceFormCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  entries AttendanceEntry[]
+}
+
+model AttendanceEntry {
+  id     String @id @default(cuid())
+  formId String
+  form   AttendanceForm @relation(fields: [formId], references: [id])
+
+  name      String
+  studentId String
+  batch     Int
+
+  submittedByUserId String? // set if an Executive Committee member submitted while logged in
+  submittedAt       DateTime @default(now())
+
+  @@index([formId])
+}
+
+// ============================================================================
+// TREASURY / FINANCE (SRS §6.6)
+// ============================================================================
+
+model FundHead {
+  id   String          @id @default(cuid())
+  name String
+  type TransactionType
+
+  transactions Transaction[]
+
+  @@unique([name, type])
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  type        TransactionType
+  fundHeadId  String
+  fundHead    FundHead        @relation(fields: [fundHeadId], references: [id])
+  amount      Int
+  description String // source (income) or purpose (expense)
+  memberName  String // the specific member/donor tied to this entry
+  documentUrl String? // receipt/invoice/voucher
+
+  createdById String
+  createdBy   User   @relation("TransactionCreatedBy", fields: [createdById], references: [id])
+
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([type, date])
+}
+
+// ============================================================================
+// PUBLIC CONTENT — About, Executives(via User), Contests, Gallery,
+// Achievements, Sponsors (SRS §3.3–3.9). Read-only from the public API;
+// managed by Executive Committee members with edit access (wire up
+// permission checks in Part 5 admin routes if/when a content-editor
+// role is added — out of scope for the SRS's two login roles today).
+// ============================================================================
+
+// Editable text blocks for pages that are mostly prose (About page's
+// mission/vision/history, Chairperson & Moderator messages, etc.) so they
+// don't need a code deploy to update — stored as free-form JSON per key.
+model SiteContent {
+  key       String   @id // e.g. "about.mission", "home.chairpersonMessage"
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  awardingOrg String?
+  photoUrl    String?
+  createdAt   DateTime @default(now())
+
+  @@index([date])
+}
+
+model Contest {
+  id               String      @id @default(cuid())
+  name             String
+  date             DateTime
+  type             ContestType
+  result           String? // e.g. "Champion", "Rank 12"
+  registrationLink String?
+  createdAt        DateTime    @default(now())
+
+  @@index([date, type])
+}
+
+model GalleryItem {
+  id        String   @id @default(cuid())
+  url       String
+  isVideo   Boolean  @default(false)
+  eventName String? // free-text tag, not a hard FK — events span years/rebrands
+  year      Int
+  createdAt DateTime @default(now())
+
+  @@index([year])
+}
+
+model Sponsor {
+  id          String      @id @default(cuid())
+  name        String
+  logoUrl     String?
+  tier        SponsorTier
+  description String?
+  createdAt   DateTime    @default(now())
+
+  @@index([tier])
+}
+
+
+
+model MembershipApplication {
+  id        String            @id @default(cuid())
+  name      String
+  studentId String
+  batch     Int
+  email     String
+  interest  String?
+  status    MembershipStatus  @default(PENDING)
+  createdAt DateTime          @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+// ============================================================================
+// AUDIT LOG — every sensitive/governance action (SRS §5.3, §9)
+// ============================================================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation("AuditActor", fields: [actorId], references: [id])
+  action     String // e.g. "COMMITTEE_DISSOLVED", "ELECTION_ACCESS_GRANTED"
+  targetType String // e.g. "Committee", "Election", "Notice"
+  targetId   String
+  metadata   Json?
+  timestamp  DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([actorId])
+}
