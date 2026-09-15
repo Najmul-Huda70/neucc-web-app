@@ -18,8 +18,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
-      - name: Check Project Structure
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run ESLint & Type Check
         run: |
-          echo "Checking repository setup..."
-          ls -la
+          npm run lint
+          npx tsc --noEmit
+
+      - name: Build Next.js Application
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
