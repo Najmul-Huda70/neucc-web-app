@@ -72,6 +72,55 @@ export const NoticeCreateSchema = z.object({
 
 export const NoticeUpdateSchema = NoticeCreateSchema.partial();
 
+export const ContentPaginationSchema = PaginationSchema.extend({
+  q: z.string().trim().max(100).optional(),
+});
+
+export const AchievementCreateSchema = z.object({
+  title: z.string().trim().min(2).max(200),
+  description: z.string().trim().max(5000).nullable().optional(),
+  date: DateInput,
+  awardingOrg: z.string().trim().max(200).nullable().optional(),
+  photoUrl: z.string().url().max(2000).nullable().optional(),
+});
+
+export const AchievementUpdateSchema = AchievementCreateSchema.partial();
+
+export const ContestCreateSchema = z.object({
+  name: z.string().trim().min(2).max(200),
+  date: DateInput,
+  type: z.enum(["PROGRAMMING", "CTF", "HACKATHON"]),
+  result: z.string().trim().max(1000).nullable().optional(),
+  registrationLink: z.string().url().max(2000).nullable().optional(),
+});
+
+export const ContestUpdateSchema = ContestCreateSchema.partial();
+
+export const SponsorCreateSchema = z.object({
+  name: z.string().trim().min(2).max(200),
+  logoUrl: z.string().url().max(2000).nullable().optional(),
+  tier: z.enum(["PLATINUM", "GOLD", "SILVER"]),
+  description: z.string().trim().max(2000).nullable().optional(),
+});
+
+export const SponsorUpdateSchema = SponsorCreateSchema.partial();
+
+export const GalleryItemCreateSchema = z.object({
+  url: z.string().url().max(2000),
+  isVideo: z.boolean().default(false),
+  eventName: z.string().trim().max(200).nullable().optional(),
+  year: z.coerce.number().int().min(2000).max(new Date().getFullYear() + 5),
+});
+
+export const GalleryItemUpdateSchema = GalleryItemCreateSchema.partial();
+
+export const SiteContentSchema = z.object({
+  key: z.string().trim().min(2).max(200),
+  value: z.any(),
+});
+
+export const SiteContentUpdateSchema = SiteContentSchema.partial();
+
 export function parsePublicQuery<T extends z.AnyZodObject>(schema: T, req: Request) {
   const url = new URL(req.url);
   return schema.safeParse(Object.fromEntries(url.searchParams.entries()));
