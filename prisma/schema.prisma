@@ -88,6 +88,13 @@ enum ElectionStatus {
   RESULTS_PUBLISHED
 }
 
+enum ResultOutcome {
+  ELECTED
+  UNOPPOSED
+  WALKOVER
+  NO_CANDIDATE
+}
+
 enum SponsorTier {
   PLATINUM
   GOLD
@@ -116,6 +123,7 @@ model Post {
 
   users      User[]
   candidates Candidate[]
+  electionResults ElectionResult[]
 
   @@index([eligibleYear])
 }
@@ -154,9 +162,27 @@ model User {
   attendanceFormsMade AttendanceForm[]     @relation("AttendanceFormCreatedBy")
   transactionsLogged  Transaction[]        @relation("TransactionCreatedBy")
   auditLogs           AuditLog[]           @relation("AuditActor")
+  candidatesVerified  Candidate[]          @relation("CandidateVerifiedBy")
+  paymentsVerified    Payment[]            @relation("PaymentVerifiedBy")
+  documentsUploaded   Document[]           @relation("DocumentUploadedBy")
+  refreshTokens       RefreshToken[]
 
   @@index([role, status])
   @@index([committeeId])
+}
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  replacedBy String?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
 }
 
 // One row per Election Committee term and per Executive Committee term.
@@ -187,9 +213,13 @@ model Election {
   applicationDeadline   DateTime
   votingDate            DateTime
   applicationFee        Int // in Taka
+  eligibleBatches       Json? // academic batches eligible for this election
+  resultPublishedAt     DateTime?
+  resultDeclarationUrl  String?
   createdAt             DateTime       @default(now())
 
   candidates Candidate[]
+  results    ElectionResult[]
 
   @@index([status])
 }
@@ -213,14 +243,20 @@ model Candidate {
 
   isUnopposed        Boolean  @default(false)
   eligibilityWaived  Boolean  @default(false) // set true when the "reopen to all members" fallback applied
+  isWinner           Boolean  @default(false)
+  verifiedAt         DateTime?
+  verifiedById       String?
+  verifiedBy         User?    @relation("CandidateVerifiedBy", fields: [verifiedById], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   payment Payment?
+  electionResult ElectionResult?
 
   @@index([electionId, postId])
   @@index([status])
+  @@index([verifiedById])
 }
 
 model Payment {
@@ -232,6 +268,11 @@ model Payment {
   transactionRef String? // required for BANK_TRANSFER
   paidToMember   String? // committee member name, required for PAID_TO_MEMBER
   paidAt         DateTime      @default(now())
+  verifiedAt     DateTime?
+  verifiedById   String?
+  verifiedBy     User?         @relation("PaymentVerifiedBy", fields: [verifiedById], references: [id])
+
+  @@index([verifiedById])
 }
 
 model Symbol {
@@ -239,6 +280,21 @@ model Symbol {
   name      String
   imageUrl  String?
   candidates Candidate[]
+}
+
+model ElectionResult {
+  id          String        @id @default(cuid())
+  electionId  String
+  election    Election      @relation(fields: [electionId], references: [id])
+  postId      String
+  post        Post          @relation(fields: [postId], references: [id])
+  candidateId String?       @unique
+  candidate   Candidate?    @relation(fields: [candidateId], references: [id])
+  outcome     ResultOutcome
+  declaredAt  DateTime      @default(now())
+
+  @@unique([electionId, postId])
+  @@index([candidateId])
 }
 
 // ============================================================================
@@ -282,6 +338,7 @@ model Notice {
 
   publishedById String
   publishedBy   User   @relation("NoticePublishedBy", fields: [publishedById], references: [id])
+  documents     Document[]
 
   createdAt DateTime @default(now())
 
@@ -293,19 +350,44 @@ model Resolution {
   meetingNo      String
   memoNo         String
   date           DateTime
+  meetingTime    String
   venue          String
+  president      String
+  convener       String
   agenda         String
   discussion     String
   decisions      String
+  implementationResponsibility Json?
+  signatories    Json?
   attendeeCount  Int
   pdfUrl         String?
 
   createdById String
   createdBy   User   @relation("ResolutionCreatedBy", fields: [createdById], references: [id])
+  documents    Document[]
 
   createdAt DateTime @default(now())
 
   @@index([date])
+}
+
+model Document {
+  id           String   @id @default(cuid())
+  title        String
+  url          String
+  mimeType     String
+  sizeBytes    Int?
+  noticeId     String?
+  notice       Notice?  @relation(fields: [noticeId], references: [id])
+  resolutionId String?
+  resolution   Resolution? @relation(fields: [resolutionId], references: [id])
+  uploadedById String
+  uploadedBy   User     @relation("DocumentUploadedBy", fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([noticeId])
+  @@index([resolutionId])
+  @@index([uploadedById])
 }
 
 // ============================================================================

@@ -15,21 +15,29 @@ export async function middleware(req: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((p) =>
     req.nextUrl.pathname.startsWith(p)
   );
-  if (!isProtected) return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+
+  if (!isProtected) return response;
 
   const token = req.cookies.get("access_token")?.value;
   const payload = token ? await verifyAccessToken(token) : null;
 
   if (!payload) {
     if (req.nextUrl.pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const unauthorized = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      response.headers.forEach((value, key) => unauthorized.headers.set(key, value));
+      return unauthorized;
     }
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("next", req.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
