@@ -8,7 +8,7 @@ const TYPE_STYLES: Record<Contest['type'], string> = {
 };
 
 export function ContestCard({ contest }: { contest: Contest }) {
-  const isUpcoming = new Date(contest.date).getTime() > Date.now();
+  const isUpcoming = contest.isUpcoming ?? false;
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">

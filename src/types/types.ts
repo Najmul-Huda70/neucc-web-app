@@ -50,6 +50,7 @@ export interface Contest {
   id: string;
   name: string;
   date: string;
+  isUpcoming?: boolean;
   type: ContestType;
   result: string;
   winners: ContestWinner[];
