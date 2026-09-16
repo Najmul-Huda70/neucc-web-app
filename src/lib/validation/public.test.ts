@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   AchievementCreateSchema,
+  CommitteeCreateSchema,
   ContestCreateSchema,
+  ElectionCreateSchema,
   GalleryItemCreateSchema,
+  PaymentCreateSchema,
   SponsorCreateSchema,
   SiteContentSchema,
+  SymbolCreateSchema,
 } from './public';
 
 describe('public validation schemas', () => {
@@ -43,5 +47,33 @@ describe('public validation schemas', () => {
       key: 'about.mission',
       value: { text: 'To build great developers.' },
     })).toMatchObject({ key: 'about.mission' });
+
+    expect(CommitteeCreateSchema.parse({
+      type: 'ELECTION',
+      status: 'ACTIVE',
+      startDate: '2026-01-10',
+      endDate: '2026-04-10',
+    })).toMatchObject({ type: 'ELECTION' });
+
+    expect(ElectionCreateSchema.parse({
+      committeeId: 'committee_123',
+      applicationDeadline: '2026-02-01T00:00:00.000Z',
+      votingDate: '2026-02-10T00:00:00.000Z',
+      applicationFee: 250,
+      eligibleBatches: [2021, 2022],
+    })).toMatchObject({ applicationFee: 250 });
+
+    expect(SymbolCreateSchema.parse({
+      name: 'Boat',
+      imageUrl: 'https://example.com/boat.png',
+    })).toMatchObject({ name: 'Boat' });
+
+    expect(PaymentCreateSchema.parse({
+      candidateId: 'candidate_123',
+      method: 'BANK_TRANSFER',
+      amount: 250,
+      transactionRef: 'TX-1001',
+      paidAt: '2026-01-15T00:00:00.000Z',
+    })).toMatchObject({ amount: 250 });
   });
 });

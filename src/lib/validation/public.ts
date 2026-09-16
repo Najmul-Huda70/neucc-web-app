@@ -121,6 +121,106 @@ export const SiteContentSchema = z.object({
 
 export const SiteContentUpdateSchema = SiteContentSchema.partial();
 
+export const GovernancePaginationSchema = PaginationSchema.extend({
+  q: z.string().trim().max(100).optional(),
+  type: z.enum(['ELECTION', 'EXECUTIVE']).optional(),
+  status: z.enum(['ACTIVE', 'DISSOLVED', 'DRAFT', 'OPEN', 'CLOSED', 'RESULTS_PUBLISHED', 'PENDING', 'VERIFIED', 'SYMBOL_ALLOTTED', 'UNOPPOSED', 'REJECTED']).optional(),
+});
+
+export const CommitteeQuerySchema = GovernancePaginationSchema.extend({
+  type: z.enum(['ELECTION', 'EXECUTIVE']).optional(),
+  status: z.enum(['ACTIVE', 'DISSOLVED']).optional(),
+});
+
+export const ElectionQuerySchema = GovernancePaginationSchema.extend({
+  committeeId: z.string().trim().max(200).optional(),
+  status: z.enum(['DRAFT', 'OPEN', 'CLOSED', 'RESULTS_PUBLISHED']).optional(),
+});
+
+export const CandidateQuerySchema = GovernancePaginationSchema.extend({
+  electionId: z.string().trim().max(200).optional(),
+  status: z.enum(['PENDING', 'VERIFIED', 'SYMBOL_ALLOTTED', 'UNOPPOSED', 'REJECTED']).optional(),
+});
+
+export const SymbolQuerySchema = GovernancePaginationSchema.extend({
+  q: z.string().trim().max(100).optional(),
+});
+
+export const PaymentQuerySchema = GovernancePaginationSchema.extend({
+  candidateId: z.string().trim().max(200).optional(),
+  method: z.enum(['BANK_TRANSFER', 'PAID_TO_MEMBER', 'ONLINE_PLACEHOLDER']).optional(),
+});
+
+export const ElectionResultQuerySchema = GovernancePaginationSchema.extend({
+  electionId: z.string().trim().max(200).optional(),
+  postId: z.string().trim().max(200).optional(),
+  outcome: z.enum(['ELECTED', 'UNOPPOSED', 'WALKOVER', 'NO_CANDIDATE']).optional(),
+});
+
+export const CommitteeCreateSchema = z.object({
+  type: z.enum(['ELECTION', 'EXECUTIVE']),
+  status: z.enum(['ACTIVE', 'DISSOLVED']).default('ACTIVE'),
+  startDate: DateInput,
+  endDate: DateInput.nullish(),
+});
+
+export const CommitteeUpdateSchema = CommitteeCreateSchema.partial();
+
+export const ElectionCreateSchema = z.object({
+  committeeId: z.string().trim().min(1).max(200),
+  applicationDeadline: DateInput,
+  votingDate: DateInput,
+  applicationFee: z.coerce.number().int().min(0).max(1_000_000),
+  eligibleBatches: z.array(z.coerce.number().int().min(2000).max(new Date().getFullYear() + 10)).optional(),
+  resultDeclarationUrl: z.string().url().max(2000).nullable().optional(),
+  status: z.enum(['DRAFT', 'OPEN', 'CLOSED', 'RESULTS_PUBLISHED']).default('DRAFT'),
+});
+
+export const ElectionUpdateSchema = ElectionCreateSchema.partial();
+
+export const CandidateCreateSchema = z.object({
+  electionId: z.string().trim().min(1).max(200),
+  postId: z.string().trim().min(1).max(200),
+  applicantName: z.string().trim().min(2).max(200),
+  studentId: z.string().trim().min(1).max(40),
+  batch: z.coerce.number().int().min(2000).max(new Date().getFullYear() + 10),
+  email: z.string().email(),
+  status: z.enum(['PENDING', 'VERIFIED', 'SYMBOL_ALLOTTED', 'UNOPPOSED', 'REJECTED']).default('PENDING'),
+  symbolId: z.string().trim().max(200).nullable().optional(),
+  isUnopposed: z.boolean().default(false),
+  eligibilityWaived: z.boolean().default(false),
+  isWinner: z.boolean().default(false),
+});
+
+export const CandidateUpdateSchema = CandidateCreateSchema.partial();
+
+export const SymbolCreateSchema = z.object({
+  name: z.string().trim().min(2).max(200),
+  imageUrl: z.string().url().max(2000).nullable().optional(),
+});
+
+export const SymbolUpdateSchema = SymbolCreateSchema.partial();
+
+export const PaymentCreateSchema = z.object({
+  candidateId: z.string().trim().min(1).max(200),
+  method: z.enum(['BANK_TRANSFER', 'PAID_TO_MEMBER', 'ONLINE_PLACEHOLDER']),
+  amount: z.coerce.number().int().min(0).max(1_000_000),
+  transactionRef: z.string().trim().max(200).nullable().optional(),
+  paidToMember: z.string().trim().max(200).nullable().optional(),
+  paidAt: DateInput.optional(),
+});
+
+export const PaymentUpdateSchema = PaymentCreateSchema.partial();
+
+export const ElectionResultCreateSchema = z.object({
+  electionId: z.string().trim().min(1).max(200),
+  postId: z.string().trim().min(1).max(200),
+  candidateId: z.string().trim().max(200).nullable().optional(),
+  outcome: z.enum(['ELECTED', 'UNOPPOSED', 'WALKOVER', 'NO_CANDIDATE']),
+});
+
+export const ElectionResultUpdateSchema = ElectionResultCreateSchema.partial();
+
 export function parsePublicQuery<T extends z.AnyZodObject>(schema: T, req: Request) {
   const url = new URL(req.url);
   return schema.safeParse(Object.fromEntries(url.searchParams.entries()));
