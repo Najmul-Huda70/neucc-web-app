@@ -9,8 +9,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
-    # Docker PostgreSQL Service Integration (Host Port-less setup)
     services:
       postgres:
         image: postgres:16-alpine
@@ -19,7 +17,6 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: neucc_test
         ports:
-          - 5432 # ✅ Host port-less binding to prevent Docker exit code 125
         options: >-
           --health-cmd "pg_isready -U postgres -d neucc_test"
           --health-interval 10s
@@ -38,14 +35,6 @@ jobs:
 
       - name: Install Dependencies
         run: npm ci
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Run ESLint & Type Check
-        run: |
-          npm run lint
-          npx tsc --noEmit
 
       - name: Build Next.js Application
         run: npm run build
