@@ -23,7 +23,7 @@ export function ContestCard({ contest }: { contest: Contest }) {
         </div>
         {isUpcoming && (
           <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
-            Upcoming
+            Upcoming...
           </span>
         )}
       </div>
