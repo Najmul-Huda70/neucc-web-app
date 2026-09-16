@@ -16,6 +16,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:onboard-admin": "tsx prisma/onboard-admin.ts",
     "prisma:studio": "prisma studio"
   },
   "prisma": {

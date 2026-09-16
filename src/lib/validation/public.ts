@@ -221,6 +221,63 @@ export const ElectionResultCreateSchema = z.object({
 
 export const ElectionResultUpdateSchema = ElectionResultCreateSchema.partial();
 
+export const AttendanceFormCreateSchema = z.object({
+  title: z.string().trim().min(2).max(200),
+});
+
+export const AttendanceEntrySchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  studentId: z.string().trim().min(1).max(40),
+  batch: z.coerce.number().int().min(2000).max(new Date().getFullYear() + 10),
+});
+
+export const FinanceTransactionCreateSchema = z.object({
+  type: z.enum(["INCOME", "EXPENSE"]),
+  fundHeadId: z.string().trim().min(1).max(200),
+  amount: z.coerce.number().int().positive().max(1_000_000_000),
+  description: z.string().trim().min(2).max(1000),
+  memberName: z.string().trim().min(2).max(200),
+  documentUrl: z.string().url().max(2000).nullable().optional(),
+  date: DateInput.optional(),
+});
+
+export const FinanceTransactionUpdateSchema = FinanceTransactionCreateSchema.partial();
+
+export const ResolutionCreateSchema = z.object({
+  meetingNo: z.string().trim().min(1).max(100),
+  memoNo: z.string().trim().min(1).max(100),
+  date: DateInput,
+  meetingTime: z.string().trim().min(1).max(50),
+  venue: z.string().trim().min(2).max(200),
+  president: z.string().trim().min(2).max(200),
+  convener: z.string().trim().min(2).max(200),
+  agenda: z.string().trim().min(2).max(5000),
+  discussion: z.string().trim().min(2).max(10000),
+  decisions: z.string().trim().min(2).max(10000),
+  implementationResponsibility: z.any().optional(),
+  signatories: z.any().optional(),
+  attendeeCount: z.coerce.number().int().min(0).max(100000),
+  pdfUrl: z.string().url().max(2000).nullable().optional(),
+});
+
+export const ResolutionUpdateSchema = ResolutionCreateSchema.partial();
+
+export const DocumentCreateSchema = z.object({
+  title: z.string().trim().min(2).max(200),
+  url: z.string().url().max(2000),
+  mimeType: z.string().trim().min(3).max(100),
+  sizeBytes: z.coerce.number().int().positive().max(100_000_000).nullable().optional(),
+  noticeId: z.string().trim().min(1).max(200).optional(),
+  resolutionId: z.string().trim().min(1).max(200).optional(),
+}).refine((value) => Boolean(value.noticeId) !== Boolean(value.resolutionId), {
+  message: "A document must belong to exactly one notice or resolution.",
+  path: ["noticeId"],
+});
+
+export const OperationsPaginationSchema = PaginationSchema.extend({
+  q: z.string().trim().max(100).optional(),
+});
+
 export function parsePublicQuery<T extends z.AnyZodObject>(schema: T, req: Request) {
   const url = new URL(req.url);
   return schema.safeParse(Object.fromEntries(url.searchParams.entries()));
