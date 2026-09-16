@@ -5,6 +5,7 @@ export const contests: Contest[] = [
     id: 'con-01',
     name: 'NEUCC Programming Contest 2026',
     date: '2026-03-15',
+    isUpcoming: false,
     type: 'Programming',
     result: 'Champion: Team ByteForce',
     winners: [
@@ -17,6 +18,7 @@ export const contests: Contest[] = [
     id: 'con-02',
     name: 'Inter-University CTF Challenge',
     date: '2026-04-20',
+    isUpcoming: false,
     type: 'CTF',
     result: 'Runner-up: Team CipherSquad',
     winners: [
@@ -29,6 +31,7 @@ export const contests: Contest[] = [
     id: 'con-03',
     name: 'NEUCC Hackathon 2025',
     date: '2025-11-08',
+    isUpcoming: false,
     type: 'Hackathon',
     result: 'Winner: Team CampusConnect',
     winners: [
@@ -40,6 +43,7 @@ export const contests: Contest[] = [
     id: 'con-04',
     name: 'ICPC Regional Preliminary',
     date: '2026-02-10',
+    isUpcoming: false,
     type: 'Programming',
     result: 'Qualified for Regionals: 2 teams',
     winners: [
@@ -51,6 +55,7 @@ export const contests: Contest[] = [
     id: 'con-05',
     name: 'National University CTF 2025',
     date: '2025-09-05',
+    isUpcoming: false,
     type: 'CTF',
     result: 'Champion: Team RootAccess',
     winners: [
@@ -63,6 +68,7 @@ export const contests: Contest[] = [
     id: 'con-06',
     name: 'Summer Hackfest 2025',
     date: '2025-06-21',
+    isUpcoming: false,
     type: 'Hackathon',
     result: 'Winner: Team EcoTrack',
     winners: [
@@ -74,6 +80,7 @@ export const contests: Contest[] = [
     id: 'con-07',
     name: 'Upcoming: IUPC Selection Round 2026',
     date: '2026-12-05',
+    isUpcoming: true,
     type: 'Programming',
     result: 'Registration open',
     winners: [],
@@ -83,6 +90,7 @@ export const contests: Contest[] = [
     id: 'con-08',
     name: 'Winter CTF Sprint 2025',
     date: '2025-12-18',
+    isUpcoming: false,
     type: 'CTF',
     result: 'Champion: Team ZeroDay',
     winners: [

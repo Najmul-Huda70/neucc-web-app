@@ -2,24 +2,68 @@ name: NEUCC Web App CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main, dev]
   pull_request:
-    branches: [ main, dev ]
+    branches: [main, dev]
+  workflow_dispatch:
 
 jobs:
-  build-and-test:
+  validate:
+    name: Install, Prisma, Lint, Test, Build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/neucc_test?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/neucc_test?schema=public
+      JWT_ACCESS_SECRET: test-access-secret-1234567890
+      JWT_REFRESH_SECRET: test-refresh-secret-1234567890
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 30d
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: neucc_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d neucc_test"
+          --health-interval=10s
+          --timeout=5s
+          --retries=5
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      - name: Check Project Structure
-        run: |
-          echo "Checking repository setup..."
-          ls -la
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply Prisma migrations
+        run: npx prisma migrate deploy
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build app
+        run: npm run build
+
+      - name: Format check
+        run: npm run format:check
