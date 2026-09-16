@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { X, CalendarDays, MapPin, Users, Share2, Check, ExternalLink } from 'lucide-react';
+import { X, CalendarDays, MapPin, Share2, Check, ExternalLink } from 'lucide-react';
 import type { Event } from '@/types/types';
 
 export function EventModal({
@@ -61,14 +60,7 @@ export function EventModal({
         className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-background"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative h-56 w-full sm:h-64">
-          <Image
-            src={event.image}
-            alt={event.title}
-            fill
-            sizes="672px"
-            className="object-cover"
-          />
+        <div className="relative h-20 w-full bg-primary/10">
           <button
             type="button"
             onClick={onClose}
@@ -79,7 +71,7 @@ export function EventModal({
           </button>
           <span
             className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-medium ${
-              event.status === 'Upcoming'
+              event.status === 'UPCOMING'
                 ? 'bg-success text-white'
                 : 'bg-text-muted text-white'
             }`}
@@ -99,61 +91,31 @@ export function EventModal({
           <div className="mt-4 flex flex-wrap gap-4 text-sm text-text-muted">
             <div className="flex items-center gap-2">
               <CalendarDays size={16} />
-              {new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} · {event.time}
+              {new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </div>
             <div className="flex items-center gap-2">
               <MapPin size={16} />
               {event.venue}
             </div>
-            {event.status === 'Past' && event.participantCount !== undefined && (
-              <div className="flex items-center gap-2">
-                <Users size={16} />
-                {event.participantCount} participants
-              </div>
-            )}
           </div>
 
           <p className="mt-6 text-sm leading-relaxed text-text-muted">
             {event.description}
           </p>
 
-          {event.agenda.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-heading text-sm font-semibold uppercase tracking-wide text-text-main">
-                Agenda
-              </h3>
-              <ul className="mt-3 space-y-2">
-                {event.agenda.map((item, idx) => (
-                  <li key={idx} className="flex gap-3 text-sm text-text-muted">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                      {idx + 1}
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {event.guests.length > 0 && (
+          {event.guests && (
             <div className="mt-6">
               <h3 className="font-heading text-sm font-semibold uppercase tracking-wide text-text-main">
                 Guests
               </h3>
               <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {event.guests.map((guest, idx) => (
-                  <div key={idx} className="rounded-xl border border-border bg-surface p-3">
-                    <p className="text-sm font-semibold text-text-main">{guest.name}</p>
-                    <p className="text-xs text-text-muted">{guest.designation}</p>
-                    <p className="mt-1 text-xs font-medium text-primary">{guest.role}</p>
-                  </div>
-                ))}
+                <p className="text-sm text-text-muted">{event.guests}</p>
               </div>
             </div>
           )}
 
           <div className="mt-8 flex flex-wrap gap-3">
-            {event.status === 'Upcoming' && event.registrationLink && (
+            {event.status === 'UPCOMING' && event.registrationLink && (
               React.createElement('a', { href: event.registrationLink, target: '_blank', rel: 'noopener noreferrer', className: registerLinkClasses }, 'Register Now', React.createElement(ExternalLink, { size: 14 }))
             )}
             <button

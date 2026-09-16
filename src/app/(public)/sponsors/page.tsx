@@ -1,13 +1,15 @@
 export const metadata = { title: 'Sponsors & Partners', description: 'Meet the sponsors and partners supporting NEUCC.' };
 
 import { Mail } from 'lucide-react';
-import { sponsors } from '@/data/sponsors';
+import { prisma } from '@/lib/prisma';
 import { SponsorTierGroup } from '@/components/sections/sponsors/SponsorTierGroup';
 import type { SponsorTier } from '@/types/types';
+import { EmptyState } from '@/components/ui/EmptyState';
 
-const TIERS: SponsorTier[] = ['Platinum', 'Gold', 'Silver'];
+const TIERS: SponsorTier[] = ['PLATINUM', 'GOLD', 'SILVER'];
 
-export default function SponsorsPage() {
+export default async function SponsorsPage() {
+  const sponsors = await prisma.sponsor.findMany({ orderBy: [{ tier: 'asc' }, { name: 'asc' }] });
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="text-center">
@@ -20,11 +22,11 @@ export default function SponsorsPage() {
         </p>
       </div>
 
-      {TIERS.map((tier) => (
+      {sponsors.length === 0 ? <div className="mt-12"><EmptyState title="No sponsors listed yet" description="Sponsor and partner information will appear here once it is added to the club records." /></div> : TIERS.map((tier) => (
         <SponsorTierGroup
           key={tier}
           tier={tier}
-          sponsors={sponsors.filter((sponsor) => sponsor.tier === tier)}
+          sponsors={sponsors.filter((sponsor) => sponsor.tier === tier).map((sponsor) => ({ ...sponsor, logo: sponsor.logoUrl }))}
         />
       ))}
 

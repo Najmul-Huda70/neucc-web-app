@@ -1,12 +1,11 @@
 export const metadata = { title: 'Contests', description: 'Programming contests, CTFs, and hackathons hosted by NEUCC.' };
 
-import { contests } from '@/data/contests';
+import { prisma } from '@/lib/prisma';
 import { ContestCard } from '@/components/sections/contests/ContestCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 
-export default function ContestsPage() {
-  const sorted = [...contests].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+export default async function ContestsPage() {
+  const sorted = await prisma.contest.findMany({ orderBy: { date: 'desc' } });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
@@ -20,10 +19,10 @@ export default function ContestsPage() {
         </p>
       </div>
 
-      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {sorted.map((contest) => (
-          <ContestCard key={contest.id} contest={contest} />
-        ))}
+      <div className="mt-12">
+        {sorted.length === 0 ? <EmptyState title="No contests published yet" description="Contest schedules and results will appear here when the club publishes them." /> : <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">{sorted.map((contest) => (
+          <ContestCard key={contest.id} contest={{ ...contest, date: contest.date.toISOString(), registrationLink: contest.registrationLink }} />
+        ))}</div>}
       </div>
     </div>
   );

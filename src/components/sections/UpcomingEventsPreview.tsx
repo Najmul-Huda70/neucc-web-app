@@ -1,13 +1,13 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { CalendarDays, MapPin, ArrowRight } from 'lucide-react';
-import { events } from '@/data/events';
+import { prisma } from '@/lib/prisma';
 
-export function UpcomingEventsPreview() {
-  const upcoming = events
-    .filter((event) => event.status === 'Upcoming')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 3);
+export async function UpcomingEventsPreview() {
+  const upcoming = await prisma.event.findMany({
+    where: { status: 'UPCOMING' },
+    orderBy: { date: 'asc' },
+    take: 3,
+  });
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -30,15 +30,6 @@ export function UpcomingEventsPreview() {
             key={event.id}
             className="overflow-hidden rounded-2xl border border-border bg-surface"
           >
-            <div className="relative h-40 w-full">
-              <Image
-                src={event.image}
-                alt={event.title}
-                fill
-                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                className="object-cover"
-              />
-            </div>
             <div className="p-5">
               <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                 {event.category}
@@ -49,7 +40,7 @@ export function UpcomingEventsPreview() {
               <div className="mt-3 space-y-1 text-xs text-text-muted">
                 <div className="flex items-center gap-2">
                   <CalendarDays size={14} />
-                  {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · {event.time}
+                  {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin size={14} />

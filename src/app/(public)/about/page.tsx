@@ -1,30 +1,15 @@
 export const metadata = { title: 'About Us', description: "Learn about NEUCC's mission, vision, history, and faculty advisors." };
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Target, Eye, FileDown, ArrowRight, Trophy } from 'lucide-react';
-import { achievements } from '@/data/achievements';
+import { prisma } from '@/lib/prisma';
 
-const MILESTONES = [
-  { year: '2020', title: 'Club Founded', description: 'NEUCC was founded by a small group of first-year CSE students passionate about competitive programming.' },
-  { year: '2021', title: 'First Programming Contest', description: 'Hosted the club\'s first internal programming contest with 40 participants.' },
-  { year: '2022', title: 'First ICPC Participation', description: 'Fielded the club\'s first team at the ICPC Asia Regional Preliminary round.' },
-  { year: '2023', title: 'Cybersecurity Wing Launched', description: 'Introduced CTF training and launched the club\'s first cybersecurity workshop series.' },
-  { year: '2024', title: 'First Hackathon', description: 'Organized the first NEUCC Hackathon, drawing participants from multiple departments.' },
-  { year: '2026', title: '300+ Active Members', description: 'Crossed 300 active members and expanded to weekly workshops and biannual contests.' },
-];
-
-const ADVISORS = [
-  {
-    name: 'Farhana Ahmed',
-    designation: 'Assistant Professor, CSE — Faculty Moderator',
-    message: 'My role is simple: give students the room to experiment, fail safely, and come back stronger. NEUCC has consistently exceeded what I thought possible from a student club.',
-    photo: 'https://picsum.photos/seed/neucc-advisor-01/300/300',
-  },
-];
-
-export default function AboutPage() {
-  const achievementSummary = achievements.slice(0, 3);
+export default async function AboutPage() {
+  const [achievementSummary, blocks] = await Promise.all([
+    prisma.achievement.findMany({ orderBy: { date: 'desc' }, take: 3 }),
+    prisma.siteContent.findMany({ where: { key: { in: ['about.mission', 'about.vision', 'about.history'] } } }),
+  ]);
+  const content = Object.fromEntries(blocks.map((block) => [block.key, typeof block.value === 'string' ? block.value : '']));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
@@ -47,10 +32,7 @@ export default function AboutPage() {
             Our Mission
           </h2>
           <p className="mt-2 text-sm text-text-muted">
-            To cultivate a culture of programming excellence, technical
-            curiosity, and collaborative problem-solving among students of
-            Netrokona University — through contests, workshops, and
-            hands-on learning.
+            {content['about.mission']}
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-surface p-6">
@@ -61,64 +43,12 @@ export default function AboutPage() {
             Our Vision
           </h2>
           <p className="mt-2 text-sm text-text-muted">
-            To be recognized as one of the leading university computing
-            clubs in the country, producing competitive programmers,
-            security researchers, and innovators who represent Bangladesh
-            on regional and global stages.
+            {content['about.vision']}
           </p>
         </div>
       </div>
 
-      <div className="mt-16">
-        <h2 className="text-center font-heading text-2xl font-bold text-text-main sm:text-3xl">
-          Our History
-        </h2>
-        <div className="relative mt-10 space-y-8 border-l border-border pl-8">
-          {MILESTONES.map((milestone) => (
-            <div key={milestone.year} className="relative">
-              <span className="absolute -left-[2.35rem] flex h-5 w-5 items-center justify-center rounded-full border-2 border-background bg-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wide text-primary">
-                {milestone.year}
-              </span>
-              <h3 className="mt-1 font-heading font-semibold text-text-main">
-                {milestone.title}
-              </h3>
-              <p className="mt-1 text-sm text-text-muted">
-                {milestone.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-16">
-        <h2 className="text-center font-heading text-2xl font-bold text-text-main sm:text-3xl">
-          Faculty Advisor
-        </h2>
-        <div className="mt-10 flex justify-center">
-          {ADVISORS.map((advisor) => (
-            <div
-              key={advisor.name}
-              className="flex max-w-xl flex-col items-center gap-4 rounded-2xl border border-border bg-surface p-8 text-center"
-            >
-              <div className="relative h-24 w-24 overflow-hidden rounded-full border border-border">
-                <Image
-                  src={advisor.photo}
-                  alt={advisor.name}
-                  fill
-                  sizes="96px"
-                  className="object-cover"
-                />
-              </div>
-              <p className="text-sm text-text-muted">{advisor.message}</p>
-              <div>
-                <p className="font-heading font-semibold text-text-main">{advisor.name}</p>
-                <p className="text-xs text-text-muted">{advisor.designation}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {content['about.history'] && <p className="mt-16 text-center text-sm text-text-muted">{content['about.history']}</p>}
 
       <div className="mt-16">
         <div className="flex items-center justify-between">
@@ -142,7 +72,7 @@ export default function AboutPage() {
               <h3 className="mt-3 font-heading text-sm font-semibold text-text-main">
                 {item.title}
               </h3>
-              <p className="mt-2 text-xs text-text-muted">{item.organization}</p>
+              <p className="mt-2 text-xs text-text-muted">{item.awardingOrg ?? 'NEUCC'}</p>
             </div>
           ))}
         </div>

@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type { Executive } from '@/types/types';
 
 const SOCIAL_ICON_CLASSES = 'flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-muted transition-colors hover:text-primary';
@@ -39,18 +38,14 @@ export function ExecutiveCard({ executive }: { executive: Executive }) {
   return (
     <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-6 text-center">
       <div className="relative h-24 w-24 overflow-hidden rounded-full border border-border">
-        <Image
-          src={executive.photo}
-          alt={executive.name}
-          fill
-          sizes="96px"
-          className="object-cover"
-        />
+        <span className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-semibold text-primary">
+          {executive.name.charAt(0)}
+        </span>
       </div>
       <h3 className="mt-4 font-heading font-semibold text-text-main">
         {executive.name}
       </h3>
-      <p className="mt-1 text-sm text-primary">{executive.designation}</p>
+      <p className="mt-1 text-sm text-primary">{executive.designation ?? 'Executive Committee Member'}</p>
 
       {hasSocial && (
         <div className="mt-4 flex gap-2">

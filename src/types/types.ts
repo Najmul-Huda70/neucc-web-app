@@ -1,11 +1,5 @@
-export type EventCategory = 'Workshop' | 'Seminar' | 'Competition' | 'Meetup';
-export type EventStatus = 'Upcoming' | 'Past';
-
-export interface EventGuest {
-  name: string;
-  designation: string;
-  role: 'Chief Guest' | 'Special Guest' | 'Session Chair';
-}
+export type EventCategory = 'WORKSHOP' | 'SEMINAR' | 'COMPETITION' | 'MEETUP';
+export type EventStatus = 'UPCOMING' | 'PAST' | 'CANCELLED';
 
 export interface Event {
   id: string;
@@ -14,13 +8,10 @@ export interface Event {
   time: string;
   venue: string;
   description: string;
-  agenda: string[];
   category: EventCategory;
   status: EventStatus;
-  guests: EventGuest[];
-  participantCount?: number;
-  registrationLink?: string;
-  image: string;
+  guests: string | null;
+  registrationLink?: string | null;
 }
 
 export interface ExecutiveSocialLinks {
@@ -32,28 +23,22 @@ export interface ExecutiveSocialLinks {
 export interface Executive {
   id: string;
   name: string;
-  designation: string;
-  photo: string;
+  designation: string | null;
+  photo: string | null;
   rank: number;
   year: string;
   social?: ExecutiveSocialLinks;
 }
 
-export type ContestType = 'Programming' | 'CTF' | 'Hackathon';
-
-export interface ContestWinner {
-  name: string;
-  rank: number;
-}
+export type ContestType = 'PROGRAMMING' | 'CTF' | 'HACKATHON';
 
 export interface Contest {
   id: string;
   name: string;
   date: string;
   type: ContestType;
-  result: string;
-  winners: ContestWinner[];
-  registrationLink?: string;
+  result: string | null;
+  registrationLink?: string | null;
 }
 
 export interface Achievement {
@@ -61,7 +46,7 @@ export interface Achievement {
   title: string;
   description: string;
   date: string;
-  organization: string;
+  organization?: string;
   image: string;
 }
 
@@ -76,14 +61,14 @@ export interface Announcement {
   category: AnnouncementCategory;
 }
 
-export type SponsorTier = 'Platinum' | 'Gold' | 'Silver';
+export type SponsorTier = 'PLATINUM' | 'GOLD' | 'SILVER';
 
 export interface Sponsor {
   id: string;
   name: string;
-  logo: string;
+  logo: string | null;
   tier: SponsorTier;
-  description: string;
+  description: string | null;
 }
 
 export type GalleryMediaType = 'photo' | 'video';
@@ -91,9 +76,8 @@ export type GalleryMediaType = 'photo' | 'video';
 export interface GalleryItem {
   id: string;
   title: string;
-  event: string;
+  event: string | null;
   year: string;
   type: GalleryMediaType;
   url: string;
-  thumbnail: string;
 }

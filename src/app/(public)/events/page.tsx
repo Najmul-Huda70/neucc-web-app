@@ -1,14 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { events } from '@/data/events';
 import type { Event, EventCategory, EventStatus } from '@/types/types';
 import { EventCard } from '@/components/sections/events/EventCard';
 import { EventModal } from '@/components/sections/events/EventModal';
+import { EmptyState } from '@/components/ui/EmptyState';
 
-const CATEGORIES: EventCategory[] = ['Workshop', 'Seminar', 'Competition', 'Meetup'];
-const STATUSES: EventStatus[] = ['Upcoming', 'Past'];
+const CATEGORIES: EventCategory[] = ['WORKSHOP', 'SEMINAR', 'COMPETITION', 'MEETUP'];
+const STATUSES: EventStatus[] = ['UPCOMING', 'PAST', 'CANCELLED'];
 const PAGE_SIZE = 6;
 
 export default function EventsPage() {
@@ -17,6 +17,13 @@ export default function EventsPage() {
   const [statusFilter, setStatusFilter] = useState<EventStatus | 'All'>('All');
   const [page, setPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    fetch('/api/public/events?page=1&pageSize=100')
+      .then((response) => response.json())
+      .then((data) => setEvents(data.events ?? []));
+  }, []);
 
   const filtered = useMemo(() => {
     return events.filter((event) => {
@@ -28,7 +35,7 @@ export default function EventsPage() {
       const matchesStatus = statusFilter === 'All' || event.status === statusFilter;
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [search, categoryFilter, statusFilter]);
+  }, [events, search, categoryFilter, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -86,9 +93,7 @@ export default function EventsPage() {
       </div>
 
       {paginated.length === 0 ? (
-        <p className="mt-16 text-center text-text-muted">
-          No events match your search or filters.
-        </p>
+        <div className="mt-10"><EmptyState title={events.length === 0 ? 'No events published yet' : 'No matching events'} description={events.length === 0 ? 'Upcoming workshops, seminars, and competitions will appear here once they are added to the club records.' : 'Try changing your search or filters to find another event.'} /></div>
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {paginated.map((event) => (

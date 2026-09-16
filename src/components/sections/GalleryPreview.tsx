@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
-import { galleryItems } from '@/data/gallery';
+import { prisma } from '@/lib/prisma';
 
-export function GalleryPreview() {
-  const preview = galleryItems.slice(0, 6);
+export async function GalleryPreview() {
+  const preview = await prisma.galleryItem.findMany({ orderBy: { createdAt: 'desc' }, take: 6 });
 
   return (
     <section className="bg-surface py-16">
@@ -29,8 +29,8 @@ export function GalleryPreview() {
               className="relative aspect-square overflow-hidden rounded-xl border border-border"
             >
               <Image
-                src={item.thumbnail}
-                alt={item.title}
+                src={item.url}
+                alt={item.eventName ?? 'NEUCC gallery media'}
                 fill
                 sizes="(min-width: 1024px) 16vw, (min-width: 640px) 33vw, 50vw"
                 className="object-cover transition-transform hover:scale-105"
