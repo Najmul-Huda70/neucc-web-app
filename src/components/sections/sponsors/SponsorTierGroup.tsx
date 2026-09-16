@@ -2,9 +2,9 @@ import Image from 'next/image';
 import type { Sponsor, SponsorTier } from '@/types/types';
 
 const TIER_STYLES: Record<SponsorTier, string> = {
-  Platinum: 'text-text-main',
-  Gold: 'text-primary',
-  Silver: 'text-text-muted',
+  PLATINUM: 'text-text-main',
+  GOLD: 'text-primary',
+  SILVER: 'text-text-muted',
 };
 
 export function SponsorTierGroup({
@@ -25,13 +25,7 @@ export function SponsorTierGroup({
         {sponsors.map((sponsor) => (
           <div key={sponsor.id} className="rounded-2xl border border-border bg-surface p-6">
             <div className="relative h-16 w-full">
-              <Image
-                src={sponsor.logo}
-                alt={sponsor.name}
-                fill
-                sizes="300px"
-                className="rounded-md object-cover"
-              />
+              {sponsor.logo ? <Image src={sponsor.logo} alt={sponsor.name} fill sizes="300px" className="rounded-md object-cover" /> : <span className="text-2xl font-semibold text-primary">{sponsor.name.charAt(0)}</span>}
             </div>
             <h3 className="mt-4 font-heading font-semibold text-text-main">
               {sponsor.name}

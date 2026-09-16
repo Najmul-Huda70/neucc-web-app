@@ -1,23 +1,38 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Video } from 'lucide-react';
-import { galleryItems } from '@/data/gallery';
 import { Lightbox } from '@/components/sections/gallery/Lightbox';
+import type { GalleryItem } from '@/types/types';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function GalleryPage() {
   const [eventFilter, setEventFilter] = useState<string>('All');
   const [yearFilter, setYearFilter] = useState<string>('All');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+
+  useEffect(() => {
+    fetch('/api/public/gallery')
+      .then((response) => response.json())
+      .then((data) => setGalleryItems((data.items ?? []).map((item: { id: string; url: string; isVideo: boolean; eventName: string | null; year: number }) => ({
+        id: item.id,
+        title: item.eventName ?? 'NEUCC media',
+        event: item.eventName,
+        year: String(item.year),
+        type: item.isVideo ? 'video' : 'photo',
+        url: item.url,
+      }))));
+  }, []);
 
   const events = useMemo(
-    () => Array.from(new Set(galleryItems.map((item) => item.event))).sort(),
-    [],
+    () => Array.from(new Set(galleryItems.map((item) => item.event).filter((event): event is string => Boolean(event)))).sort(),
+    [galleryItems],
   );
   const years = useMemo(
     () => Array.from(new Set(galleryItems.map((item) => item.year))).sort((a, b) => Number(b) - Number(a)),
-    [],
+    [galleryItems],
   );
 
   const filtered = useMemo(() => {
@@ -26,7 +41,7 @@ export default function GalleryPage() {
       const matchesYear = yearFilter === 'All' || item.year === yearFilter;
       return matchesEvent && matchesYear;
     });
-  }, [eventFilter, yearFilter]);
+  }, [galleryItems, eventFilter, yearFilter]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -63,9 +78,7 @@ export default function GalleryPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="mt-16 text-center text-text-muted">
-          No media matches your filters.
-        </p>
+        <div className="mt-10"><EmptyState title={galleryItems.length === 0 ? 'Gallery is waiting for its first upload' : 'No media matches your filters'} description={galleryItems.length === 0 ? 'Photos and videos from NEUCC events will appear here after they are uploaded.' : 'Try selecting a different event or year.'} /></div>
       ) : (
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map((item, index) => (
@@ -76,7 +89,7 @@ export default function GalleryPage() {
               className="group relative aspect-square overflow-hidden rounded-xl border border-border"
             >
               <Image
-                src={item.thumbnail}
+                src={item.url}
                 alt={item.title}
                 fill
                 sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"

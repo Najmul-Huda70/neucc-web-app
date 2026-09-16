@@ -88,7 +88,7 @@ export function Lightbox({
         <div className="mt-4 text-center text-white">
           <p className="font-heading font-semibold">{item.title}</p>
           <p className="mt-1 text-sm text-white/70">
-            {item.event} · {item.year}
+            {item.event ?? 'NEUCC'} · {item.year}
           </p>
         </div>
       </div>

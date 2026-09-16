@@ -1,13 +1,11 @@
 export const metadata = { title: 'Achievements & Awards', description: "Explore NEUCC's timeline of awards, recognitions, and milestones." };
 
-import Image from 'next/image';
 import { Award, Building2 } from 'lucide-react';
-import { achievements } from '@/data/achievements';
+import { prisma } from '@/lib/prisma';
+import { EmptyState } from '@/components/ui/EmptyState';
 
-export default function AchievementsPage() {
-  const sorted = [...achievements].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+export default async function AchievementsPage() {
+  const sorted = await prisma.achievement.findMany({ orderBy: { date: 'desc' } });
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
@@ -20,24 +18,14 @@ export default function AchievementsPage() {
         </p>
       </div>
 
-      <div className="relative mt-14 space-y-10 border-l border-border pl-8 sm:pl-10">
-        {sorted.map((item) => (
+      <div className="mt-14">
+        {sorted.length === 0 ? <EmptyState title="No achievements published yet" description="Recognitions and milestones will appear here once they are added to the NEUCC records." /> : <div className="relative space-y-10 border-l border-border pl-8 sm:pl-10">{sorted.map((item) => (
           <div key={item.id} className="relative">
             <span className="absolute -left-[2.6rem] flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-primary text-white sm:-left-[3.1rem]">
               <Award size={12} />
             </span>
 
             <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 sm:flex-row sm:p-6">
-              <div className="relative h-40 w-full flex-shrink-0 overflow-hidden rounded-xl sm:h-28 sm:w-40">
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  fill
-                  sizes="(min-width: 640px) 160px, 100vw"
-                  className="object-cover"
-                />
-              </div>
-
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wide text-primary">
                   {new Date(item.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -46,16 +34,16 @@ export default function AchievementsPage() {
                   {item.title}
                 </h3>
                 <p className="mt-2 text-sm text-text-muted">
-                  {item.description}
+                  {item.description ?? 'No description provided.'}
                 </p>
                 <div className="mt-3 flex items-center gap-2 text-xs text-text-muted">
                   <Building2 size={14} />
-                  {item.organization}
+                  {item.awardingOrg ?? 'NEUCC'}
                 </div>
               </div>
             </div>
           </div>
-        ))}
+        ))}</div>}
       </div>
     </div>
   );
