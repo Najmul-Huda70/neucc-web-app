@@ -10,6 +10,22 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    # Docker PostgreSQL Service Integration (Host Port-less setup)
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: neucc_test
+        ports:
+          - 5432 # ✅ Host port-less binding to prevent Docker exit code 125
+        options: >-
+          --health-cmd "pg_isready -U postgres -d neucc_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -36,3 +52,5 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
