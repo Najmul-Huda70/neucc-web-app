@@ -1,3 +1,5 @@
+export const metadata = { title: 'About Us', description: "Learn about NEUCC's mission, vision, history, and faculty advisors." };
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Target, Eye, FileDown, ArrowRight, Trophy } from 'lucide-react';

@@ -1,3 +1,5 @@
+export const metadata = { title: 'Executive Committee', description: 'Meet the current and past executive committees of NEUCC.' };
+
 import { executives } from '@/data/executives';
 import { ExecutiveCard } from '@/components/sections/executives/ExecutiveCard';
 import { PastCommittees } from '@/components/sections/executives/PastCommittees';
