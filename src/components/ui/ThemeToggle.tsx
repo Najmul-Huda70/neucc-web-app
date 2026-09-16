@@ -6,7 +6,16 @@ import { Sun, Moon } from 'lucide-react';
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+<<<<<<< HEAD
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
+=======
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe mount guard is intentional
+    setMounted(true);
+  }, []);
+>>>>>>> origin/dev
 
   if (!mounted) {
     return <div className="h-9 w-9" aria-hidden="true" />;
