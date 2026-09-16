@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/passwords";
 import { signAccessToken, signRefreshToken } from "@/lib/auth/jwt";
 import { setAuthCookies } from "@/lib/auth/cookies";
+import { hashRefreshToken } from "@/lib/auth/refresh-tokens";
+import { randomUUID } from "node:crypto";
 
 const LoginSchema = z.object({
   email: z.string().email(),
@@ -45,7 +47,15 @@ export async function POST(req: Request) {
     postId: user.postId,
     committeeId: user.committeeId,
   });
-  const refreshToken = await signRefreshToken({ sub: user.id });
+  const refreshToken = await signRefreshToken({ sub: user.id, jti: randomUUID() });
+
+  await prisma.refreshToken.create({
+    data: {
+      tokenHash: hashRefreshToken(refreshToken),
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+  });
 
   setAuthCookies(accessToken, refreshToken);
 

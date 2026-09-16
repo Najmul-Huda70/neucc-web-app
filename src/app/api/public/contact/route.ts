@@ -1,26 +1,28 @@
 import { prisma } from "@/lib/prisma";
 import { ContactMessageSchema } from "@/lib/validation/public";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { readJsonBody, withRateLimitHeaders } from "@/lib/http/request";
 
 // POST /api/public/contact
 export async function POST(req: Request) {
   const ip = getClientIp(req);
-  const { allowed } = rateLimit(`contact:${ip}`, { limit: 5, windowMs: 60_000 });
+  const rate = rateLimit(`contact:${ip}`, { limit: 5, windowMs: 60_000 });
+  const { allowed } = rate;
   if (!allowed) {
-    return Response.json({ error: "Too many submissions, please try again later" }, { status: 429 });
+    return withRateLimitHeaders(Response.json({ error: "Too many submissions, please try again later" }, { status: 429 }), rate.remaining, rate.resetAt);
   }
 
-  const body = await req.json().catch(() => null);
+  const body = await readJsonBody(req);
   const parsed = ContactMessageSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+    return withRateLimitHeaders(Response.json({ error: parsed.error.flatten() }, { status: 400 }), rate.remaining, rate.resetAt);
   }
 
   const { website, ...data } = parsed.data;
   if (website) {
-    return Response.json({ ok: true }); // honeypot tripped, silently drop
+    return withRateLimitHeaders(Response.json({ ok: true }), rate.remaining, rate.resetAt); // honeypot tripped, silently drop
   }
 
   const message = await prisma.contactMessage.create({ data });
-  return Response.json({ ok: true, id: message.id }, { status: 201 });
+  return withRateLimitHeaders(Response.json({ ok: true, id: message.id }, { status: 201 }), rate.remaining, rate.resetAt);
 }

@@ -9,6 +9,7 @@
  */
 
 const buckets = new Map<string, { count: number; resetAt: number }>();
+const MAX_BUCKETS = 10_000;
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -21,6 +22,11 @@ export function rateLimit(
   { limit = 5, windowMs = 60_000 }: { limit?: number; windowMs?: number } = {}
 ): RateLimitResult {
   const now = Date.now();
+  if (buckets.size >= MAX_BUCKETS) {
+    for (const [bucketKey, value] of buckets) {
+      if (value.resetAt <= now) buckets.delete(bucketKey);
+    }
+  }
   const bucket = buckets.get(key);
 
   if (!bucket || bucket.resetAt <= now) {
