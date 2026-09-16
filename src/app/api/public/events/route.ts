@@ -1,14 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import type { EventCategory, EventStatus, Prisma } from "@prisma/client";
+import { parsePublicQuery, PublicEventsQuerySchema } from "@/lib/validation/public";
+import type { Prisma } from "@prisma/client";
 
 // GET /api/public/events?status=UPCOMING&category=WORKSHOP&q=hackathon&page=1&pageSize=10
 export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const status = url.searchParams.get("status") as EventStatus | null;
-  const category = url.searchParams.get("category") as EventCategory | null;
-  const q = url.searchParams.get("q")?.trim();
-  const page = Math.max(1, Number(url.searchParams.get("page") ?? 1));
-  const pageSize = Math.min(50, Math.max(1, Number(url.searchParams.get("pageSize") ?? 12)));
+  const parsed = parsePublicQuery(PublicEventsQuerySchema, req);
+  if (!parsed.success) {
+    return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const { status, category, q, page, pageSize } = parsed.data;
 
   const where: Prisma.EventWhereInput = {
     ...(status ? { status } : {}),

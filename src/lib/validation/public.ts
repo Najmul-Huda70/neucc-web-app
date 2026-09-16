@@ -20,3 +20,21 @@ export const ContactMessageSchema = z.object({
   message: z.string().min(5).max(3000),
   website: z.string().max(0).optional(), // honeypot
 });
+
+const PaginationSchema = z.object({
+  page: z.coerce.number().int().min(1).max(10_000).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(15),
+});
+
+export const PublicEventsQuerySchema = PaginationSchema.extend({
+  status: z.enum(["UPCOMING", "PAST", "CANCELLED"]).optional(),
+  category: z.enum(["WORKSHOP", "SEMINAR", "COMPETITION", "MEETUP"]).optional(),
+  q: z.string().trim().max(100).optional(),
+});
+
+export const PublicAnnouncementsQuerySchema = PaginationSchema;
+
+export function parsePublicQuery<T extends z.AnyZodObject>(schema: T, req: Request) {
+  const url = new URL(req.url);
+  return schema.safeParse(Object.fromEntries(url.searchParams.entries()));
+}

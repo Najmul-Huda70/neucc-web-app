@@ -1,26 +1,28 @@
 import { prisma } from "@/lib/prisma";
 import { MembershipApplicationSchema } from "@/lib/validation/public";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { readJsonBody, withRateLimitHeaders } from "@/lib/http/request";
 
 // POST /api/public/join-us
 export async function POST(req: Request) {
   const ip = getClientIp(req);
-  const { allowed } = rateLimit(`join-us:${ip}`, { limit: 3, windowMs: 60_000 });
+  const rate = rateLimit(`join-us:${ip}`, { limit: 3, windowMs: 60_000 });
+  const { allowed } = rate;
   if (!allowed) {
-    return Response.json({ error: "Too many submissions, please try again later" }, { status: 429 });
+    return withRateLimitHeaders(Response.json({ error: "Too many submissions, please try again later" }, { status: 429 }), rate.remaining, rate.resetAt);
   }
 
-  const body = await req.json().catch(() => null);
+  const body = await readJsonBody(req);
   const parsed = MembershipApplicationSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+    return withRateLimitHeaders(Response.json({ error: parsed.error.flatten() }, { status: 400 }), rate.remaining, rate.resetAt);
   }
 
   const { website, ...data } = parsed.data;
   if (website) {
     // Honeypot tripped — pretend success so the bot doesn't learn anything,
     // but don't actually write a row.
-    return Response.json({ ok: true });
+    return withRateLimitHeaders(Response.json({ ok: true }), rate.remaining, rate.resetAt);
   }
 
   const application = await prisma.membershipApplication.create({
@@ -33,5 +35,5 @@ export async function POST(req: Request) {
     },
   });
 
-  return Response.json({ ok: true, id: application.id }, { status: 201 });
+  return withRateLimitHeaders(Response.json({ ok: true, id: application.id }, { status: 201 }), rate.remaining, rate.resetAt);
 }

@@ -4,9 +4,6 @@ import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 // Next.js middleware.ts uses — jsonwebtoken depends on Node's crypto module
 // and will throw inside middleware.
 
-const ACCESS_SECRET = new TextEncoder().encode(requireEnv("JWT_ACCESS_SECRET"));
-const REFRESH_SECRET = new TextEncoder().encode(requireEnv("JWT_REFRESH_SECRET"));
-
 const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN ?? "15m";
 const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN ?? "30d";
 
@@ -18,6 +15,14 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function accessSecret(): Uint8Array {
+  return new TextEncoder().encode(requireEnv("JWT_ACCESS_SECRET"));
+}
+
+function refreshSecret(): Uint8Array {
+  return new TextEncoder().encode(requireEnv("JWT_REFRESH_SECRET"));
+}
+
 export interface AccessTokenPayload extends JWTPayload {
   sub: string; // userId
   role: "ELECTION_COMMITTEE" | "EXECUTIVE_COMMITTEE";
@@ -27,6 +32,7 @@ export interface AccessTokenPayload extends JWTPayload {
 
 export interface RefreshTokenPayload extends JWTPayload {
   sub: string; // userId
+  jti: string; // persisted refresh-token identifier
 }
 
 export async function signAccessToken(payload: Omit<AccessTokenPayload, "iat" | "exp">) {
@@ -34,7 +40,7 @@ export async function signAccessToken(payload: Omit<AccessTokenPayload, "iat" | 
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(ACCESS_EXPIRES_IN)
-    .sign(ACCESS_SECRET);
+    .sign(accessSecret());
 }
 
 export async function signRefreshToken(payload: Omit<RefreshTokenPayload, "iat" | "exp">) {
@@ -42,12 +48,12 @@ export async function signRefreshToken(payload: Omit<RefreshTokenPayload, "iat" 
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(REFRESH_EXPIRES_IN)
-    .sign(REFRESH_SECRET);
+    .sign(refreshSecret());
 }
 
 export async function verifyAccessToken(token: string): Promise<AccessTokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, ACCESS_SECRET);
+    const { payload } = await jwtVerify(token, accessSecret());
     return payload as AccessTokenPayload;
   } catch {
     return null; // expired, malformed, or wrong signature
@@ -56,7 +62,7 @@ export async function verifyAccessToken(token: string): Promise<AccessTokenPaylo
 
 export async function verifyRefreshToken(token: string): Promise<RefreshTokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, REFRESH_SECRET);
+    const { payload } = await jwtVerify(token, refreshSecret());
     return payload as RefreshTokenPayload;
   } catch {
     return null;
