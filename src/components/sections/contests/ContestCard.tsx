@@ -8,11 +8,6 @@ const TYPE_STYLES: Record<Contest['type'], string> = {
 };
 
 export function ContestCard({ contest }: { contest: Contest }) {
-<<<<<<< HEAD
-=======
-  const isUpcoming = contest.isUpcoming ?? false;
-
->>>>>>> origin/dev
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
