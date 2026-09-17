@@ -23,7 +23,7 @@ describe('LoginPage', () => {
     expect(screen.getByRole('option', { name: /chief election officer/i })).toBeInTheDocument();
   });
 
-  it('submits real email and password credentials to the backend login API', async () => {
+  it('submits registration number and password to the backend login API', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -39,8 +39,8 @@ describe('LoginPage', () => {
     const user = userEvent.setup();
     render(<LoginPage />);
 
-    await user.type(screen.getByLabelText(/email/i), 'president@neucc.test');
-    await user.type(screen.getByLabelText(/password/i), 'secret123');
+    await user.type(screen.getByLabelText(/registration number/i), '2024-12345');
+    await user.type(screen.getByLabelText(/password/i), '123456');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -48,7 +48,12 @@ describe('LoginPage', () => {
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'president@neucc.test', password: 'secret123' }),
+        body: JSON.stringify({
+          registrationNumber: '2024-12345',
+          password: '123456',
+          role: 'EXECUTIVE_COMMITTEE',
+          position: 'GENERAL_SECRETARY',
+        }),
       }),
     );
 

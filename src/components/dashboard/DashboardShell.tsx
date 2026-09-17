@@ -41,6 +41,13 @@ const executiveActions = [
   'Review financial updates',
 ];
 
+const memberActions = [
+  'View member directory',
+  'Review club announcements',
+  'Submit membership update',
+  'Access event reminders',
+];
+
 const generalSecretaryActions = [
   'Review meeting records',
   'Publish official notice',
@@ -272,7 +279,9 @@ export function DashboardShell() {
             ? eventCoordinatorActions
             : selectedPosition === 'PRESIDENT'
               ? presidentActions
-              : executiveActions;
+              : selectedPosition === 'MEMBER'
+                ? memberActions
+                : executiveActions;
 
   const showMeetingRecords =
     selectedPosition === 'GENERAL_SECRETARY' && activeAction === 'Review meeting records';
@@ -722,6 +731,20 @@ export function DashboardShell() {
                         setShowMemberUpdateForm(false);
                         setShowNoticeForm(false);
                         setShowRecordForm(false);
+                      }
+
+                      if (item === 'View member directory' || item === 'Review club announcements' || item === 'Submit membership update' || item === 'Access event reminders') {
+                        setShowFinanceForm(false);
+                        setShowExpenseForm(false);
+                        setShowIncomeForm(false);
+                        setShowBudgetOverview(false);
+                        setShowCommunicationForm(false);
+                        setShowMemberUpdateForm(false);
+                        setShowNoticeForm(false);
+                        setShowRecordForm(false);
+                        setShowRegistrationForm(false);
+                        setShowVenueForm(false);
+                        setShowVolunteerForm(false);
                       }
                     }}
                     className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm text-text-main transition ${
@@ -1405,6 +1428,70 @@ export function DashboardShell() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {selectedPosition === 'MEMBER' && activeAction === 'View member directory' && (
+                <div className="mt-6 rounded-xl border border-border bg-surface p-4">
+                  <h3 className="font-heading text-lg font-bold">Member Directory</h3>
+                  <p className="mt-2 text-sm text-text-muted">Committee membership overview</p>
+                  <div className="mt-4 space-y-3">
+                    {[
+                      { name: 'Rafiul Islam', role: 'Programming Team Member', status: 'Active' },
+                      { name: 'Nusrat Jahan', role: 'Event Team Member', status: 'Active' },
+                      { name: 'Mahmudul Hasan', role: 'Finance & Outreach Member', status: 'Active' },
+                    ].map((member) => (
+                      <div key={member.name} className="rounded-xl border border-border bg-background p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="font-medium text-text-main">{member.name}</p>
+                          <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                            {member.status}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm text-text-muted">{member.role}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedPosition === 'MEMBER' && activeAction === 'Review club announcements' && (
+                <div className="mt-6 rounded-xl border border-border bg-surface p-4">
+                  <h3 className="font-heading text-lg font-bold">Club Announcements</h3>
+                  <div className="mt-4 space-y-3">
+                    {[
+                      { title: 'New workshop registration open', detail: 'Registration is open for the upcoming CTF preparation workshop.' },
+                      { title: 'General meeting reminder', detail: 'All members are invited to the general executive update this Friday.' },
+                    ].map((item) => (
+                      <div key={item.title} className="rounded-xl border border-border bg-background p-3">
+                        <p className="font-medium text-text-main">{item.title}</p>
+                        <p className="mt-2 text-sm text-text-main">{item.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedPosition === 'MEMBER' && activeAction === 'Submit membership update' && (
+                <div className="mt-6 rounded-xl border border-border bg-surface p-4">
+                  <h3 className="font-heading text-lg font-bold">Membership Update</h3>
+                  <div className="mt-4 rounded-xl border border-border bg-background p-4 text-sm text-text-main">
+                    Member submissions are reviewed by the General Secretary and office coordinators before updates are approved.
+                  </div>
+                </div>
+              )}
+
+              {selectedPosition === 'MEMBER' && activeAction === 'Access event reminders' && (
+                <div className="mt-6 rounded-xl border border-border bg-surface p-4">
+                  <h3 className="font-heading text-lg font-bold">Event Reminders</h3>
+                  <div className="mt-4 space-y-3">
+                    <div className="rounded-xl border border-border bg-background p-3 text-sm text-text-main">
+                      Tech meetup registration closes in 2 days.
+                    </div>
+                    <div className="rounded-xl border border-border bg-background p-3 text-sm text-text-main">
+                      Orientation session for new members is scheduled for Saturday morning.
+                    </div>
+                  </div>
                 </div>
               )}
 
