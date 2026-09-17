@@ -26,15 +26,18 @@ export async function GalleryPreview() {
           {preview.map((item) => (
             <div
               key={item.id}
-              className="relative aspect-square overflow-hidden rounded-xl border border-border"
+              className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-background"
             >
               <Image
                 src={item.url}
                 alt={item.eventName ?? 'NEUCC gallery media'}
                 fill
                 sizes="(min-width: 1024px) 16vw, (min-width: 640px) 33vw, 50vw"
-                className="object-cover transition-transform hover:scale-105"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3 pt-10 opacity-0 transition-opacity group-hover:opacity-100">
+                <p className="truncate text-xs font-semibold text-white">{item.eventName ?? 'NEUCC moment'}</p>
+              </div>
             </div>
           ))}
         </div>

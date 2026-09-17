@@ -6,16 +6,21 @@ import { Video } from 'lucide-react';
 import { Lightbox } from '@/components/sections/gallery/Lightbox';
 import type { GalleryItem } from '@/types/types';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { GalleryGridLoading } from '@/components/ui/LoadingState';
 
 export default function GalleryPage() {
   const [eventFilter, setEventFilter] = useState<string>('All');
   const [yearFilter, setYearFilter] = useState<string>('All');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/public/gallery')
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to load gallery');
+        return response.json();
+      })
       .then((data) => setGalleryItems((data.items ?? []).map((item: { id: string; url: string; isVideo: boolean; eventName: string | null; year: number }) => ({
         id: item.id,
         title: item.eventName ?? 'NEUCC media',
@@ -23,7 +28,9 @@ export default function GalleryPage() {
         year: String(item.year),
         type: item.isVideo ? 'video' : 'photo',
         url: item.url,
-      }))));
+      }))))
+      .catch(() => setGalleryItems([]))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const events = useMemo(
@@ -77,7 +84,9 @@ export default function GalleryPage() {
         </select>
       </div>
 
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="mt-10"><GalleryGridLoading /></div>
+      ) : filtered.length === 0 ? (
         <div className="mt-10"><EmptyState title={galleryItems.length === 0 ? 'Gallery is waiting for its first upload' : 'No media matches your filters'} description={galleryItems.length === 0 ? 'Photos and videos from NEUCC events will appear here after they are uploaded.' : 'Try selecting a different event or year.'} /></div>
       ) : (
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
