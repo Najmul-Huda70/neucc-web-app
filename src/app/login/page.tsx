@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ShieldCheck, LockKeyhole, ArrowRight } from 'lucide-react';
 
@@ -28,7 +28,7 @@ const committeeRoles = [
   },
 ];
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = useMemo(() => searchParams.get('next') || '/dashboard', [searchParams]);
@@ -50,7 +50,6 @@ export default function LoginPage() {
     setEmail('');
     setError('');
     if (nextPosition) {
-      // Keep the selected interface position in sync without forcing a fake default login identifier.
       setPositionsByRole((current) => ({ ...current, [role]: nextPosition }));
     }
   };
@@ -240,5 +239,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-background" />}>
+      <LoginForm />
+    </Suspense>
   );
 }
