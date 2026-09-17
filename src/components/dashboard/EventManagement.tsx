@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { CalendarRange, MapPin, Plus, Tag, Users, X } from 'lucide-react';
 
 const initialEventRows = [
@@ -37,9 +36,11 @@ const initialEventRows = [
   },
 ];
 
-export function EventManagement() {
-  const searchParams = useSearchParams();
-  const selectedRole = searchParams.get('role') ?? 'EXECUTIVE_COMMITTEE';
+type EventManagementProps = {
+  selectedRole?: string;
+};
+
+export function EventManagement({ selectedRole = 'EXECUTIVE_COMMITTEE' }: EventManagementProps) {
   const roleLabel =
     selectedRole === 'ELECTION_COMMITTEE' ? 'Election Committee' : 'Executive Committee';
   const [isFormOpen, setIsFormOpen] = useState(false);

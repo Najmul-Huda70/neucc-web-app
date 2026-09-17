@@ -1,8 +1,8 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
 // jose (not jsonwebtoken) because it runs in the Edge runtime, which is what
-// Next.js middleware.ts uses — jsonwebtoken depends on Node's crypto module
-// and will throw inside middleware.
+// Next.js proxy.ts uses — jsonwebtoken depends on Node's crypto module
+// and will throw inside proxy.
 
 const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN ?? "15m";
 const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN ?? "30d";
