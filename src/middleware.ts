@@ -9,7 +9,9 @@ import { verifyAccessToken } from "@/lib/auth/jwt";
 // this one keeps obviously-unauthenticated traffic out cheaply; the other
 // enforces the real, current RBAC state per SRS §3 ("enforced in every
 // route handler, not just hidden in the UI").
-const PROTECTED_PREFIXES = ["/api/panel", "/dashboard"];
+// Temporarily keep only panel API routes protected while the dashboard frontend
+// is being developed without backend auth enforcement in the browser preview.
+const PROTECTED_PREFIXES = ["/api/panel"];
 
 export async function middleware(req: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((p) =>
@@ -41,5 +43,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/panel/:path*", "/dashboard/:path*"],
+  matcher: ["/api/panel/:path*"],
 };

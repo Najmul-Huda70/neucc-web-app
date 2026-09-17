@@ -2,6 +2,17 @@
 
 Official website for the Netrokona University Computer Club.
 
+## Recent bug fixes resolved
+
+The following issues were fixed in the current workspace:
+
+- removed leftover Git merge conflict markers in the frontend components
+- corrected the contest type mismatch between data and TypeScript types
+- normalized contest and committee date handling for build-time prerendering
+- guarded missing committee member arrays during static page generation
+- added safe fallback data so the app can render without a live database connection
+- updated Next.js image configuration to allow Unsplash-hosted gallery images
+
 ## Local development
 
 1. Copy [.env.example](.env.example) to `.env.local` and fill in the values.

@@ -32,6 +32,11 @@ export interface Executive {
 
 export type ContestType = 'PROGRAMMING' | 'CTF' | 'HACKATHON';
 
+export interface ContestWinner {
+  name: string;
+  rank: number;
+}
+
 export interface Contest {
   id: string;
   name: string;
@@ -39,6 +44,7 @@ export interface Contest {
   isUpcoming?: boolean;
   type: ContestType;
   result: string | null;
+  winners?: ContestWinner[];
   registrationLink?: string | null;
 }
 
