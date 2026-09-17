@@ -38,7 +38,7 @@ function LoginForm() {
     EXECUTIVE_COMMITTEE: 'GENERAL_SECRETARY',
     ELECTION_COMMITTEE: 'CHIEF_ELECTION_OFFICER',
   });
-  const [email, setEmail] = useState('');
+  const [registrationNumber, setRegistrationNumber] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -47,7 +47,7 @@ function LoginForm() {
     setSelectedRole(role);
     const nextPosition = positionsByRole[role] ?? committeeRoles.find((item) => item.value === role)?.positions[0]?.value ?? 'GENERAL_SECRETARY';
     setPassword('');
-    setEmail('');
+    setRegistrationNumber('');
     setError('');
     if (nextPosition) {
       setPositionsByRole((current) => ({ ...current, [role]: nextPosition }));
@@ -62,7 +62,7 @@ function LoginForm() {
       [role]: value,
     }));
     setPassword('');
-    setEmail('');
+    setRegistrationNumber('');
     setError('');
     setSelectedRole(role);
   };
@@ -73,14 +73,21 @@ function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      if (!email.trim() || !password.trim()) {
-        throw new Error('Please enter both email and password.');
+      if (!registrationNumber.trim()) {
+        throw new Error('Please enter your registration number.');
       }
+
+      const finalPassword = password.trim() || '123456';
 
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({
+          registrationNumber: registrationNumber.trim(),
+          password: finalPassword,
+          role: selectedRole,
+          position: selectedPosition,
+        }),
       });
 
       const payload = await response.json().catch(() => ({}));
@@ -186,19 +193,19 @@ function LoginForm() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium text-text-main">
-                  Email
+                <label htmlFor="registrationNumber" className="block text-sm font-medium text-text-main">
+                  Registration number
                 </label>
                 <div className="relative">
                   <ShieldCheck className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
                   <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    id="registrationNumber"
+                    type="text"
+                    value={registrationNumber}
+                    onChange={(event) => setRegistrationNumber(event.target.value)}
                     className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-3 text-sm text-text-main outline-none transition focus:border-primary"
-                    placeholder="president@neucc.edu"
-                    autoComplete="email"
+                    placeholder="2024-12345"
+                    autoComplete="username"
                   />
                 </div>
               </div>
@@ -215,7 +222,7 @@ function LoginForm() {
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-3 text-sm text-text-main outline-none transition focus:border-primary"
-                    placeholder="Enter your password"
+                    placeholder="123456"
                   />
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAccessToken } from "@/lib/auth/jwt";
 
-// Middleware runs on the Edge runtime, which can't reach Prisma/Postgres —
+// Proxy runs on the Edge runtime, which can't reach Prisma/Postgres —
 // so this only checks that a *valid, unexpired* access token exists and
 // redirects/blocks if not. The full check (account revoked? committee
 // dissolved?) happens in getCurrentUser() inside each route handler /
@@ -13,7 +13,7 @@ import { verifyAccessToken } from "@/lib/auth/jwt";
 // is being developed without backend auth enforcement in the browser preview.
 const PROTECTED_PREFIXES = ["/api/panel"];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((p) =>
     req.nextUrl.pathname.startsWith(p)
   );

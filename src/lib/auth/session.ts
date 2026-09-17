@@ -20,7 +20,7 @@ export interface CurrentUser {
  * is revoked the moment a committee is marked Dissolved, not just at login.
  *
  * Use this inside Route Handlers / Server Components (Node runtime), not
- * inside middleware.ts (Edge runtime — see middleware.ts for the lightweight
+ * inside proxy.ts (Edge runtime — see proxy.ts for the lightweight
  * token-presence check used there instead).
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {

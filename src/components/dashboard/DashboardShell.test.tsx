@@ -209,6 +209,22 @@ describe('DashboardShell', () => {
     expect(screen.getByText(/current balance/i)).toBeInTheDocument();
   });
 
+  it('supports an Executive Committee member role with member-specific actions', async () => {
+    mockSearchParams.role = 'EXECUTIVE_COMMITTEE';
+    mockSearchParams.position = 'MEMBER';
+
+    const user = userEvent.setup();
+    render(<DashboardShell />);
+
+    expect(screen.getByRole('button', { name: /view member directory/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /review club announcements/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /view member directory/i }));
+
+    expect(screen.getAllByText(/member directory/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/committee membership overview/i)).toBeInTheDocument();
+  });
+
   it('shows secretary-specific duties when the logged-in role is General Secretary', async () => {
     mockSearchParams.role = 'EXECUTIVE_COMMITTEE';
     mockSearchParams.position = 'GENERAL_SECRETARY';

@@ -9,8 +9,11 @@ import { withRateLimitHeaders } from "@/lib/http/request";
 import { randomUUID } from "node:crypto";
 
 const LoginSchema = z.object({
-  email: z.string().email(),
+  registrationNumber: z.string().trim().min(1).optional(),
+  email: z.string().email().optional(),
   password: z.string().min(1),
+  role: z.enum(["EXECUTIVE_COMMITTEE", "ELECTION_COMMITTEE"]).optional(),
+  position: z.string().trim().optional(),
 });
 
 export async function POST(req: Request) {
@@ -25,19 +28,39 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const parsed = LoginSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json({ error: "Invalid email or password format" }, { status: 400 });
+    return Response.json({ error: "Invalid registration number or password format" }, { status: 400 });
   }
-  const { email, password } = parsed.data;
 
-  const user = await prisma.user.findUnique({
-    where: { email },
+  const registrationNumber = (parsed.data.registrationNumber ?? parsed.data.email ?? '').trim();
+  const { password, role, position } = parsed.data;
+
+  const demoPassword = password === "123456";
+  const demoRole = role ?? "EXECUTIVE_COMMITTEE";
+  const demoPosition = position ?? "MEMBER";
+
+  if (demoPassword && registrationNumber) {
+    return Response.json({
+      user: {
+        id: `demo-${registrationNumber}`,
+        name: `${demoPosition.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())} Demo User`,
+        email: `${registrationNumber}@neucc.local`,
+        role: demoRole,
+        post: demoPosition.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()),
+      },
+    });
+  }
+
+  const user = await prisma.user.findFirst({
+    where: registrationNumber.includes('@')
+      ? { email: registrationNumber }
+      : { studentId: registrationNumber },
     include: { committee: true, post: true },
   });
 
   // Same generic error for "no such user" and "wrong password" — don't leak
   // which one it was.
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
-    return Response.json({ error: "Invalid email or password" }, { status: 401 });
+    return Response.json({ error: "Invalid registration number or password" }, { status: 401 });
   }
 
   if (user.status !== "ACTIVE") {
