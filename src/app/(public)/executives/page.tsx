@@ -11,8 +11,15 @@ export default async function ExecutivesPage() {
     orderBy: { startDate: 'desc' },
     include: { members: { include: { post: true }, orderBy: { post: { rank: 'asc' } } } },
   });
+
+  const getYearFromValue = (value: Date | string | null | undefined) => {
+    if (!value) return 'Current';
+    const date = value instanceof Date ? value : new Date(value);
+    return Number.isNaN(date.getTime()) ? 'Current' : date.getFullYear().toString();
+  };
+
   const currentCommitteeRecord = committees[0];
-  const currentYear = currentCommitteeRecord?.startDate.getFullYear().toString() ?? 'Current';
+  const currentYear = getYearFromValue(currentCommitteeRecord?.startDate);
   const toExecutive = (member: (typeof committees)[number]['members'][number]) => ({
     id: member.id,
     name: member.name,
@@ -21,10 +28,10 @@ export default async function ExecutivesPage() {
     rank: member.post?.rank ?? 999,
     year: currentYear,
   });
-  const currentCommittee = currentCommitteeRecord?.members.map(toExecutive) ?? [];
+  const currentCommittee = currentCommitteeRecord?.members?.map(toExecutive) ?? [];
   const pastCommittees = committees.slice(1).map((committee) => ({
-    year: committee.startDate.getFullYear().toString(),
-    members: committee.members.map((member) => ({ ...toExecutive(member), year: committee.startDate.getFullYear().toString() })),
+    year: getYearFromValue(committee.startDate),
+    members: committee.members?.map((member) => ({ ...toExecutive(member), year: getYearFromValue(committee.startDate) })) ?? [],
   }));
 
   return (

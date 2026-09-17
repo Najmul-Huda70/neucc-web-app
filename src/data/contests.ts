@@ -6,7 +6,7 @@ export const contests: Contest[] = [
     name: 'NEUCC Programming Contest 2026',
     date: '2026-03-15',
     isUpcoming: false,
-    type: 'Programming',
+    type: 'PROGRAMMING',
     result: 'Champion: Team ByteForce',
     winners: [
       { name: 'Team ByteForce', rank: 1 },
@@ -32,7 +32,7 @@ export const contests: Contest[] = [
     name: 'NEUCC Hackathon 2025',
     date: '2025-11-08',
     isUpcoming: false,
-    type: 'Hackathon',
+    type: 'HACKATHON',
     result: 'Winner: Team CampusConnect',
     winners: [
       { name: 'Team CampusConnect', rank: 1 },
@@ -44,7 +44,7 @@ export const contests: Contest[] = [
     name: 'ICPC Regional Preliminary',
     date: '2026-02-10',
     isUpcoming: false,
-    type: 'Programming',
+    type: 'PROGRAMMING',
     result: 'Qualified for Regionals: 2 teams',
     winners: [
       { name: 'Team ByteForce', rank: 1 },
@@ -69,7 +69,7 @@ export const contests: Contest[] = [
     name: 'Summer Hackfest 2025',
     date: '2025-06-21',
     isUpcoming: false,
-    type: 'Hackathon',
+    type: 'HACKATHON',
     result: 'Winner: Team EcoTrack',
     winners: [
       { name: 'Team EcoTrack', rank: 1 },
@@ -81,7 +81,7 @@ export const contests: Contest[] = [
     name: 'Upcoming: IUPC Selection Round 2026',
     date: '2026-12-05',
     isUpcoming: true,
-    type: 'Programming',
+    type: 'PROGRAMMING',
     result: 'Registration open',
     winners: [],
     registrationLink: 'https://forms.gle/neucc-iupc-2026',
