@@ -4,8 +4,8 @@ export type EventStatus = 'UPCOMING' | 'PAST' | 'CANCELLED';
 export interface Event {
   id: string;
   title: string;
-  date: string;
-  time: string;
+  date: string | Date;
+  time?: string;
   venue: string;
   description: string;
   category: EventCategory;

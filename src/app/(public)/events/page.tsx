@@ -1,28 +1,30 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type { Event, EventCategory, EventStatus } from '@/types/types';
 import { EventCard } from '@/components/sections/events/EventCard';
-import { EventModal } from '@/components/sections/events/EventModal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { CardGridLoading } from '@/components/ui/LoadingState';
 
 const CATEGORIES: EventCategory[] = ['WORKSHOP', 'SEMINAR', 'COMPETITION', 'MEETUP'];
-const STATUSES: EventStatus[] = ['UPCOMING', 'PAST', 'CANCELLED'];
-const PAGE_SIZE = 6;
 
 export default function EventsPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<EventCategory | 'All'>('All');
   const [statusFilter, setStatusFilter] = useState<EventStatus | 'All'>('All');
-  const [page, setPage] = useState(1);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/public/events?page=1&pageSize=100')
-      .then((response) => response.json())
-      .then((data) => setEvents(data.events ?? []));
+    fetch('/api/public/events?page=1&pageSize=50')
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to load events');
+        return response.json();
+      })
+      .then((data) => setEvents(data.events ?? []))
+      .catch(() => setEvents([]))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const filtered = useMemo(() => {
@@ -37,12 +39,8 @@ export default function EventsPage() {
     });
   }, [events, search, categoryFilter, statusFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
   const updateFilter = <T,>(setter: (value: T) => void, value: T) => {
     setter(value);
-    setPage(1);
   };
 
   return (
@@ -56,78 +54,93 @@ export default function EventsPage() {
         </p>
       </div>
 
-      <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-xs">
-          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+      <div className="mt-10 rounded-2xl border border-border bg-stat-surface/70 p-4 sm:p-5">
+        <div className="relative w-full">
+          <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             value={search}
             onChange={(e) => updateFilter(setSearch, e.target.value)}
-            placeholder="Search events..."
-            className="w-full rounded-lg border border-border bg-surface py-2.5 pl-9 pr-4 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder="Search events by title, venue or topic"
+            className="h-11 w-full rounded-lg border border-border bg-surface pl-11 pr-4 text-sm text-text-main shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-text-muted"
           />
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => updateFilter(setStatusFilter, e.target.value as EventStatus | 'All')}
-            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="All">All Statuses</option>
-            {STATUSES.map((status) => (
-              <option key={status} value={status}>{status}</option>
-            ))}
-          </select>
-          <select
-            value={categoryFilter}
-            onChange={(e) => updateFilter(setCategoryFilter, e.target.value as EventCategory | 'All')}
-            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="All">All Categories</option>
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+        <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-2" aria-label="Filter by category">
+            {(['All', ...CATEGORIES] as const).map((category) => {
+              const isActive = categoryFilter === category;
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => updateFilter(setCategoryFilter, category)}
+                  className={`h-9 rounded-lg border px-4 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'border-primary bg-primary text-white shadow-sm'
+                      : 'border-border bg-surface text-text-main hover:border-primary/50 hover:bg-background'
+                  }`}
+                >
+                  {category === 'All' ? 'All' : category[0] + category.slice(1).toLowerCase()}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-1 border-t border-border pt-3 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0" aria-label="Filter by status">
+            {(['All', 'UPCOMING', 'PAST'] as const).map((status) => {
+              const isActive = statusFilter === status;
+              return (
+                <button
+                  key={status}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => updateFilter(setStatusFilter, status)}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-surface text-text-main shadow-sm ring-1 ring-border'
+                      : 'text-text-muted hover:bg-surface hover:text-text-main'
+                  }`}
+                >
+                  {status === 'UPCOMING' ? 'Upcoming' : status === 'PAST' ? 'Past' : 'All'}
+                </button>
+              );
+            })}
+          </div>
+
         </div>
       </div>
 
-      {paginated.length === 0 ? (
+      <div className="mt-8 flex items-center justify-between gap-4">
+        <p className="text-sm font-medium text-text-muted">
+          {isLoading ? 'Loading events...' : `${filtered.length} ${filtered.length === 1 ? 'event' : 'events'} found`}
+        </p>
+        {(search || categoryFilter !== 'All' || statusFilter !== 'All') && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearch('');
+              setCategoryFilter('All');
+              setStatusFilter('All');
+            }}
+            className="text-sm font-semibold text-primary hover:text-primary-hover"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
+      {isLoading ? (
+        <div className="mt-8"><CardGridLoading /></div>
+      ) : filtered.length === 0 ? (
         <div className="mt-10"><EmptyState title={events.length === 0 ? 'No events published yet' : 'No matching events'} description={events.length === 0 ? 'Upcoming workshops, seminars, and competitions will appear here once they are added to the club records.' : 'Try changing your search or filters to find another event.'} /></div>
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {paginated.map((event) => (
-            <EventCard key={event.id} event={event} onClick={() => setSelectedEvent(event)} />
+          {filtered.map((event) => (
+            <EventCard key={event.id} event={event} detailsHref={`/events/${event.id}`} />
           ))}
         </div>
-      )}
-
-      {totalPages > 1 && (
-        <div className="mt-10 flex items-center justify-center gap-4">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-text-main transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span className="text-sm text-text-muted">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-text-main transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      )}
-
-      {selectedEvent && (
-        <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
       )}
     </div>
   );

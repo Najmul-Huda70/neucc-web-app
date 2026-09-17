@@ -569,7 +569,7 @@ export function DashboardShell() {
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {overviewCards.map(({ title, value, icon: Icon }) => (
-              <div key={title} className="rounded-xl border border-border bg-background p-4">
+              <div key={title} className="rounded-xl border border-border bg-stat-surface p-4">
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm text-text-muted">{title}</p>
                   <div className="rounded-lg bg-primary/10 p-2 text-primary">
