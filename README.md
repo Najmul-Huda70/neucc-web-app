@@ -40,6 +40,9 @@ npm run build
 
 ## Deployment checklist
 
+The Sprint 4 backend deployment, onboarding, backup, rollback, and security
+steps are documented in [docs/SPRINT_4_RELEASE.md](docs/SPRINT_4_RELEASE.md).
+
 ### Neon or Supabase
 
 - Create a Postgres database.

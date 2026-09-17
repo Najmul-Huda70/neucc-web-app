@@ -16,6 +16,9 @@ export type Action =
   // Events (§6.2)
   | "event:manage" // create/edit/delete
   | "event:view"
+  // Public content management (§3.3–3.9, Sprint 2)
+  | "content:manage"
+  | "content:view"
   // Notices (§6.3, §6.3.4)
   | "notice:publish:general"
   | "notice:publish:internal"
@@ -73,6 +76,10 @@ export function can(user: CurrentUser, action: Action): boolean {
 
     case "event:view":
       return true; // any logged-in role; public visitors use the public API instead
+
+    case "content:manage":
+    case "content:view":
+      return isExecutiveCommittee && !!post && (post === "President" || post === "Information Secretary" || post === "Assistant Information Secretary" || post === "General Secretary" || post === "Editor Secretary" || post === "Assistant Editor Secretary");
 
     case "notice:publish:general":
     case "notice:publish:internal":

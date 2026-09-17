@@ -4,6 +4,8 @@ import { verifyPassword } from "@/lib/auth/passwords";
 import { signAccessToken, signRefreshToken } from "@/lib/auth/jwt";
 import { setAuthCookies } from "@/lib/auth/cookies";
 import { hashRefreshToken } from "@/lib/auth/refresh-tokens";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { withRateLimitHeaders } from "@/lib/http/request";
 import { randomUUID } from "node:crypto";
 
 const LoginSchema = z.object({
@@ -12,6 +14,14 @@ const LoginSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const limit = rateLimit(`login:${getClientIp(req)}`, { limit: 10, windowMs: 15 * 60_000 });
+  if (!limit.allowed) {
+    return withRateLimitHeaders(
+      Response.json({ error: "Too many login attempts. Try again later." }, { status: 429 }),
+      limit.remaining,
+      limit.resetAt,
+    );
+  }
   const body = await req.json().catch(() => null);
   const parsed = LoginSchema.safeParse(body);
   if (!parsed.success) {
