@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAccessToken } from "@/lib/auth/jwt";
 
-// Middleware runs on the Edge runtime, which can't reach Prisma/Postgres —
+// proxy runs on the Edge runtime, which can't reach Prisma/Postgres —
 // so this only checks that a *valid, unexpired* access token exists and
 // redirects/blocks if not. The full check (account revoked? committee
 // dissolved?) happens in getCurrentUser() inside each route handler /
@@ -39,6 +39,8 @@ export async function middleware(req: NextRequest) {
 
   return response;
 }
+
+export const proxy = middleware;
 
 export const config = {
   matcher: ["/api/panel/:path*", "/dashboard/:path*"],

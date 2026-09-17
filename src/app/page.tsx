@@ -1,4 +1,5 @@
 import { HeroSection } from '@/components/sections/HeroSection';
+import { MissionVision } from '@/components/sections/MissionVision';
 import { AboutSnapshot } from '@/components/sections/AboutSnapshot';
 import { ClubInNumbers } from '@/components/sections/ClubInNumbers';
 import { ChairpersonMessage } from '@/components/sections/ChairpersonMessage';
@@ -13,6 +14,7 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
+      <MissionVision />
       <AboutSnapshot />
       <ClubInNumbers />
       <ChairpersonMessage />

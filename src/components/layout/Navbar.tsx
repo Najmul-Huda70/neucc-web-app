@@ -9,7 +9,6 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/events', label: 'Events' },
-  { href: '/about', label: 'About' },
   { href: '/executives', label: 'Executives' },
   { href: '/contests', label: 'Contests' },
   { href: '/gallery', label: 'Gallery' },
@@ -55,6 +54,12 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/login"
+            className="hidden rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold text-text-main transition-colors hover:bg-surface sm:inline-flex"
+          >
+            User Panel
+          </Link>
           <div className="hidden sm:block">
             <ThemeToggle />
           </div>
@@ -86,9 +91,17 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <div className="mt-2 flex items-center justify-between border-t border-border px-3 pt-3 sm:hidden">
-              <span className="text-sm text-text-muted">Theme</span>
-              <ThemeToggle />
+            <div className="mt-2 flex flex-col gap-3 border-t border-border px-3 pt-3 sm:hidden">
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold text-text-main"
+              >
+                User Panel
+              </Link>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-muted">Theme</span>
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         </div>
