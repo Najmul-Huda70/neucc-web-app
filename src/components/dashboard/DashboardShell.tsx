@@ -156,12 +156,17 @@ const emptyMeetingRecords: Array<{
   submittedBy: string;
 }> = [];
 
-const emptyNotices: Array<{
+type NoticeEntry = {
+  id?: string;
   title: string;
-  audience: string;
+  audience?: string;
   details: string;
-  submittedBy: string;
-}> = [];
+  submittedBy?: string;
+  scope?: string;
+  date?: string;
+};
+
+const emptyNotices: NoticeEntry[] = [];
 
 const emptyMemberUpdates: Array<{
   name: string;
@@ -362,7 +367,15 @@ export function DashboardShell() {
       if (!res.ok) {
         if (res.status === 401) {
           setNotices((current) => [
-            { id: `demo-notice-${Date.now()}`, title: electionNoticeDraft.title.trim(), details: electionNoticeDraft.details.trim(), scope: 'ELECTION', date: new Date().toISOString(), submittedBy: 'Chief Election Officer' },
+            {
+              id: `demo-notice-${Date.now()}`,
+              title: electionNoticeDraft.title.trim(),
+              audience: 'Election Committee',
+              details: electionNoticeDraft.details.trim(),
+              scope: 'ELECTION',
+              date: new Date().toISOString(),
+              submittedBy: 'Chief Election Officer',
+            },
             ...current,
           ]);
           setElectionNoticeDraft({ title: '', details: '' });
@@ -375,7 +388,14 @@ export function DashboardShell() {
       const json = await res.json().catch(() => null);
       const created = json?.data ?? null;
       if (created) {
-        setNotices((current) => [ { ...created, submittedBy: 'Chief Election Officer' }, ...current ]);
+        setNotices((current) => [
+          {
+            ...created,
+            audience: created.audience ?? 'Election Committee',
+            submittedBy: 'Chief Election Officer',
+          },
+          ...current,
+        ]);
       }
       setElectionNoticeDraft({ title: '', details: '' });
       setShowElectionNoticeForm(false);
@@ -1277,18 +1297,18 @@ export function DashboardShell() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {notices.map((notice) => (
-                        <div key={`${notice.title}-${notice.audience}`} className="rounded-xl border border-border bg-background p-3">
+                      {notices.map((notice, index) => (
+                        <div key={notice.id ?? `${notice.title}-${notice.audience ?? 'notice'}-${index}`} className="rounded-xl border border-border bg-background p-3">
                           <div className="flex items-center justify-between gap-3">
                             <p className="font-medium text-text-main">{notice.title}</p>
                             <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
                               Published
                             </span>
                           </div>
-                          <p className="mt-2 text-sm text-text-muted">Audience: {notice.audience}</p>
+                          <p className="mt-2 text-sm text-text-muted">Audience: {notice.audience ?? 'Election Committee'}</p>
                           <p className="mt-2 text-sm text-text-main">{notice.details}</p>
                           <p className="mt-2 text-xs uppercase tracking-[0.2em] text-text-muted">
-                            Submitted by: {notice.submittedBy}
+                            Submitted by: {notice.submittedBy ?? 'System'}
                           </p>
                         </div>
                       ))}
