@@ -20,7 +20,7 @@ describe('LoginPage', () => {
     expect(screen.getAllByRole('combobox', { name: /select other role/i })).toHaveLength(2);
     expect(screen.getByRole('option', { name: /president/i })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: /general secretary/i })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /chief election officer/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: /election commissioner/i })).toHaveLength(2);
   });
 
   it('submits registration number and password to the backend login API', async () => {

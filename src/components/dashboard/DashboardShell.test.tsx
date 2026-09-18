@@ -209,6 +209,22 @@ describe('DashboardShell', () => {
     expect(screen.getByText(/current balance/i)).toBeInTheDocument();
   });
 
+  it('gives the Election Commissioner a dedicated oversight workflow', async () => {
+    mockSearchParams.role = 'ELECTION_COMMITTEE';
+    mockSearchParams.position = 'ELECTION_COMMISSIONER';
+
+    const user = userEvent.setup();
+    render(<DashboardShell />);
+
+    expect(screen.getByText(/election commissioner/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /review ballot eligibility/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /verify candidate submissions/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /review election timeline/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /review ballot eligibility/i }));
+    expect(screen.getByText(/ballot eligibility review/i)).toBeInTheDocument();
+  });
+
   it('supports an Executive Committee member role with member-specific actions', async () => {
     mockSearchParams.role = 'EXECUTIVE_COMMITTEE';
     mockSearchParams.position = 'MEMBER';

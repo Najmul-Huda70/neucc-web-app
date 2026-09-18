@@ -77,6 +77,7 @@ const presidentActions = [
 ];
 
 const electionActions = [
+  'Review ballot eligibility',
   'Review election timeline',
   'Verify candidate submissions',
   'Publish election notices',
@@ -226,7 +227,7 @@ export function DashboardShell() {
   const selectedRole = searchParams.get('role') ?? 'EXECUTIVE_COMMITTEE';
   const rawPosition = searchParams.get('position');
   const defaultPosition =
-    selectedRole === 'ELECTION_COMMITTEE' ? 'CHIEF_ELECTION_OFFICER' : 'GENERAL_SECRETARY';
+    selectedRole === 'ELECTION_COMMITTEE' ? 'CHIEF_ELECTION_COMMISSIONER' : 'GENERAL_SECRETARY';
   const selectedPosition = rawPosition ?? defaultPosition;
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const [showRecordForm, setShowRecordForm] = useState(false);
@@ -747,6 +748,20 @@ export function DashboardShell() {
                         setShowNoticeForm(false);
                       }
 
+                      if (item === 'Review ballot eligibility') {
+                        setShowRecordForm(false);
+                        setShowNoticeForm(false);
+                        setShowMemberUpdateForm(false);
+                        setShowCommunicationForm(false);
+                        setShowRegistrationForm(false);
+                        setShowVenueForm(false);
+                        setShowVolunteerForm(false);
+                        setShowBudgetOverview(false);
+                        setShowIncomeForm(false);
+                        setShowExpenseForm(false);
+                        setShowFinanceForm(false);
+                      }
+
                       if (item === 'Publish official notice') {
                         setShowNoticeForm(true);
                         setShowRecordForm(false);
@@ -1014,6 +1029,30 @@ export function DashboardShell() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {selectedRole === 'ELECTION_COMMITTEE' && activeAction === 'Review ballot eligibility' && (
+                <div className="mt-6 rounded-xl border border-border bg-surface p-4">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <h3 className="font-heading text-lg font-bold">Ballot Eligibility Review</h3>
+                    <p className="text-sm text-text-muted">Check academic batches, committee assignments, and candidate validity before ballot publication.</p>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div className="rounded-xl border border-border bg-background p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Eligible batches</p>
+                      <p className="mt-2 font-heading text-2xl font-bold">2022–2026</p>
+                    </div>
+                    <div className="rounded-xl border border-border bg-background p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Pending checks</p>
+                      <p className="mt-2 font-heading text-2xl font-bold">07</p>
+                    </div>
+                    <div className="rounded-xl border border-border bg-background p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Compliance</p>
+                      <p className="mt-2 font-heading text-2xl font-bold">96%</p>
+                    </div>
+                  </div>
                 </div>
               )}
 
