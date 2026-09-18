@@ -20,7 +20,7 @@ const committeeRoles = [
     value: 'ELECTION_COMMITTEE',
     label: 'Election Committee',
     positions: [
-      { value: 'CHIEF_ELECTION_OFFICER', label: 'Chief Election Officer' },
+      { value: 'CHIEF_ELECTION_COMMISSIONER', label: 'Chief Election Commissioner' },
       { value: 'ELECTION_COMMISSIONER', label: 'Election Commissioner' },
       { value: 'RETURNING_OFFICER', label: 'Returning Officer' },
       { value: 'MEMBER', label: 'Member' },
@@ -36,7 +36,7 @@ function LoginForm() {
   const [selectedRole, setSelectedRole] = useState<'EXECUTIVE_COMMITTEE' | 'ELECTION_COMMITTEE'>('EXECUTIVE_COMMITTEE');
   const [positionsByRole, setPositionsByRole] = useState<Record<string, string>>({
     EXECUTIVE_COMMITTEE: 'GENERAL_SECRETARY',
-    ELECTION_COMMITTEE: 'CHIEF_ELECTION_OFFICER',
+    ELECTION_COMMITTEE: 'CHIEF_ELECTION_COMMISSIONER',
   });
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [password, setPassword] = useState('');
