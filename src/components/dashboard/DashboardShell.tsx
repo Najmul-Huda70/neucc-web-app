@@ -245,6 +245,9 @@ export function DashboardShell() {
   const [noticeDraft, setNoticeDraft] = useState(initialNotice);
   const [electionNoticeDraft, setElectionNoticeDraft] = useState({ title: '', details: '' });
   const [showElectionNoticeForm, setShowElectionNoticeForm] = useState(false);
+  const [registrationId, setRegistrationId] = useState('2026-7788');
+  const [newPassword, setNewPassword] = useState('');
+  const [credentialsSaved, setCredentialsSaved] = useState(false);
   const [memberUpdateDraft, setMemberUpdateDraft] = useState(initialMemberUpdate);
   const [communicationDraft, setCommunicationDraft] = useState(initialCommunication);
   const [registrationDraft, setRegistrationDraft] = useState(initialRegistration);
@@ -538,6 +541,14 @@ export function DashboardShell() {
     setShowFinanceForm(false);
   };
 
+  const handleSaveCredentials = () => {
+    if (!registrationId.trim() || !newPassword.trim()) {
+      return;
+    }
+
+    setCredentialsSaved(true);
+  };
+
   const handleCommunicationDraftChange = (field: keyof typeof initialCommunication, value: string) => {
     setCommunicationDraft((current) => ({ ...current, [field]: value }));
   };
@@ -733,6 +744,58 @@ export function DashboardShell() {
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-heading text-xl font-bold">Quick actions</h2>
                 <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+
+              <div className="mb-6 rounded-xl border border-border bg-surface p-4">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h3 className="font-heading text-lg font-bold">Account Security</h3>
+                  <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                    {roleLabel}
+                  </span>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <label className="space-y-2 text-sm text-text-main">
+                    <span>Registration number</span>
+                    <input
+                      aria-label="Registration number"
+                      type="text"
+                      value={registrationId}
+                      onChange={(event) => {
+                        setRegistrationId(event.target.value);
+                        setCredentialsSaved(false);
+                      }}
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
+                    />
+                  </label>
+
+                  <label className="space-y-2 text-sm text-text-main">
+                    <span>New password</span>
+                    <input
+                      aria-label="New password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(event) => {
+                        setNewPassword(event.target.value);
+                        setCredentialsSaved(false);
+                      }}
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleSaveCredentials}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white"
+                  >
+                    Save credentials
+                  </button>
+                  {credentialsSaved && (
+                    <span className="text-sm font-medium text-primary">Credentials updated successfully</span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-3">
