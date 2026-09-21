@@ -12,7 +12,16 @@ export async function GET(_req: Request, { params }: Context) {
   const { id } = await params;
 
   try {
-    const item = await prisma.candidate.findUnique({ where: { id }, include: { post: true, symbol: true, verifiedBy: true, payment: true, electionResult: true } });
+    const item = await prisma.candidate.findUnique({
+      where: { id },
+      include: {
+        post: true,
+        symbol: true,
+        verifiedBy: { select: { id: true, name: true } },
+        payment: true,
+        electionResult: true,
+      },
+    });
     if (!item) return apiError(404, 'NOT_FOUND', 'Candidate not found.');
     return ok(item);
   } catch {

@@ -24,7 +24,13 @@ export async function GET(req: Request) {
     const [items, total] = await Promise.all([
       prisma.candidate.findMany({
         where,
-        include: { post: true, symbol: true, verifiedBy: true, payment: true, electionResult: true },
+        include: {
+          post: true,
+          symbol: true,
+          verifiedBy: { select: { id: true, name: true } },
+          payment: true,
+          electionResult: true,
+        },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,

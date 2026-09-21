@@ -12,7 +12,10 @@ export async function GET(_req: Request, { params }: Context) {
   const { id } = await params;
 
   try {
-    const item = await prisma.payment.findUnique({ where: { id }, include: { candidate: true, verifiedBy: true } });
+    const item = await prisma.payment.findUnique({
+      where: { id },
+      include: { candidate: true, verifiedBy: { select: { id: true, name: true } } },
+    });
     if (!item) return apiError(404, 'NOT_FOUND', 'Payment not found.');
     return ok(item);
   } catch {

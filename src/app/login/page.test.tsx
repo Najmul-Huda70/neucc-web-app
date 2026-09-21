@@ -12,15 +12,12 @@ vi.mock('next/navigation', () => ({
 }));
 
 describe('LoginPage', () => {
-  it('shows sub-role options for executive and election committee members', () => {
+  it('does not show committee role selectors', () => {
     render(<LoginPage />);
 
-    expect(screen.getByRole('button', { name: /executive committee/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /election committee/i })).toBeInTheDocument();
-    expect(screen.getAllByRole('combobox', { name: /select other role/i })).toHaveLength(2);
-    expect(screen.getByRole('option', { name: /president/i })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /general secretary/i })).toBeInTheDocument();
-    expect(screen.getAllByRole('option', { name: /election commissioner/i })).toHaveLength(2);
+    expect(screen.queryByText('Executive Committee')).not.toBeInTheDocument();
+    expect(screen.queryByText('Election Committee')).not.toBeInTheDocument();
+    expect(screen.queryAllByRole('combobox')).toHaveLength(0);
   });
 
   it('submits registration number and password to the backend login API', async () => {
@@ -51,8 +48,6 @@ describe('LoginPage', () => {
         body: JSON.stringify({
           registrationNumber: '2024-12345',
           password: '123456',
-          role: 'EXECUTIVE_COMMITTEE',
-          position: 'GENERAL_SECRETARY',
         }),
       }),
     );

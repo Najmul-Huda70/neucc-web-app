@@ -13,6 +13,8 @@ export type Action =
   | "election:manage" // create election, verify candidates, allot symbols
   | "election:grant_access" // President grants Chief Election Commissioner access
   | "election:dissolve_executive" // Chief Election Commissioner, once granted
+  | "committee:create_election" // President forms the Election Committee (SRS §5.3)
+  | "user:manage" // President: create/move/revoke committee member accounts
   // Events (§6.2)
   | "event:manage" // create/edit/delete
   | "event:view"
@@ -30,6 +32,8 @@ export type Action =
   // Resolutions & documents (§6.3)
   | "resolution:manage"
   | "document:manage"
+  | "membership:manage" // review Join Us applications
+  | "contact:view" // view Contact form submissions
   // Attendance (§6.4)
   | "attendance:create_form"
   | "attendance:view_all" // full access to every submission
@@ -71,6 +75,12 @@ export function can(user: CurrentUser, action: Action): boolean {
     case "election:dissolve_executive":
       return isElectionCommittee && post === "Chief Election Commissioner" && user.electionAccessGranted;
 
+    case "committee:create_election":
+      return isExecutiveCommittee && post === "President";
+
+    case "user:manage":
+      return isExecutiveCommittee && post === "President";
+
     case "event:manage":
       return isExecutiveCommittee && !!post && EVENT_MANAGERS.has(post);
 
@@ -103,6 +113,15 @@ export function can(user: CurrentUser, action: Action): boolean {
     case "resolution:manage":
     case "document:manage":
       return isExecutiveCommittee && !!post && ATTENDANCE_MANAGERS.has(post); // same posts, §6.3
+
+    case "membership:manage":
+    case "contact:view":
+      // Not named in the original permission matrix — reasonable scope
+      // decision, documented in docs/STEP_10_CHANGELOG.md: these are
+      // public-facing inbound submissions (Join Us applications, Contact
+      // messages), so gated to the top two Executive Committee posts
+      // rather than inventing a new dedicated post.
+      return isExecutiveCommittee && (post === "President" || post === "General Secretary");
 
     case "attendance:create_form":
       return isExecutiveCommittee && !!post && ATTENDANCE_MANAGERS.has(post);

@@ -243,6 +243,31 @@ export const FinanceTransactionCreateSchema = z.object({
 
 export const FinanceTransactionUpdateSchema = FinanceTransactionCreateSchema.partial();
 
+export const FundHeadCreateSchema = z.object({
+  name: z.string().trim().min(2).max(150),
+  type: z.enum(["INCOME", "EXPENSE"]),
+});
+
+export const FinanceReportQuerySchema = z.object({
+  startDate: DateInput,
+  endDate: DateInput,
+  format: z.enum(["json", "pdf", "xlsx"]).default("json"),
+});
+
+export const NoticeAiDraftSchema = z.object({
+  scope: z.enum(["GENERAL", "INTERNAL", "ELECTION"]),
+  instruction: z.string().trim().min(3).max(2000),
+  conversation: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().max(4000),
+      })
+    )
+    .max(20)
+    .optional(),
+});
+
 export const ResolutionCreateSchema = z.object({
   meetingNo: z.string().trim().min(1).max(100),
   memoNo: z.string().trim().min(1).max(100),
@@ -274,8 +299,46 @@ export const DocumentCreateSchema = z.object({
   path: ["noticeId"],
 });
 
+export const MembershipStatusUpdateSchema = z.object({
+  status: z.enum(["APPROVED", "REJECTED"]),
+});
+
 export const OperationsPaginationSchema = PaginationSchema.extend({
   q: z.string().trim().max(100).optional(),
+});
+
+export const UserQuerySchema = OperationsPaginationSchema.extend({
+  committeeId: z.string().trim().max(200).optional(),
+  postId: z.string().trim().max(200).optional(),
+  role: z.enum(['ELECTION_COMMITTEE', 'EXECUTIVE_COMMITTEE']).optional(),
+  status: z.enum(['ACTIVE', 'REVOKED']).optional(),
+});
+
+// `role` is intentionally NOT accepted here — it's always derived server-side
+// from the target committee's `type`, so a client can never request a role
+// that doesn't match the committee it's assigning the user into.
+export const UserCreateSchema = z.object({
+  name: z.string().trim().min(2).max(200),
+  email: z.string().trim().toLowerCase().email().max(200),
+  password: z.string().min(12).max(200),
+  postId: z.string().trim().min(1).max(200),
+  committeeId: z.string().trim().min(1).max(200),
+  studentId: z.string().trim().max(50).nullable().optional(),
+  batch: z.coerce.number().int().min(2000).max(new Date().getFullYear() + 10).nullable().optional(),
+});
+
+// Same field set as create, all optional, minus password (handled by its own
+// optional field below) and `electionAccessGranted` — that flag only ever
+// changes through the dedicated grant-access endpoint (Step 3), never
+// through this generic profile update.
+export const UserUpdateSchema = z.object({
+  name: z.string().trim().min(2).max(200).optional(),
+  postId: z.string().trim().min(1).max(200).optional(),
+  committeeId: z.string().trim().min(1).max(200).nullable().optional(),
+  studentId: z.string().trim().max(50).nullable().optional(),
+  batch: z.coerce.number().int().min(2000).max(new Date().getFullYear() + 10).nullable().optional(),
+  status: z.enum(['ACTIVE', 'REVOKED']).optional(),
+  password: z.string().min(12).max(200).optional(),
 });
 
 export function parsePublicQuery<T extends z.AnyZodObject>(schema: T, req: Request) {

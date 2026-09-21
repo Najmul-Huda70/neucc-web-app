@@ -513,6 +513,74 @@ Sprint 4 PR title for Zuel:
 feat(sprint-4): complete operations UI and release QA
 ```
 
+## Current Project Status and Next Sprint
+
+The backend foundation, public website, authentication, protected API routes,
+Prisma migrations, dashboard shell, event management UI, API reference, and
+demo credentials are implemented. The current quality gates pass:
+
+```text
+npx tsc --noEmit   PASS
+npm run lint       PASS
+npm run test       PASS (20 tests)
+npm run build      PASS
+```
+
+The next sprint focuses on completing frontend integration and release
+verification. Work should be completed in this order:
+
+1. **Create the shared API client**
+  - Add typed GET/POST/PATCH/DELETE helpers in `src/lib/api-client.ts`.
+  - Normalize API errors and handle `401` session expiry consistently.
+
+2. **Finish Event and Notice workflows**
+  - Connect dashboard forms to the protected APIs.
+  - Complete create, edit, delete, validation, loading, empty and forbidden states.
+
+3. **Complete Sprint 2 content screens**
+  - Add Achievements, Contests, Sponsors, Gallery and Site Content management UI.
+  - Connect public home and listing pages to the corresponding APIs.
+
+4. **Complete governance screens**
+  - Add committee, election, candidate, payment, symbol and result screens.
+  - Hide or disable actions according to authenticated user capabilities.
+
+5. **Complete operations screens**
+  - Add attendance, finance, resolution and document management UI.
+  - Include Treasurer, President and Information Secretary permission states.
+
+6. **Verify authentication flows**
+  - Test seeded Executive Committee login, logout, refresh and revoked sessions.
+  - Decide and implement the final Election Committee login experience after the
+    role selector removal.
+
+7. **Expand automated coverage**
+  - Add API tests for `401`, `403`, validation, not-found, scope isolation and
+    protected mutations.
+  - Add UI tests for CRUD success, errors, empty states and capability visibility.
+
+8. **Run browser and responsive QA**
+  - Verify desktop and mobile layouts for public pages and dashboard screens.
+  - Check event sharing, forms, navigation, browser console errors and keyboard use.
+
+9. **Prepare production configuration**
+  - Configure database URLs, JWT secrets, token expiry values and app URL.
+  - Take a database backup, deploy migrations and run admin onboarding once.
+
+10. **Release validation and merge**
+   - Run typecheck, lint, tests, build and production smoke checks.
+   - Update the task board, complete the PR review checklist, merge into `dev`,
+    then promote the validated release to `main`.
+
+### Next Sprint Definition of Done
+
+- All planned dashboard screens use the shared API client.
+- Every screen has loading, empty, success, validation, `401` and `403` states.
+- CRUD and permission behavior is covered by focused tests.
+- Desktop and mobile browser checks are recorded in the PR.
+- Production environment and migration steps are verified without committing secrets.
+- `npx tsc --noEmit`, `npm run lint`, `npm run test`, and `npm run build` pass.
+
 ### Sprint Completion and `dev` Merge
 
 At the end of every Sprint:

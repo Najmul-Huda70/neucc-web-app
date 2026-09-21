@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -17,6 +17,13 @@ const navItems = [
   { href: '/dashboard', label: 'Overview' },
   { href: '/dashboard/events', label: 'Events' },
   { href: '/dashboard/notices', label: 'Notices' },
+  { href: '/dashboard/committees', label: 'Committees' },
+  { href: '/dashboard/users', label: 'Members Access' },
+  { href: '/dashboard/elections', label: 'Elections' },
+  { href: '/dashboard/finance', label: 'Finance' },
+  { href: '/dashboard/attendance', label: 'Attendance' },
+  { href: '/dashboard/resolutions', label: 'Resolutions' },
+  { href: '/dashboard/documents', label: 'Documents' },
   { href: '/dashboard/members', label: 'Members' },
   { href: '/dashboard/settings', label: 'Settings' },
 ];
@@ -77,7 +84,6 @@ const presidentActions = [
 ];
 
 const electionActions = [
-  'Review ballot eligibility',
   'Review election timeline',
   'Verify candidate submissions',
   'Publish election notices',
@@ -156,17 +162,12 @@ const emptyMeetingRecords: Array<{
   submittedBy: string;
 }> = [];
 
-type NoticeEntry = {
-  id?: string;
+const emptyNotices: Array<{
   title: string;
-  audience?: string;
+  audience: string;
   details: string;
-  submittedBy?: string;
-  scope?: string;
-  date?: string;
-};
-
-const emptyNotices: NoticeEntry[] = [];
+  submittedBy: string;
+}> = [];
 
 const emptyMemberUpdates: Array<{
   name: string;
@@ -232,7 +233,7 @@ export function DashboardShell() {
   const selectedRole = searchParams.get('role') ?? 'EXECUTIVE_COMMITTEE';
   const rawPosition = searchParams.get('position');
   const defaultPosition =
-    selectedRole === 'ELECTION_COMMITTEE' ? 'CHIEF_ELECTION_COMMISSIONER' : 'GENERAL_SECRETARY';
+    selectedRole === 'ELECTION_COMMITTEE' ? 'CHIEF_ELECTION_OFFICER' : 'GENERAL_SECRETARY';
   const selectedPosition = rawPosition ?? defaultPosition;
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const [showRecordForm, setShowRecordForm] = useState(false);
@@ -248,11 +249,6 @@ export function DashboardShell() {
   const [showFinanceForm, setShowFinanceForm] = useState(false);
   const [recordDraft, setRecordDraft] = useState(initialMeetingRecord);
   const [noticeDraft, setNoticeDraft] = useState(initialNotice);
-  const [electionNoticeDraft, setElectionNoticeDraft] = useState({ title: '', details: '' });
-  const [showElectionNoticeForm, setShowElectionNoticeForm] = useState(false);
-  const [registrationId, setRegistrationId] = useState('2026-7788');
-  const [newPassword, setNewPassword] = useState('');
-  const [credentialsSaved, setCredentialsSaved] = useState(false);
   const [memberUpdateDraft, setMemberUpdateDraft] = useState(initialMemberUpdate);
   const [communicationDraft, setCommunicationDraft] = useState(initialCommunication);
   const [registrationDraft, setRegistrationDraft] = useState(initialRegistration);
@@ -271,10 +267,6 @@ export function DashboardShell() {
   const [incomeEntries, setIncomeEntries] = useState(emptyIncomeEntries);
   const [expenseEntries, setExpenseEntries] = useState(emptyExpenseEntries);
   const [financeUpdates, setFinanceUpdates] = useState(emptyFinanceUpdates);
-  const [candidates, setCandidates] = useState<Array<any>>([]);
-  const [candidatesLoading, setCandidatesLoading] = useState(false);
-  const [elections, setElections] = useState<Array<any>>([]);
-  const [electionsLoading, setElectionsLoading] = useState(false);
   const roleLabel =
     selectedRole === 'ELECTION_COMMITTEE' ? 'Election Committee' : 'Executive Committee';
   const positionLabel = selectedPosition
@@ -348,60 +340,6 @@ export function DashboardShell() {
     ]);
     setNoticeDraft(initialNotice);
     setShowNoticeForm(false);
-  };
-
-  const handleElectionNoticeChange = (field: 'title' | 'details', value: string) => {
-    setElectionNoticeDraft((current) => ({ ...current, [field]: value }));
-  };
-
-  const handlePublishElectionNotice = async () => {
-    if (!electionNoticeDraft.title.trim() || !electionNoticeDraft.details.trim()) return;
-
-    try {
-      const res = await fetch('/api/panel/notices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: electionNoticeDraft.title.trim(), details: electionNoticeDraft.details.trim(), scope: 'ELECTION', date: new Date().toISOString(), isPinned: false }),
-      });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          setNotices((current) => [
-            {
-              id: `demo-notice-${Date.now()}`,
-              title: electionNoticeDraft.title.trim(),
-              audience: 'Election Committee',
-              details: electionNoticeDraft.details.trim(),
-              scope: 'ELECTION',
-              date: new Date().toISOString(),
-              submittedBy: 'Chief Election Officer',
-            },
-            ...current,
-          ]);
-          setElectionNoticeDraft({ title: '', details: '' });
-          setShowElectionNoticeForm(false);
-          return;
-        }
-        throw new Error('Failed to publish notice');
-      }
-
-      const json = await res.json().catch(() => null);
-      const created = json?.data ?? null;
-      if (created) {
-        setNotices((current) => [
-          {
-            ...created,
-            audience: created.audience ?? 'Election Committee',
-            submittedBy: 'Chief Election Officer',
-          },
-          ...current,
-        ]);
-      }
-      setElectionNoticeDraft({ title: '', details: '' });
-      setShowElectionNoticeForm(false);
-    } catch {
-      // noop
-    }
   };
 
   const handleMemberUpdateDraftChange = (field: keyof typeof initialMemberUpdate, value: string) => {
@@ -561,14 +499,6 @@ export function DashboardShell() {
     setShowFinanceForm(false);
   };
 
-  const handleSaveCredentials = () => {
-    if (!registrationId.trim() || !newPassword.trim()) {
-      return;
-    }
-
-    setCredentialsSaved(true);
-  };
-
   const handleCommunicationDraftChange = (field: keyof typeof initialCommunication, value: string) => {
     setCommunicationDraft((current) => ({ ...current, [field]: value }));
   };
@@ -590,107 +520,6 @@ export function DashboardShell() {
     ]);
     setCommunicationDraft(initialCommunication);
     setShowCommunicationForm(false);
-  };
-
-  useEffect(() => {
-    if (activeAction === 'Verify candidate submissions' && selectedRole === 'ELECTION_COMMITTEE') {
-      (async () => {
-        setCandidatesLoading(true);
-        try {
-          const res = await fetch('/api/panel/candidates?page=1&pageSize=50&status=PENDING');
-          if (!res.ok) {
-            // If unauthorized (demo user), show a small demo list; otherwise empty.
-            if (res.status === 401 && selectedRole === 'ELECTION_COMMITTEE') {
-              setCandidates([
-                { id: 'demo-c-1', applicantName: 'Alice Rahman', post: { name: 'President' }, studentId: '2026-1001', email: 'alice@neucc.local' },
-                { id: 'demo-c-2', applicantName: 'Babu Karim', post: { name: 'Treasurer' }, studentId: '2026-1002', email: 'babu@neucc.local' },
-              ]);
-            } else {
-              setCandidates([]);
-            }
-            return;
-          }
-          const json = await res.json().catch(() => null);
-          setCandidates(Array.isArray(json?.data) ? json.data : []);
-        } catch (e) {
-          setCandidates([]);
-        } finally {
-          setCandidatesLoading(false);
-        }
-      })();
-    }
-    if (activeAction === 'Review election timeline' && selectedRole === 'ELECTION_COMMITTEE') {
-      (async () => {
-        setElectionsLoading(true);
-        try {
-          const res = await fetch('/api/panel/elections?page=1&pageSize=50');
-          if (!res.ok) {
-            if (res.status === 401) {
-              setElections([
-                { id: 'demo-e-1', committeeId: 'demo-committee', applicationDeadline: '2026-10-01', votingDate: '2026-11-12', applicationFee: 100, status: 'DRAFT' },
-                { id: 'demo-e-2', committeeId: 'demo-committee', applicationDeadline: '2026-08-01', votingDate: '2026-09-12', applicationFee: 0, status: 'OPEN' },
-              ]);
-            } else {
-              setElections([]);
-            }
-            return;
-          }
-          const json = await res.json().catch(() => null);
-          setElections(Array.isArray(json?.data) ? json.data : []);
-        } catch (e) {
-          setElections([]);
-        } finally {
-          setElectionsLoading(false);
-        }
-      })();
-    }
-  }, [activeAction, selectedRole]);
-
-  const handleUpdateCandidateStatus = async (id: string, status: 'VERIFIED' | 'REJECTED') => {
-    try {
-      const res = await fetch(`/api/panel/candidates/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
-      if (!res.ok) {
-        // demo fallback: allow local change when API is unauthorized
-        if (res.status === 401) {
-          setCandidates((current) => current.filter((c) => c.id !== id));
-          return { demo: true };
-        }
-        throw new Error('Failed');
-      }
-      const json = await res.json().catch(() => null);
-      setCandidates((current) => current.filter((c) => c.id !== id));
-      return json;
-    } catch {
-      // noop for now
-      return null;
-    }
-  };
-
-  const handleUpdateElectionStatus = async (id: string, status: 'DRAFT' | 'OPEN' | 'CLOSED' | 'RESULTS_PUBLISHED') => {
-    try {
-      const res = await fetch(`/api/panel/elections/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
-      if (!res.ok) {
-        // demo fallback: apply local state when API is unauthorized
-        if (res.status === 401) {
-          setElections((current) => current.map((e) => (e.id === id ? { ...e, status } : e)));
-          return { demo: true };
-        }
-        throw new Error('Failed');
-      }
-      const json = await res.json().catch(() => null);
-      setElections((current) => current.map((e) => (e.id === id ? { ...e, status } : e)));
-      return json;
-    } catch {
-      return null;
-    }
   };
 
   return (
@@ -766,58 +595,6 @@ export function DashboardShell() {
                 <Sparkles className="h-5 w-5 text-primary" />
               </div>
 
-              <div className="mb-6 rounded-xl border border-border bg-surface p-4">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <h3 className="font-heading text-lg font-bold">Account Security</h3>
-                  <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
-                    {roleLabel}
-                  </span>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-2">
-                  <label className="space-y-2 text-sm text-text-main">
-                    <span>Registration number</span>
-                    <input
-                      aria-label="Registration number"
-                      type="text"
-                      value={registrationId}
-                      onChange={(event) => {
-                        setRegistrationId(event.target.value);
-                        setCredentialsSaved(false);
-                      }}
-                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
-                    />
-                  </label>
-
-                  <label className="space-y-2 text-sm text-text-main">
-                    <span>New password</span>
-                    <input
-                      aria-label="New password"
-                      type="password"
-                      value={newPassword}
-                      onChange={(event) => {
-                        setNewPassword(event.target.value);
-                        setCredentialsSaved(false);
-                      }}
-                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
-                    />
-                  </label>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={handleSaveCredentials}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    Save credentials
-                  </button>
-                  {credentialsSaved && (
-                    <span className="text-sm font-medium text-primary">Credentials updated successfully</span>
-                  )}
-                </div>
-              </div>
-
               <div className="space-y-3">
                 {quickActions.map((item) => (
                   <button
@@ -831,29 +608,8 @@ export function DashboardShell() {
                         setShowNoticeForm(false);
                       }
 
-                      if (item === 'Review ballot eligibility') {
-                        setShowRecordForm(false);
-                        setShowNoticeForm(false);
-                        setShowMemberUpdateForm(false);
-                        setShowCommunicationForm(false);
-                        setShowRegistrationForm(false);
-                        setShowVenueForm(false);
-                        setShowVolunteerForm(false);
-                        setShowBudgetOverview(false);
-                        setShowIncomeForm(false);
-                        setShowExpenseForm(false);
-                        setShowFinanceForm(false);
-                      }
-
                       if (item === 'Publish official notice') {
                         setShowNoticeForm(true);
-                        setShowRecordForm(false);
-                        setShowMemberUpdateForm(false);
-                      }
-
-                      if (item === 'Publish election notices') {
-                        setShowElectionNoticeForm(true);
-                        setShowNoticeForm(false);
                         setShowRecordForm(false);
                         setShowMemberUpdateForm(false);
                       }
@@ -1115,119 +871,6 @@ export function DashboardShell() {
                 </div>
               )}
 
-              {selectedRole === 'ELECTION_COMMITTEE' && activeAction === 'Review ballot eligibility' && (
-                <div className="mt-6 rounded-xl border border-border bg-surface p-4">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h3 className="font-heading text-lg font-bold">Ballot Eligibility Review</h3>
-                    <p className="text-sm text-text-muted">Check academic batches, committee assignments, and candidate validity before ballot publication.</p>
-                  </div>
-
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <div className="rounded-xl border border-border bg-background p-3">
-                      <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Eligible batches</p>
-                      <p className="mt-2 font-heading text-2xl font-bold">2022–2026</p>
-                    </div>
-                    <div className="rounded-xl border border-border bg-background p-3">
-                      <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Pending checks</p>
-                      <p className="mt-2 font-heading text-2xl font-bold">07</p>
-                    </div>
-                    <div className="rounded-xl border border-border bg-background p-3">
-                      <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Compliance</p>
-                      <p className="mt-2 font-heading text-2xl font-bold">96%</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeAction === 'Verify candidate submissions' && selectedRole === 'ELECTION_COMMITTEE' && (
-                <div className="mt-6 rounded-xl border border-border bg-surface p-4">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h3 className="font-heading text-lg font-bold">Candidate Verification</h3>
-                    <p className="text-sm text-text-muted">Review pending candidate applications and verify or reject them.</p>
-                  </div>
-
-                  {candidatesLoading ? (
-                    <div className="rounded-xl border border-border bg-background p-5 text-sm text-text-muted">Loading candidates…</div>
-                  ) : candidates.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border bg-background p-5 text-sm text-text-muted">No pending candidate submissions.</div>
-                  ) : (
-                    <div className="space-y-3">
-                      {candidates.map((c) => (
-                        <div key={c.id} className="flex items-center justify-between rounded-xl border border-border bg-background p-3">
-                          <div>
-                            <p className="font-medium">{c.applicantName}</p>
-                            <p className="text-xs text-text-muted">{c.post?.name ?? 'Unknown post'} — {c.studentId} — {c.email}</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                await handleUpdateCandidateStatus(c.id, 'VERIFIED');
-                              }}
-                              className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white"
-                            >
-                              Verify
-                            </button>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                await handleUpdateCandidateStatus(c.id, 'REJECTED');
-                              }}
-                              className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text-main"
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeAction === 'Review election timeline' && selectedRole === 'ELECTION_COMMITTEE' && (
-                <div className="mt-6 rounded-xl border border-border bg-surface p-4">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h3 className="font-heading text-lg font-bold">Election Timeline</h3>
-                    <p className="text-sm text-text-muted">View and update key election dates and status.</p>
-                  </div>
-
-                  {electionsLoading ? (
-                    <div className="rounded-xl border border-border bg-background p-5 text-sm text-text-muted">Loading elections…</div>
-                  ) : elections.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border bg-background p-5 text-sm text-text-muted">No elections found.</div>
-                  ) : (
-                    <div className="space-y-3">
-                      {elections.map((e) => (
-                        <div key={e.id} className="rounded-xl border border-border bg-background p-3">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium">Election: {e.id}</p>
-                              <p className="text-xs text-text-muted">Application deadline: {e.applicationDeadline}</p>
-                              <p className="text-xs text-text-muted">Voting date: {e.votingDate}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">{e.status}</span>
-                              <div className="flex gap-2">
-                                {e.status !== 'OPEN' && (
-                                  <button type="button" onClick={async () => await handleUpdateElectionStatus(e.id, 'OPEN')} className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white">Open</button>
-                                )}
-                                {e.status === 'OPEN' && (
-                                  <button type="button" onClick={async () => await handleUpdateElectionStatus(e.id, 'CLOSED')} className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text-main">Close</button>
-                                )}
-                                {e.status !== 'RESULTS_PUBLISHED' && (
-                                  <button type="button" onClick={async () => await handleUpdateElectionStatus(e.id, 'RESULTS_PUBLISHED')} className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text-main">Publish results</button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
               {selectedPosition === 'GENERAL_SECRETARY' && activeAction === 'Publish official notice' && (
                 <div className="mt-6 rounded-xl border border-border bg-surface p-4">
                   <div className="mb-4 flex items-center justify-between gap-3">
@@ -1297,18 +940,18 @@ export function DashboardShell() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {notices.map((notice, index) => (
-                        <div key={notice.id ?? `${notice.title}-${notice.audience ?? 'notice'}-${index}`} className="rounded-xl border border-border bg-background p-3">
+                      {notices.map((notice) => (
+                        <div key={`${notice.title}-${notice.audience}`} className="rounded-xl border border-border bg-background p-3">
                           <div className="flex items-center justify-between gap-3">
                             <p className="font-medium text-text-main">{notice.title}</p>
                             <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
                               Published
                             </span>
                           </div>
-                          <p className="mt-2 text-sm text-text-muted">Audience: {notice.audience ?? 'Election Committee'}</p>
+                          <p className="mt-2 text-sm text-text-muted">Audience: {notice.audience}</p>
                           <p className="mt-2 text-sm text-text-main">{notice.details}</p>
                           <p className="mt-2 text-xs uppercase tracking-[0.2em] text-text-muted">
-                            Submitted by: {notice.submittedBy ?? 'System'}
+                            Submitted by: {notice.submittedBy}
                           </p>
                         </div>
                       ))}
