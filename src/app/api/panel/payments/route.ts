@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     const [items, total] = await Promise.all([
       prisma.payment.findMany({
         where,
-        include: { candidate: true, verifiedBy: true },
+        include: { candidate: true, verifiedBy: { select: { id: true, name: true } } },
         orderBy: { paidAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,

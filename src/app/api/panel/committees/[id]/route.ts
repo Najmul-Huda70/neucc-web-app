@@ -12,7 +12,13 @@ export async function GET(_req: Request, { params }: Context) {
   const { id } = await params;
 
   try {
-    const item = await prisma.committee.findUnique({ where: { id }, include: { members: true, elections: true } });
+    const item = await prisma.committee.findUnique({
+      where: { id },
+      include: {
+        members: { select: { id: true, name: true, post: { select: { name: true } } } },
+        elections: true,
+      },
+    });
     if (!item) return apiError(404, 'NOT_FOUND', 'Committee not found.');
     return ok(item);
   } catch {
