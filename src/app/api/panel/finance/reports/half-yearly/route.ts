@@ -57,7 +57,8 @@ export async function GET(req: Request) {
 
     if (format === 'xlsx') {
       const buffer = await buildReportWorkbook(data);
-      return new Response(buffer, {
+      const bytes = new Uint8Array(buffer);
+      return new Response(bytes, {
         status: 200,
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -113,7 +114,8 @@ export async function GET(req: Request) {
     });
 
     const pdf = await renderHtmlToPdf(html, { format: 'A4' });
-    return new Response(pdf, {
+    const bytes = new Uint8Array(pdf);
+    return new Response(bytes, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
