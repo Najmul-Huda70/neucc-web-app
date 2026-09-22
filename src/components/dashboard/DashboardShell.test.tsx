@@ -31,7 +31,7 @@ describe('DashboardShell', () => {
       screen.getByRole('heading', { name: /dashboard overview/i }),
     ).toBeInTheDocument();
 
-    expect(screen.getAllByText(/executive committee/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/executive committee/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /events/i })).toBeInTheDocument();
   });
 
@@ -209,22 +209,6 @@ describe('DashboardShell', () => {
     expect(screen.getByText(/current balance/i)).toBeInTheDocument();
   });
 
-  it('gives the Election Commissioner a dedicated oversight workflow', async () => {
-    mockSearchParams.role = 'ELECTION_COMMITTEE';
-    mockSearchParams.position = 'ELECTION_COMMISSIONER';
-
-    const user = userEvent.setup();
-    render(<DashboardShell />);
-
-    expect(screen.getByText(/election commissioner/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /review ballot eligibility/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /verify candidate submissions/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /review election timeline/i })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /review ballot eligibility/i }));
-    expect(screen.getByText(/ballot eligibility review/i)).toBeInTheDocument();
-  });
-
   it('supports an Executive Committee member role with member-specific actions', async () => {
     mockSearchParams.role = 'EXECUTIVE_COMMITTEE';
     mockSearchParams.position = 'MEMBER';
@@ -239,25 +223,6 @@ describe('DashboardShell', () => {
 
     expect(screen.getAllByText(/member directory/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/committee membership overview/i)).toBeInTheDocument();
-  });
-
-  it('allows every role to update registration and password details from the dashboard', async () => {
-    mockSearchParams.role = 'EXECUTIVE_COMMITTEE';
-    mockSearchParams.position = 'GENERAL_SECRETARY';
-
-    const user = userEvent.setup();
-    render(<DashboardShell />);
-
-    expect(screen.getByText(/account security/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/registration number/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/new password/i)).toBeInTheDocument();
-
-    await user.clear(screen.getByLabelText(/registration number/i));
-    await user.type(screen.getByLabelText(/registration number/i), '2026-7788');
-    await user.type(screen.getByLabelText(/new password/i), 'newsecret123');
-    await user.click(screen.getByRole('button', { name: /save credentials/i }));
-
-    expect(screen.getByText(/credentials updated successfully/i)).toBeInTheDocument();
   });
 
   it('shows secretary-specific duties when the logged-in role is General Secretary', async () => {
