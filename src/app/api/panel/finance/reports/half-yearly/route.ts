@@ -54,13 +54,14 @@ export async function GET(req: Request) {
     if (format === 'json') {
       return ok(data);
     }
-
     if (format === 'xlsx') {
       const buffer = await buildReportWorkbook(data);
-      return new Response(buffer, {
+
+      return new Response(new Uint8Array(buffer), {
         status: 200,
         headers: {
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Type':
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           'Content-Disposition': `attachment; filename="financial-report-${startDate.toISOString().slice(0, 10)}_to_${endDate.toISOString().slice(0, 10)}.xlsx"`,
         },
       });
@@ -113,7 +114,7 @@ export async function GET(req: Request) {
     });
 
     const pdf = await renderHtmlToPdf(html, { format: 'A4' });
-    return new Response(pdf, {
+    return new Response(new Uint8Array(pdf), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
