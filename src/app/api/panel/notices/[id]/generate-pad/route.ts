@@ -78,13 +78,12 @@ export async function POST(req: Request, { params }: Context) {
     });
 
     const pdf = await renderHtmlToPdf(html);
-    const bytes = new Uint8Array(pdf);
 
     // Not persisted anywhere (Notice.pdfUrl is left untouched) — there is no
     // file storage configured yet (S3/Cloudinary), so this always renders
     // fresh on demand rather than caching a URL that would need one. See
     // docs/STEP_7_CHANGELOG.md for the follow-up this implies.
-    return new Response(bytes, {
+    return new Response(new Uint8Array(pdf), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

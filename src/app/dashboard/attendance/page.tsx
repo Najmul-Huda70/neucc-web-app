@@ -109,7 +109,7 @@ export default function DashboardAttendancePage() {
     return (
       <main className="min-h-[calc(100vh-8rem)] bg-background px-4 py-8">
         <p className="mx-auto max-w-3xl rounded-lg border border-border bg-surface px-4 py-3 text-sm text-text-muted">
-          Only the Information Secretary team can create attendance forms; President/General Secretary have view-only access.
+          Only the Information Secretary team can create attendance forms; President/General Secretary have view-only access..
         </p>
       </main>
     );

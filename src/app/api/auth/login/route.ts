@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     },
   });
 
-  setAuthCookies(accessToken, refreshToken);
+  await setAuthCookies(accessToken, refreshToken);
 
   return Response.json({
     user: {
