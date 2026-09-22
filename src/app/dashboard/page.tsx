@@ -1,10 +1,9 @@
 import { Suspense } from 'react';
-import { DashboardShell } from '@/components/dashboard/DashboardShell';
-
+import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
 export default function DashboardPage() {
   return (
     <Suspense fallback={<div className="min-h-[calc(100vh-8rem)] bg-background" />}>
-      <DashboardShell />
+      <DashboardOverview />
     </Suspense>
   );
 }
