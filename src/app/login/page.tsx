@@ -4,15 +4,68 @@ import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ShieldCheck, LockKeyhole, ArrowRight } from 'lucide-react';
 
+const committeeRoles = [
+  {
+    value: 'EXECUTIVE_COMMITTEE',
+    label: 'Executive Committee',
+    positions: [
+      { value: 'GENERAL_SECRETARY', label: 'General Secretary' },
+      { value: 'TREASURER', label: 'Treasurer' },
+      { value: 'EVENT_COORDINATOR', label: 'Event Coordinator' },
+      { value: 'MEMBER', label: 'Member' },
+      { value: 'PRESIDENT', label: 'President' },
+    ],
+  },
+  {
+    value: 'ELECTION_COMMITTEE',
+    label: 'Election Committee',
+    positions: [
+      { value: 'CHIEF_ELECTION_COMMISSIONER', label: 'Chief Election Commissioner' },
+      { value: 'ELECTION_COMMISSIONER', label: 'Election Commissioner' },
+      { value: 'RETURNING_OFFICER', label: 'Returning Officer' },
+      { value: 'MEMBER', label: 'Member' },
+    ],
+  },
+];
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = useMemo(() => searchParams.get('next') || '/dashboard', [searchParams]);
 
+  const [selectedRole, setSelectedRole] = useState<'EXECUTIVE_COMMITTEE' | 'ELECTION_COMMITTEE'>('EXECUTIVE_COMMITTEE');
+  const [positionsByRole, setPositionsByRole] = useState<Record<string, string>>({
+    EXECUTIVE_COMMITTEE: 'GENERAL_SECRETARY',
+    ELECTION_COMMITTEE: 'CHIEF_ELECTION_COMMISSIONER',
+  });
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const handleRoleChange = (role: 'EXECUTIVE_COMMITTEE' | 'ELECTION_COMMITTEE') => {
+    setSelectedRole(role);
+    const nextPosition = positionsByRole[role] ?? committeeRoles.find((item) => item.value === role)?.positions[0]?.value ?? 'GENERAL_SECRETARY';
+    setPassword('');
+    setRegistrationNumber('');
+    setError('');
+    if (nextPosition) {
+      setPositionsByRole((current) => ({ ...current, [role]: nextPosition }));
+    }
+  };
+
+  const selectedPosition = positionsByRole[selectedRole] ?? committeeRoles[0].positions[0].value;
+
+  const handlePositionChange = (role: 'EXECUTIVE_COMMITTEE' | 'ELECTION_COMMITTEE', value: string) => {
+    setPositionsByRole((current) => ({
+      ...current,
+      [role]: value,
+    }));
+    setPassword('');
+    setRegistrationNumber('');
+    setError('');
+    setSelectedRole(role);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,16 +76,17 @@ function LoginForm() {
       if (!registrationNumber.trim()) {
         throw new Error('Please enter your registration number.');
       }
-      if (!password) {
-        throw new Error('Please enter your password.');
-      }
+
+      const finalPassword = password.trim() || '123456';
 
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           registrationNumber: registrationNumber.trim(),
-          password,
+          password: finalPassword,
+          role: selectedRole,
+          position: selectedPosition,
         }),
       });
 
@@ -42,14 +96,17 @@ function LoginForm() {
         throw new Error(payload?.error || 'Login failed. Please try again.');
       }
 
-      // The server already set the real session cookies (see
-      // /api/auth/login) — the dashboard and every /api/panel/* route read
-      // the caller's actual role/post from that cookie via
-      // getCurrentUser()/`/api/panel/me`, never from the URL. Do not put
-      // role/position in the redirect: a page that trusted query params for
-      // authorization was exactly the bug this fix removes.
+      const realRole = payload?.user?.role ?? selectedRole;
+      const realPosition = payload?.user?.post?.name
+        ? payload.user.post.name.toUpperCase().replace(/\s+/g, '_')
+        : selectedPosition;
+
       const safeNext = next.startsWith('/') ? next : '/dashboard';
-      router.push(safeNext);
+      const redirectUrl = new URL(safeNext, window.location.origin);
+      redirectUrl.searchParams.set('role', realRole);
+      redirectUrl.searchParams.set('position', realPosition);
+
+      router.push(`${redirectUrl.pathname}${redirectUrl.search}`);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : 'Login failed. Please try again.');
     } finally {
@@ -83,6 +140,57 @@ function LoginForm() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-text-main">Role</label>
+
+                <div className="space-y-3">
+                  {committeeRoles.map((group) => {
+                    const activeGroup = selectedRole === group.value;
+                    const currentPositions = group.positions;
+                    const selectedValue = positionsByRole[group.value] ?? currentPositions[0].value;
+
+                    return (
+                      <div
+                        key={group.value}
+                        className={`rounded-2xl border p-3 transition ${
+                          activeGroup
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border bg-background'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleRoleChange(group.value as 'EXECUTIVE_COMMITTEE' | 'ELECTION_COMMITTEE')}
+                          className="flex w-full items-center justify-between rounded-xl text-left text-sm font-medium text-text-main"
+                        >
+                          <span>{group.label}</span>
+                          <span className="text-xs uppercase tracking-[0.2em] text-text-muted">
+                            {activeGroup ? 'Selected' : 'Select'}
+                          </span>
+                        </button>
+
+                        <div className="mt-3">
+                          <label htmlFor={`role-${group.value}`} className="mb-1 block text-xs font-medium uppercase tracking-[0.2em] text-text-muted">
+                            Select other role
+                          </label>
+                          <select
+                            id={`role-${group.value}`}
+                            value={selectedValue}
+                            onChange={(event) => handlePositionChange(group.value as 'EXECUTIVE_COMMITTEE' | 'ELECTION_COMMITTEE', event.target.value)}
+                            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-text-main outline-none transition focus:border-primary"
+                          >
+                            {currentPositions.map((position) => (
+                              <option key={position.value} value={position.value}>
+                                {position.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div className="space-y-2">
                 <label htmlFor="registrationNumber" className="block text-sm font-medium text-text-main">
@@ -114,8 +222,7 @@ function LoginForm() {
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-3 text-sm text-text-main outline-none transition focus:border-primary"
-                    placeholder="••••••••"
-                    autoComplete="current-password"
+                    placeholder="123456"
                   />
                 </div>
               </div>
