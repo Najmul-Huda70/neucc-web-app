@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/permissions";
+import { getCapabilities } from "@/lib/auth/capabilities";
 
 export async function GET() {
   const { user, error } = await requireUser();
@@ -12,24 +12,6 @@ export async function GET() {
     role: user.role,
     post: user.post?.name ?? null,
     committeeStatus: user.committee?.status ?? null,
-    capabilities: {
-      canManageElection: can(user, "election:manage"),
-      canGrantElectionAccess: can(user, "election:grant_access"),
-      canDissolveExecutive: can(user, "election:dissolve_executive"),
-      canCreateElectionCommittee: can(user, "committee:create_election"),
-      canManageUsers: can(user, "user:manage"),
-      canManageEvents: can(user, "event:manage"),
-      canPublishGeneralNotice: can(user, "notice:publish:general"),
-      canPublishInternalNotice: can(user, "notice:publish:internal"),
-      canPublishElectionNotice: can(user, "notice:publish:election"),
-      canManageAttendance: can(user, "attendance:create_form"),
-      canViewAttendanceOversight: can(user, "attendance:view_oversight"),
-      canManageResolution: can(user, "resolution:manage"),
-      canManageDocument: can(user, "document:manage"),
-      canManageMembership: can(user, "membership:manage"),
-      canViewContactMessages: can(user, "contact:view"),
-      canManageFinance: can(user, "finance:manage"),
-      canViewFinanceOversight: can(user, "finance:view_oversight"),
-    },
+    capabilities: getCapabilities(user),
   });
 }

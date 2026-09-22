@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Users, Building2, Vote, Wallet, Megaphone, ClipboardList,
-  FileText, FolderOpen, Mail, CalendarDays, ShieldAlert, Loader2,
+  FileText, FolderOpen, Mail, CalendarDays, ShieldAlert, Loader2, Image as ImageIcon,
 } from 'lucide-react';
 import { apiGet, ApiClientError } from '@/lib/api-client';
 
@@ -26,7 +26,7 @@ type Card = {
 
 const CARDS: Card[] = [
   { href: '/dashboard/users', label: 'Members Access', description: 'Create and manage committee-member accounts.', icon: Users, show: (c) => c.canManageUsers },
-  { href: '/dashboard/committees', label: 'Committees', description: 'Form the Election Committee, dissolve the Executive Committee.', icon: Building2, show: (c) => c.canCreateElectionCommittee || c.canDissolveExecutive || c.canManageElection },
+  { href: '/dashboard/committees', label: 'Committees', description: 'Form the Election Committee, dissolve the Executive Committee.', icon: Building2, show: (c) => c.canCreateElectionCommittee || c.canDissolveExecutive || c.canManageElection || c.canGrantElectionAccess },
   { href: '/dashboard/elections', label: 'Elections', description: 'Candidates, posts, uncontested declarations, publish results.', icon: Vote, show: (c) => c.canManageElection },
   { href: '/dashboard/finance', label: 'Finance', description: 'Transactions, fund heads, running balance, reports.', icon: Wallet, show: (c) => c.canManageFinance || c.canViewFinanceOversight },
   { href: '/dashboard/notices', label: 'Notices', description: 'Publish notices, draft with AI, generate letterhead PDFs.', icon: Megaphone, show: (c) => c.canPublishGeneralNotice || c.canPublishInternalNotice || c.canPublishElectionNotice },
