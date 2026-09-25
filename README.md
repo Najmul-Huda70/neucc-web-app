@@ -1,76 +1,36 @@
-# NEUCC Web App
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Official website for the Netrokona University Computer Club.
+## Getting Started
 
-## Recent bug fixes resolved
-
-The following issues were fixed in the current workspace:
-
-- removed leftover Git merge conflict markers in the frontend components
-- corrected the contest type mismatch between data and TypeScript types
-- normalized contest and committee date handling for build-time prerendering
-- guarded missing committee member arrays during static page generation
-- added safe fallback data so the app can render without a live database connection
-- updated Next.js image configuration to allow Unsplash-hosted gallery images
-
-## Local development
-
-1. Copy [.env.example](.env.example) to `.env.local` and fill in the values.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Generate Prisma client and apply migrations:
-   ```bash
-   npx prisma generate
-   npx prisma migrate deploy
-   ```
-4. Start the app:
-   ```bash
-   npm run dev
-   ```
-
-## Testing and quality checks
+First, run the development server:
 
 ```bash
-npm run lint
-npm run test
-npm run build
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## Deployment checklist
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-The Sprint 4 backend deployment, onboarding, backup, rollback, and security
-steps are documented in [docs/SPRINT_4_RELEASE.md](docs/SPRINT_4_RELEASE.md).
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### Neon or Supabase
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-- Create a Postgres database.
-- Copy the pooled URL into `DATABASE_URL`.
-- Copy the direct connection URL into `DIRECT_URL`.
-- Ensure SSL is enabled for remote Postgres providers.
+## Learn More
 
-### Vercel
+To learn more about Next.js, take a look at the following resources:
 
-Set these environment variables in Vercel project settings:
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-- `DATABASE_URL`
-- `DIRECT_URL`
-- `JWT_ACCESS_SECRET`
-- `JWT_REFRESH_SECRET`
-- `JWT_ACCESS_EXPIRES_IN`
-- `JWT_REFRESH_EXPIRES_IN`
-- `NEXT_PUBLIC_APP_URL`
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-Then deploy the repo and verify that the build and Prisma migration steps succeed.
+## Deploy on Vercel
 
-## CI pipeline
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-The GitHub Actions workflow runs the full validation flow:
-
-- `npm ci`
-- `npx prisma generate`
-- `npx prisma migrate deploy`
-- `npm run lint`
-- `npm run test`
-- `npm run build`
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
