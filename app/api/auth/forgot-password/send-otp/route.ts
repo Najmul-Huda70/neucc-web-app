@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
     if (user.status !== "ACTIVE") {
       return NextResponse.json(
-        { message: "Your account is currently inactive or blocked" },
+        { message: "Your account is currently inactive or DEACTIVATED" },
         { status: 403 }
       );
     }

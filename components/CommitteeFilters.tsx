@@ -3,10 +3,10 @@
 interface CommitteeFiltersProps {
   selectedType: string;
   setSelectedType: (type: string) => void;
-  selectedSession: string;
-  setSelectedSession: (session: string) => void;
+  selectedyear: string;
+  setSelectedyear: (year: string) => void;
   types: string[];
-  sessions: string[];
+  years: string[];
 }
 
 const formatType = (str: string) => {
@@ -17,10 +17,10 @@ const formatType = (str: string) => {
 export default function CommitteeFilters({
   selectedType,
   setSelectedType,
-  selectedSession,
-  setSelectedSession,
+  selectedyear,
+  setSelectedyear,
   types,
-  sessions,
+  years,
 }: CommitteeFiltersProps) {
   return (
     <div className="flex flex-col items-center gap-4 my-6">
@@ -46,22 +46,22 @@ export default function CommitteeFilters({
         </div>
       )}
 
-      {/* Session Chips */}
-      {sessions.length > 0 && (
+      {/* year Chips */}
+      {years.length > 0 && (
         <div className="flex flex-wrap items-center justify-center gap-2">
-          {sessions.map((session) => {
-            const isActive = String(selectedSession) === String(session);
+          {years.map((year) => {
+            const isActive = String(selectedyear) === String(year);
             return (
               <button
-                key={session}
-                onClick={() => setSelectedSession(session)}
+                key={year}
+                onClick={() => setSelectedyear(year)}
                 className={`px-3.5 py-1 text-xs font-medium rounded-full border transition-colors duration-200 cursor-pointer ${
                   isActive
                     ? "border-[var(--badge-text)] bg-[var(--badge-bg)] text-[var(--badge-text)]"
                     : "border-[var(--btn-secondary-border)] text-[var(--text-secondary)] hover:border-[var(--badge-text)]/50"
                 }`}
               >
-                {session}
+                {year}
               </button>
             );
           })}

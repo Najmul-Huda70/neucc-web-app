@@ -15,43 +15,49 @@ export default function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
 
-  // Role-based Nav Links (Matching your Prisma Schema Roles)
+  // Role-based Nav Links (Matching Prisma Schema Roles)
   const dashboardNavLinks: NavLink[] = [
-  {
-    label: "Overview",
-    href: "/dashboard",
-    roles: ["ADMIN", "MODARATOR", "MEMBER"],
-  },
-  {
-    label: "Committee Management",
-    href: "/dashboard/committees",
-    roles: [ "ADMIN"],
-  },
-  {
-    label: "User Management",
-    href: "/dashboard/users",
-    roles: ["ADMIN"],
-  },
-  {
-    label: "Notices",
-    href: "/dashboard/notices",
-    roles: ["ADMIN", "MODARATOR", "MEMBER"],
-  },
-  {
-    label: "Profile Settings",
-    href: "/dashboard/profile",
-    roles: ["ADMIN", "MODARATOR", "MEMBER"],
-  },
-];
+    {
+      label: "Overview",
+      href: "/dashboard",
+      roles: ["ADMIN", "MODERATOR", "MEMBER"],
+    },
+    {
+      label: "Committee Management",
+      href: "/dashboard/committees",
+      roles: ["ADMIN"],
+    },
+    {
+      label: "User Management",
+      href: "/dashboard/users",
+      roles: ["ADMIN"],
+    },
+    {
+      label: "Notices",
+      href: "/dashboard/notices",
+      roles: ["ADMIN", "MODERATOR", "MEMBER"],
+    },
+    {
+      label: "Profile Settings",
+      href: "/dashboard/profile",
+      roles: ["ADMIN", "MODERATOR", "MEMBER"],
+    },
+  ];
+
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch (e) {
-      console.error(e);
+      console.error("Logout failed:", e);
     }
     router.push("/login");
     router.refresh();
   };
+
+  // Safe user variables with fallback
+  const userName = user?.name || "User";
+  const userEmail = user?.email || "";
+  const userImage = user?.image || null;
 
   return (
     <>
@@ -166,7 +172,7 @@ export default function Sidebar({
                 className="group text-[11px] sm:text-xs flex items-center gap-1 font-bold truncate"
                 style={{ color: "var(--text-important)" }}
               >
-                <span className="truncate">Netrokona University</span>
+                <span className="truncate">North East University Bangladesh</span>
                 <ExternalLink
                   size={12}
                   className="shrink-0 transition-transform duration-200 group-hover:-translate-y-0.5"
@@ -245,10 +251,10 @@ export default function Sidebar({
               className="w-9 h-9 rounded-full overflow-hidden shrink-0 border flex items-center justify-center bg-black/5 dark:bg-white/5"
               style={{ borderColor: "var(--btn-secondary-border)" }}
             >
-              {user.image ? (
+              {userImage ? (
                 <Image
-                  src={user.image}
-                  alt={user.name}
+                  src={userImage}
+                  alt={userName}
                   width={36}
                   height={36}
                   className="w-full h-full object-cover"
@@ -263,13 +269,13 @@ export default function Sidebar({
                 className="text-sm font-bold truncate leading-snug"
                 style={{ color: "var(--text-primary)" }}
               >
-                {user.name}
+                {userName}
               </span>
               <span
                 className="text-xs truncate leading-none"
                 style={{ color: "var(--text-secondary)" }}
               >
-                {user.email}
+                {userEmail}
               </span>
             </div>
           </Link>

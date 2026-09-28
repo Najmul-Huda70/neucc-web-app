@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       new Date() > new Date(user.resetOtpExpiresAt)
     ) {
       return NextResponse.json(
-        { message: "Session expired. Please start over." },
+        { message: "year expired. Please start over." },
         { status: 400 }
       );
     }

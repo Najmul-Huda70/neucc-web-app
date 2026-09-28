@@ -23,7 +23,13 @@ interface RoleChangeModalProps {
 
 const ROLES_REQUIRING_POST: Role[] = ["ADMIN", "MODERATOR"];
 
-export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubmit }: RoleChangeModalProps) {
+export default function RoleChangeModal({
+  isOpen,
+  user,
+  loading,
+  onClose,
+  onSubmit,
+}: RoleChangeModalProps) {
   const [role, setRole] = useState<Role>("MEMBER");
   const [committees, setCommittees] = useState<CommitteeOption[]>([]);
   const [committeeId, setCommitteeId] = useState("");
@@ -33,28 +39,33 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-  if (!isOpen || !user) return;
-  
-  setRole(user.role as Role); 
+    if (!isOpen || !user) return;
 
-  setCommitteeId("");
-  setExistingPostId("");
-  setNewPostTitle("");
-  setPostMode("new");
-  setError(null);
+    setRole((user.role as Role) || "MEMBER");
+    setCommitteeId("");
+    setExistingPostId("");
+    setNewPostTitle("");
+    setPostMode("new");
+    setError(null);
 
-  fetch("/api/committees")
-    .then((res) => res.json())
-    .then((json) => { if (json.success && json.data) setCommittees(json.data); })
-    .catch(() => {});
-}, [isOpen, user]);
-  if (!user) return null;
+    fetch("/api/committees")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) setCommittees(json.data);
+      })
+      .catch(() => {});
+  }, [isOpen, user]);
 
   // Normalizing posts from both `posts` or `user_posts` properties
-  const userPosts = user.posts && user.posts.length > 0
-    ? user.posts.map(p => ({ postId: p.postId, title: p.postTitle }))
-    : user.user_posts && user.user_posts.length > 0
-    ? user.user_posts.map(p => ({ postId: p.postId, title: p.post?.postTitle || "Post" }))
+  const userPosts = user
+    ? user.posts && user.posts.length > 0
+      ? user.posts.map((p) => ({ postId: p.postId, title: p.postTitle }))
+      : user.user_posts && user.user_posts.length > 0
+      ? user.user_posts.map((p) => ({
+          postId: p.postId,
+          title: p.post?.postTitle || "Post",
+        }))
+      : []
     : [];
 
   const requiresPost = ROLES_REQUIRING_POST.includes(role);
@@ -64,13 +75,21 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
   const selectedCommittee = committees.find((c) => c.id === committeeId);
 
   const handleSubmit = () => {
+    if (!user) return;
     setError(null);
-    if (role === user.role) return setError("Select a different role to continue.");
+
+    if (role === user.role) {
+      return setError("Select a different role to continue.");
+    }
 
     if (needsNewAssignment) {
       if (!committeeId) return setError("Select a committee.");
-      if (postMode === "new" && !newPostTitle) return setError("Enter a post title.");
-      if (postMode === "existing" && !existingPostId) return setError("Select a post.");
+      if (postMode === "new" && !newPostTitle.trim()) {
+        return setError("Enter a post title.");
+      }
+      if (postMode === "existing" && !existingPostId) {
+        return setError("Select a post to reassign.");
+      }
     }
 
     onSubmit({
@@ -79,7 +98,7 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
         committeeId,
         postMode,
         existingPostId: postMode === "existing" ? existingPostId : undefined,
-        newPostTitle: postMode === "new" ? newPostTitle : undefined,
+        newPostTitle: postMode === "new" ? newPostTitle.trim() : undefined,
       }),
       ...(willRemovePost && { confirmRemovePost: true }),
     });
@@ -87,7 +106,7 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && user && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -103,9 +122,11 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[var(--btn-secondary-border)] pb-3">
-              <h2 className="text-base font-bold text-[var(--text-primary)]">Change Role</h2>
-              <button 
-                onClick={onClose} 
+              <h2 className="text-base font-bold text-[var(--text-primary)]">
+                Change Role
+              </h2>
+              <button
+                onClick={onClose}
                 className="rounded-lg p-1 text-[var(--text-secondary)] hover:bg-[var(--stat-card-bg)] transition-colors cursor-pointer"
               >
                 ✕
@@ -113,7 +134,10 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
             </div>
 
             <p className="mt-3 text-xs text-[var(--text-primary)]/70">
-              Updating role for <span className="font-semibold text-[var(--text-primary)]">{user.name}</span>
+              Updating role for{" "}
+              <span className="font-semibold text-[var(--text-primary)]">
+                {user.name}
+              </span>
             </p>
 
             <div className="mt-4 space-y-4">
@@ -124,7 +148,9 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">Role</label>
+                <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
+                  Role
+                </label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as Role)}
@@ -151,26 +177,43 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
                     </p>
 
                     <div>
-                      <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">Committee</label>
+                      <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
+                        Committee
+                      </label>
                       <select
                         value={committeeId}
-                        onChange={(e) => { setCommitteeId(e.target.value); setExistingPostId(""); }}
+                        onChange={(e) => {
+                          setCommitteeId(e.target.value);
+                          setExistingPostId("");
+                        }}
                         className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
                       >
                         <option value="">Select a committee</option>
                         {committees.map((c) => (
-                          <option key={c.id} value={c.id}>{c.type} - {c.session}</option>
+                          <option key={c.id} value={c.id}>
+                            {c.type} - {c.year}
+                          </option>
                         ))}
                       </select>
                     </div>
 
                     <div className="flex gap-4 text-xs font-medium text-[var(--text-primary)] pt-1">
                       <label className="flex items-center gap-1.5 cursor-pointer">
-                        <input type="radio" checked={postMode === "new"} onChange={() => setPostMode("new")} className="accent-[var(--btn-primary-bg)]" />
+                        <input
+                          type="radio"
+                          checked={postMode === "new"}
+                          onChange={() => setPostMode("new")}
+                          className="accent-[var(--btn-primary-bg)]"
+                        />
                         Create new post
                       </label>
                       <label className="flex items-center gap-1.5 cursor-pointer">
-                        <input type="radio" checked={postMode === "existing"} onChange={() => setPostMode("existing")} className="accent-[var(--btn-primary-bg)]" />
+                        <input
+                          type="radio"
+                          checked={postMode === "existing"}
+                          onChange={() => setPostMode("existing")}
+                          className="accent-[var(--btn-primary-bg)]"
+                        />
                         Assign existing post
                       </label>
                     </div>
@@ -190,8 +233,10 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
                         className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
                       >
                         <option value="">Select a post to reassign</option>
-                        {selectedCommittee?.posts.map((p) => (
-                          <option key={p.postId} value={p.postId}>{p.postTitle} (currently: {p.users?.name || "—"})</option>
+                        {selectedCommittee?.posts?.map((p) => (
+                          <option key={p.postId} value={p.postId}>
+                            {p.postTitle} (currently: {p.users?.name || "—"})
+                          </option>
                         ))}
                       </select>
                     )}
@@ -207,8 +252,9 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden rounded-xl border border-[var(--text-important)]/30 bg-[var(--text-important)]/10 p-3 text-xs font-medium text-[var(--text-important)]"
                   >
-                    Switching to Member will remove {user.name}'s current post
-                    {userPosts.length > 1 ? "s" : ""}: {userPosts.map((p) => p.title).join(", ")}.
+                    Switching to Member will remove {user.name}&apos;s current post
+                    {userPosts.length > 1 ? "s" : ""}:{" "}
+                    {userPosts.map((p) => p.title).join(", ")}.
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -216,18 +262,18 @@ export default function RoleChangeModal({ isOpen, user, loading, onClose, onSubm
 
             {/* Footer Buttons */}
             <div className="mt-6 flex justify-end gap-3 pt-3 border-t border-[var(--btn-secondary-border)]">
-              <button 
-                type="button" 
-                onClick={onClose} 
-                disabled={loading} 
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
                 className="rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--stat-card-bg)] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
-                onClick={handleSubmit} 
-                disabled={loading} 
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
                 className="rounded-xl bg-[var(--btn-primary-bg)] px-5 py-2 text-xs font-semibold text-[var(--btn-primary-text)] hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
               >
                 {loading ? "Saving..." : "Submit"}

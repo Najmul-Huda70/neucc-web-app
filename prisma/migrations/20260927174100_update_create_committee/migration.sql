@@ -1,7 +1,7 @@
 /*
   Warnings:
 
-  - The values [MODARATOR] on the enum `Role` will be removed. If these variants are still used in the database, this will fail.
+  - The values [MODERATOR] on the enum `Role` will be removed. If these variants are still used in the database, this will fail.
 
 */
 -- AlterEnum

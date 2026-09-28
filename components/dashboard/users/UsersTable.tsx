@@ -15,7 +15,7 @@ export interface UserRow extends UserBase {
     postId: string;
     committeeId: string;
     post?: { postTitle: string };
-    committee?: { session: string; type: string };
+    committee?: { year: string; type: string };
   }[];
 }
 
@@ -69,9 +69,11 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
     }
   };
 
-  const handleRoleSubmit = async (payload: any) => {
+  const handleRoleSubmit = async (payload: { role: string }) => {
     if (!roleChangeUser) return;
-    if (await patchUser(roleChangeUser.userId, payload)) setRoleChangeUser(null);
+    if (await patchUser(roleChangeUser.userId, payload)) {
+      setRoleChangeUser(null);
+    }
   };
 
   // Status Modal Dropdown Confirm Handler
@@ -108,12 +110,20 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
 
   const displayedUsers = useMemo(() => {
     let list = [...users];
-    if (roleFilter.length > 0) list = list.filter((u) => roleFilter.includes(u.role));
-    if (statusFilter.length > 0) list = list.filter((u) => statusFilter.includes(u.status));
+    if (roleFilter.length > 0) {
+      list = list.filter((u) => roleFilter.includes(u.role));
+    }
+    if (statusFilter.length > 0) {
+      list = list.filter((u) => statusFilter.includes(u.status));
+    }
     if (nameSort !== "default") {
-      list.sort((a, b) =>
-        nameSort === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
-      );
+      list.sort((a, b) => {
+        const nameA = a.name || "";
+        const nameB = b.name || "";
+        return nameSort === "asc"
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      });
     }
     return list;
   }, [users, roleFilter, statusFilter, nameSort]);
@@ -123,16 +133,21 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
 
   if (users.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 border border-dashed border-[var(--btn-secondary-border)] rounded-3xl bg-white/60 dark:bg-[var(--stat-card-bg)] shadow-sm">
-        <div className="p-3.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 mb-3">
+      <div className="flex flex-col items-center justify-center p-12 border border-dashed border-[var(--btn-secondary-border)] rounded-3xl bg-[var(--card-bg)] shadow-xs">
+        <div className="p-3.5 rounded-full bg-[var(--stat-card-bg)] text-[var(--text-secondary)] mb-3">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            />
           </svg>
         </div>
-        <p className="text-slate-900 dark:text-[var(--text-primary)] font-semibold text-base mb-1">
+        <p className="text-[var(--text-primary)] font-semibold text-base mb-1">
           No users found
         </p>
-        <p className="text-slate-500 dark:text-[var(--text-secondary)] text-xs text-center max-w-sm">
+        <p className="text-[var(--text-secondary)] text-xs text-center max-w-sm">
           No user matching your search or filter was found in the database.
         </p>
       </div>
@@ -142,9 +157,9 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
   return (
     <>
       {/* Desktop / Tablet Layout */}
-      <div className="hidden sm:block overflow-x-auto rounded-2xl border border-[var(--btn-secondary-border)]">
+      <div className="hidden sm:block overflow-x-auto rounded-2xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)]">
         <table className="w-full text-left text-xs table-fixed">
-          <thead className="bg-[var(--stat-card-bg)] text-[var(--text-secondary)]">
+          <thead className="bg-[var(--stat-card-bg)] text-[var(--text-secondary)] border-b border-[var(--btn-secondary-border)]">
             <tr>
               <th className="p-3">
                 <button
@@ -156,10 +171,20 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
               </th>
               <th className="p-3 font-semibold">Email</th>
               <th className="p-3">
-                <ColumnFilterDropdown label="Role" options={ROLE_OPTIONS} selected={roleFilter} onChange={setRoleFilter} />
+                <ColumnFilterDropdown
+                  label="Role"
+                  options={ROLE_OPTIONS}
+                  selected={roleFilter}
+                  onChange={setRoleFilter}
+                />
               </th>
               <th className="p-3">
-                <ColumnFilterDropdown label="Status" options={STATUS_OPTIONS} selected={statusFilter} onChange={setStatusFilter} />
+                <ColumnFilterDropdown
+                  label="Status"
+                  options={STATUS_OPTIONS}
+                  selected={statusFilter}
+                  onChange={setStatusFilter}
+                />
               </th>
               <th className="p-3 font-semibold text-right">Actions</th>
             </tr>
@@ -192,8 +217,18 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
             Sort by name <span className="text-[10px]">{nameSort === "asc" ? "▲" : nameSort === "desc" ? "▼" : "↕"}</span>
           </button>
           <div className="flex gap-3">
-            <ColumnFilterDropdown label="Role" options={ROLE_OPTIONS} selected={roleFilter} onChange={setRoleFilter} />
-            <ColumnFilterDropdown label="Status" options={STATUS_OPTIONS} selected={statusFilter} onChange={setStatusFilter} />
+            <ColumnFilterDropdown
+              label="Role"
+              options={ROLE_OPTIONS}
+              selected={roleFilter}
+              onChange={setRoleFilter}
+            />
+            <ColumnFilterDropdown
+              label="Status"
+              options={STATUS_OPTIONS}
+              selected={statusFilter}
+              onChange={setStatusFilter}
+            />
           </div>
         </div>
 
@@ -224,7 +259,7 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
       {/* New Status Change Dropdown Modal */}
       <StatusChangeModal
         isOpen={!!statusChangeUser}
-        userName={statusChangeUser?.name}
+        userName={statusChangeUser?.name || "User"}
         currentStatus={(statusChangeUser?.status as StatusType) || "ACTIVE"}
         onClose={() => setStatusChangeUser(null)}
         onConfirm={handleStatusConfirm}
@@ -232,12 +267,12 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
 
       {/* User Closed Modal */}
       <CloseUserModal
-  isOpen={!!deleteUserTarget}
-  userName={deleteUserTarget?.name}
-  loading={busyId === deleteUserTarget?.userId}
-  onCancel={() => setDeleteUserTarget(null)}
-  onConfirm={handleDeleteConfirm} // status 'CLOSED' এ আপডেট করার API handler
-/>
+        isOpen={!!deleteUserTarget}
+        userName={deleteUserTarget?.name || "User"}
+        loading={busyId === deleteUserTarget?.userId}
+        onCancel={() => setDeleteUserTarget(null)}
+        onConfirm={handleDeleteConfirm}
+      />
     </>
   );
 }

@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CommitteeOption } from "@/lib/types/user";
+import { CommitteeOption } from "./users/CreateUserModal";
 
 interface RoleChangePostModalProps {
   isOpen: boolean;
   userName: string;
-  targetRole: "ADMIN" | "MODARATOR";
+  targetRole: "ADMIN" | "MODERATOR";
   loading?: boolean;
   onClose: () => void;
   onConfirm: (payload: {
@@ -95,7 +95,7 @@ export default function RoleChangePostModal({
               <option value="">Select a committee</option>
               {committees.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.type} - {c.session}
+                  {c.type} - {c.year}
                 </option>
               ))}
             </select>

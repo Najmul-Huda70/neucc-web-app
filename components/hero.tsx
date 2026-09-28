@@ -14,7 +14,7 @@ const slides = [
   {
     id: 2,
     src: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1600&q=80",
-    alt: "Club workshop session",
+    alt: "Club workshop year",
   },
   {
     id: 3,

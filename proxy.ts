@@ -4,20 +4,18 @@ import { jwtVerify } from "jose";
 
 // Routes config
 const PRIVATE_PATH_PREFIX = "/dashboard";
-const ADMIN_ONLY_PATH = "/dashboard/committees";
+const ADMIN_ONLY_PATHS = ["/dashboard/committees", "/dashboard/users"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  // ⚠️ ১. স্ক্রিনশট অনুযায়ী আপনার কূকির নাম "token" (accessToken নয়)
   const token = req.cookies.get("token")?.value;
 
-  // ২. ইউজার লগইন থাকলে তাকে /login পেজে ঢুকতে না দিয়ে ড্যাশবোর্ডে রিডাইরেক্ট করবে
+  // ১. ইউজার ইতিমধ্যে লগইন থাকলে তাকে /login পেজে ঢুকতে না দিয়ে ড্যাশবোর্ডে রিডাইরেক্ট করবে
   if (token && pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // ৩. Check if route is private (/dashboard*)
+  // ২. Check if route is private (/dashboard*)
   if (pathname.startsWith(PRIVATE_PATH_PREFIX)) {
     // Token না থাকলে সরাসরি Login পেজে রিডাইরেক্ট
     if (!token) {
@@ -27,22 +25,24 @@ export async function proxy(req: NextRequest) {
     }
 
     try {
-      // ৪. Verify JWT Token using 'jose'
+      // ৩. Verify JWT Token using 'jose'
       const secret = new TextEncoder().encode(
         process.env.JWT_SECRET || "your-secret-key"
       );
 
       const { payload } = await jwtVerify(token, secret);
-      const userRole = payload.role as string; // 'ADMIN' | 'MODARATOR' | 'MEMBER'
+      const userRole = payload.role as string; // 'ADMIN' | 'MODERATOR' | 'MEMBER'
 
-      // ৫. Admin-only Route Access Control (/dashboard/committees)
-      if (pathname.startsWith(ADMIN_ONLY_PATH)) {
-        if (userRole !== "ADMIN") {
-          return NextResponse.redirect(new URL("/dashboard", req.url));
-        }
+      // ৪. Admin-only Route Access Control
+      const isAdminRoute = ADMIN_ONLY_PATHS.some((path) =>
+        pathname.startsWith(path)
+      );
+
+      if (isAdminRoute && userRole !== "ADMIN") {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
       }
 
-      // ৬. Authorization success, proceed
+      // ৫. Authorization success, proceed
       return NextResponse.next();
     } catch (error) {
       console.error("Middleware Auth Error:", error);
@@ -55,7 +55,7 @@ export async function proxy(req: NextRequest) {
   return NextResponse.next();
 }
 
-// 🌐 Matcher config for Next.js Middleware
+// Matcher config
 export const config = {
   matcher: ["/dashboard/:path*", "/login"],
 };

@@ -50,7 +50,7 @@ export async function GET(req: Request) {
       );
     }
 
-    // একাউন্ট যদি BLOCKED বা DEACTIVATED থাকে
+    // একাউন্ট যদি DEACTIVATED বা DEACTIVATED থাকে
     if (existingUser.status !== "ACTIVE") {
       return NextResponse.redirect(
         new URL("/login?error=account_deactivated", req.url)

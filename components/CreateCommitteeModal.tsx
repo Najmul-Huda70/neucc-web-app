@@ -18,7 +18,7 @@ export default function CreateCommitteeModal({
 
   const [formData, setFormData] = useState({
     type: "EXECUTIVE",
-    session: "2026",
+    year: "2026",
     postTitle: "President",
     adminUserId: "",
     adminName: "",
@@ -109,16 +109,16 @@ export default function CreateCommitteeModal({
               </select>
             </div>
 
-            {/* Session Year */}
+            {/* year Year */}
             <div>
               <label className="block text-xs font-semibold text-[var(--text-primary)]">
-                Session (e.g. 2026)
+                year (e.g. 2026)
               </label>
               <input
                 type="text"
-                name="session"
+                name="year"
                 required
-                value={formData.session}
+                value={formData.year}
                 onChange={handleChange}
                 placeholder="2026"
                 className="mt-1 w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden"

@@ -11,13 +11,12 @@ export default function CommitteePage() {
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedType, setSelectedType] = useState<string>("EXECUTIVE");
-  const [selectedSession, setSelectedSession] = useState<string>("");
+  const [selectedyear, setSelectedyear] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const fetchCommittees = async () => {
     try {
       setLoading(true);
-
       const res = await fetch("/api/committees");
 
       if (!res.ok) {
@@ -28,11 +27,14 @@ export default function CommitteePage() {
 
       if (json.success && json.data) {
         setCommittees(json.data);
+
         if (json.data.length > 0) {
-          const firstType = json.data[0].type || "EXECUTIVE";
-          const firstSession = json.data[0].session || String(json.data[0].year);
+          const firstCommittee = json.data[0];
+          const firstType = String(firstCommittee.type || "EXECUTIVE");
+          const firstYear = String(firstCommittee.year ?? "");
+
           setSelectedType(firstType);
-          setSelectedSession(firstSession);
+          setSelectedyear(firstYear);
         }
       }
     } catch (error) {
@@ -46,37 +48,37 @@ export default function CommitteePage() {
     fetchCommittees();
   }, []);
 
-  // Filter valid sessions for currently selected type
-  const availableSessions = Array.from(
+  // Filter valid years for currently selected type
+  const availableyears = Array.from(
     new Set(
       committees
         .filter((c) => String(c.type).toLowerCase() === selectedType.toLowerCase())
-        .map((c) => String(c.session || c.year))
+        .map((c) => String(c.year))
     )
   );
 
-  // Auto-switch session when selectedType changes
-  useEffect(() => {
-    if (
-      availableSessions.length > 0 &&
-      !availableSessions.includes(selectedSession)
-    ) {
-      setSelectedSession(availableSessions[0]);
-    }
-  }, [selectedType, committees]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Match active committee
-  const activeCommittee = committees.find(
-    (c) =>
-      String(c.type).toLowerCase() === selectedType.toLowerCase() &&
-      String(c.session || c.year) === selectedSession
+  // Get all unique committee types
+  const availableTypes = Array.from(
+    new Set(committees.map((c) => String(c.type)))
   );
 
-  // Get all unique committee types
-  const availableTypes = Array.from(new Set(committees.map((c) => String(c.type))));
   if (availableTypes.length === 0) {
     availableTypes.push("EXECUTIVE", "ELECTION", "ADVISORY");
   }
+
+  // Auto-switch year when selectedType or committees list changes
+  useEffect(() => {
+    if (availableyears.length > 0 && !availableyears.includes(selectedyear)) {
+      setSelectedyear(availableyears[0]);
+    }
+  }, [selectedType, committees]);
+
+  // Match active committee based on selected type and year
+  const activeCommittee = committees.find(
+    (c) =>
+      String(c.type).toLowerCase() === selectedType.toLowerCase() &&
+      String(c.year) === selectedyear
+  );
 
   if (loading) {
     return (
@@ -108,10 +110,10 @@ export default function CommitteePage() {
         <CommitteeFilters
           selectedType={selectedType}
           setSelectedType={setSelectedType}
-          selectedSession={selectedSession}
-          setSelectedSession={setSelectedSession}
+          selectedyear={selectedyear}
+          setSelectedyear={setSelectedyear}
           types={availableTypes}
-          sessions={availableSessions}
+          years={availableyears}
         />
       )}
 
@@ -121,13 +123,13 @@ export default function CommitteePage() {
             No Committee Found
           </h3>
           <p className="text-xs text-[var(--text-secondary)] mt-1">
-            There is no committee configured for {selectedType} ({selectedSession}).
+            There is no committee configured for {selectedType} ({selectedyear}).
           </p>
         </div>
       ) : (
         <ExecutiveGrid
           posts={activeCommittee.posts}
-          title={`${activeCommittee.type} Committee - ${selectedSession}`}
+          title={`${activeCommittee.type} Committee - ${selectedyear}`}
         />
       )}
 

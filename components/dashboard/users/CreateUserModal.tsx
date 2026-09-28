@@ -2,15 +2,25 @@
 
 import { useEffect, useState } from "react";
 
+
+
 export interface CommitteePost {
-  postId?: string;
+  postId: string;
   postTitle: string;
-  status: string;
+  // Prisma relation অনুযায়ী single user অথবা multiple relation type যুক্ত করুন:
+  user?: {
+    userId: string;
+    name: string;
+    email?: string;
+  } | null;
+  users?: {
+    userId?: string;
+    name?: string;
+    email?: string;
+  } | null;
   user_posts?: {
-    user: {
-      name: string;
-      email: string;
-      image?: string;
+    user?: {
+      name?: string;
     };
   }[];
 }
@@ -22,7 +32,6 @@ export interface CommitteeOption {
   status: string;
   posts: CommitteePost[];
 }
-
 interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;

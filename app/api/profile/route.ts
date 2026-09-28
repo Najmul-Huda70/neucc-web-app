@@ -24,7 +24,7 @@ async function getAuthenticatedUser(): Promise<JWTPayload | null> {
   }
 }
 
-// Riktig selection i henhold til Prisma Schema (uten session og uten assignedAt)
+// Riktig selection i henhold til Prisma Schema (uten year og uten assignedAt)
 const userProfileSelect = {
   userId:true,
   name: true,
@@ -53,13 +53,13 @@ const userProfileSelect = {
 // GET: Fetch User Profile
 export async function GET() {
   try {
-    const sessionUser = await getAuthenticatedUser();
-    if (!sessionUser) {
+    const yearUser = await getAuthenticatedUser();
+    if (!yearUser) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
     const userProfile = await prisma.user.findUnique({
-      where: { userId: sessionUser.userId },
+      where: { userId: yearUser.userId },
       select: userProfileSelect,
     });
 
@@ -79,8 +79,8 @@ export async function GET() {
 // PATCH: Update Profile Info
 export async function PATCH(req: Request) {
   try {
-    const sessionUser = await getAuthenticatedUser();
-    if (!sessionUser) {
+    const yearUser = await getAuthenticatedUser();
+    if (!yearUser) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
@@ -93,7 +93,7 @@ export async function PATCH(req: Request) {
     const removeImage = formData.get("removeImage") === "true";
 
     const existingUser = await prisma.user.findUnique({
-      where: { userId: sessionUser.userId },
+      where: { userId: yearUser.userId },
     });
 
     if (!existingUser) {
@@ -143,7 +143,7 @@ export async function PATCH(req: Request) {
 
     // 3. Oppdatering i databasen
     const updatedUser = await prisma.user.update({
-      where: { userId: sessionUser.userId },
+      where: { userId: yearUser.userId },
       data: updateData,
       select: userProfileSelect,
     });

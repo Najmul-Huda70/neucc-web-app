@@ -33,7 +33,7 @@ interface RoleChangeEmailOptions {
 interface StatusChangeEmailOptions {
   email: string;
   name: string;
-  status: "ACTIVE" | "BLOCKED";
+  status: "ACTIVE" | "DEACTIVATED";
 }
 interface AccountDeletedEmailOptions {
   email: string;
@@ -91,13 +91,13 @@ export async function sendCommitteeClosedNotification(emails: string[]) {
     <h3 style="color: #d9534f; margin-top: 0; font-size: 18px;">Committee Transition Notice</h3>
     <p style="font-size: 15px; color: #334155;">Dear Member,</p>
     <p style="font-size: 14px; color: #475569; line-height: 1.5;">
-      A new executive committee session has been officially formed at Netrokona University Computer Club. As per organizational policy, the previous committee term has ended.
+      A new executive committee year has been officially formed at Netrokona University Computer Club. As per organizational policy, the previous committee term has ended.
     </p>
     
     <div style="background-color: #fef2f2; padding: 16px; border-left: 4px solid #ef4444; border-radius: 6px; margin: 20px 0;">
       <p style="margin: 0; font-size: 14px; color: #991b1b; line-height: 1.6;">
         <strong>Your Account Status Update:</strong><br/>
-        • Your previous Admin/Moderator post has been archived and set to <strong>BLOCKED</strong>.<br/>
+        • Your previous Admin/Moderator post has been archived and set to <strong>DEACTIVATED</strong>.<br/>
         • Your account role has been updated to <strong>MEMBER</strong>.
       </p>
     </div>
@@ -193,7 +193,7 @@ export async function sendRoleChangeNotification({
   postRemoved,
 }: RoleChangeEmailOptions) {
   const roleLabel = (r: string) =>
-    r === "MODARATOR" ? "Moderator" : r.charAt(0) + r.slice(1).toLowerCase();
+    r === "MODERATOR" ? "Moderator" : r.charAt(0) + r.slice(1).toLowerCase();
 
   const postInfo = postTitle
     ? `<p style="margin:0 0 8px 0;font-size:14px;color:#1e293b;"><strong>Assigned Post:</strong> ${postTitle}</p>`
@@ -231,22 +231,22 @@ export async function sendRoleChangeNotification({
 }
 
 /**
- * Notifies a user when their account is blocked or reactivated
+ * Notifies a user when their account is DEACTIVATED or reactivated
  */
 export async function sendStatusChangeNotification({ email, name, status }: StatusChangeEmailOptions) {
-  const isBlocked = status === "BLOCKED";
+  const isDEACTIVATED = status === "DEACTIVATED";
 
   const content = `
-    <h3 style="color: ${isBlocked ? "#d9534f" : "#0f172a"}; margin-top: 0; font-size: 18px;">
-      Account ${isBlocked ? "Blocked" : "Reactivated"}
+    <h3 style="color: ${isDEACTIVATED ? "#d9534f" : "#0f172a"}; margin-top: 0; font-size: 18px;">
+      Account ${isDEACTIVATED ? "DEACTIVATED" : "Reactivated"}
     </h3>
     <p style="font-size: 15px; color: #334155;">Hello <strong>${name}</strong>,</p>
-    <div style="background-color: ${isBlocked ? "#fef2f2" : "#f0fdf4"}; padding: 16px; border-left: 4px solid ${
-    isBlocked ? "#ef4444" : "#22c55e"
+    <div style="background-color: ${isDEACTIVATED ? "#fef2f2" : "#f0fdf4"}; padding: 16px; border-left: 4px solid ${
+    isDEACTIVATED ? "#ef4444" : "#22c55e"
   }; border-radius: 6px; margin: 20px 0;">
-      <p style="margin: 0; font-size: 14px; color: ${isBlocked ? "#991b1b" : "#166534"}; line-height: 1.6;">
-        Your account has been <strong>${isBlocked ? "blocked" : "reactivated"}</strong> by an administrator.
-        ${isBlocked ? "You will not be able to log in until this is reversed." : "You can now log in normally."}
+      <p style="margin: 0; font-size: 14px; color: ${isDEACTIVATED ? "#991b1b" : "#166534"}; line-height: 1.6;">
+        Your account has been <strong>${isDEACTIVATED ? "DEACTIVATED" : "reactivated"}</strong> by an administrator.
+        ${isDEACTIVATED ? "You will not be able to log in until this is reversed." : "You can now log in normally."}
       </p>
     </div>
     <p style="font-size: 12px; color: #94a3b8; margin-top: 24px;">
@@ -257,7 +257,7 @@ export async function sendStatusChangeNotification({ email, name, status }: Stat
   return await transporter.sendMail({
     from: `"Netrokona University Computer Club" <${process.env.EMAIL_USER || "computerclub@neu.ac.bd"}>`,
     to: email,
-    subject: `Notice: Your Account Has Been ${isBlocked ? "Blocked" : "Reactivated"} - NEU Computer Club`,
+    subject: `Notice: Your Account Has Been ${isDEACTIVATED ? "DEACTIVATED" : "Reactivated"} - NEU Computer Club`,
     html: clubHeaderAndFooter(content),
     attachments: [logoAttachment],
   });

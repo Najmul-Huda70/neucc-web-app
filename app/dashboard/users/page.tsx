@@ -35,11 +35,12 @@ export default function UsersPage() {
   const filteredUsers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return users;
-    return users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(query) ||
-        u.email.toLowerCase().includes(query)
-    );
+
+    return users.filter((u) => {
+      const nameMatch = u.name ? u.name.toLowerCase().includes(query) : false;
+      const emailMatch = u.email ? u.email.toLowerCase().includes(query) : false;
+      return nameMatch || emailMatch;
+    });
   }, [users, searchQuery]);
 
   return (

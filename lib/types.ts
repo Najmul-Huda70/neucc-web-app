@@ -56,14 +56,14 @@ export interface Committee extends WithStatus, Partial<Timestamps> {
   committeeId?: string;
   type: Type | string;
   year: number;
-  session?: string;
   posts: Post[];
 }
+
 
 /* Base and Utility Types */
 export type CommitteeBase = Omit<Committee, "posts">;
 export type CreateCommitteeInput = Pick<Committee, "type"> & {
-  session?: string;
+  
   year?: number;
   status?: Status;
 };
@@ -93,6 +93,12 @@ export interface SidebarProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
   userRole: Role;
+  user?: {
+    name?: string;
+    email?: string;
+    image?: string | null;
+    role?: string;
+  };
 }
 
 export interface DashboardClientLayoutProps {
