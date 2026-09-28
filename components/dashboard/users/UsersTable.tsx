@@ -4,10 +4,10 @@ import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { UserBase } from "@/lib/types";
 import ColumnFilterDropdown from "./ColumnFilterDropdown";
-import RoleChangeModal from "../RoleChangeModal";
 import UserRowItem from "./table/UserRowItem";
-import StatusChangeModal, { StatusType } from "@/components/StatusChangeModal";
+import StatusChangeModal, { StatusType } from "@/components/dashboard/users/StatusChangeModal";
 import CloseUserModal from "./CloseUserModal";
+import RoleChangeModal from "./RoleChangeModal";
 
 export interface UserRow extends UserBase {
   posts?: { postId: string; postTitle: string }[];

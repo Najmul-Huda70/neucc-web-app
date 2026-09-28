@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CommitteeFilters from "@/components/CommitteeFilters";
-import ExecutiveGrid from "@/components/ExecutiveGrid";
+import CommitteeFilters from "@/components/dashboard/committee/CommitteeFilters";
 import JoinBanner from "@/components/JoinBanner";
-import CreateCommitteeModal from "@/components/CreateCommitteeModal";
+import CreateCommitteeModal from "@/components/dashboard/committee/CreateCommitteeModal";
 import { ApiResponse, Committee } from "@/lib/types";
+import ExecutiveGrid from "@/components/dashboard/committee/ExecutiveGrid";
 
 export default function CommitteePage() {
   const [committees, setCommittees] = useState<Committee[]>([]);

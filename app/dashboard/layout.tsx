@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { decodeJwt } from "jose";
 import DashboardClientLayout from "@/components/dashboard/DashboardClientLayout";
+import { getUserProfile } from "@/lib/services/users";
 import { AuthUser } from "@/lib/types";
 
 export default async function DashboardLayout({
@@ -11,23 +12,26 @@ export default async function DashboardLayout({
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
-  // proxy.ts নিরাপত্তা নিশ্চিত করেছে, তবে সাইড-ইফেক্ট এড়াতে একটি নিরাপদ Fallback
-  let payload: Record<string, unknown> = {};
+  let userId = "";
 
   if (token) {
     try {
-      payload = decodeJwt(token);
+      const payload = decodeJwt(token);
+      userId = (payload.userId as string) || "";
     } catch {
-      payload = {};
+      userId = "";
     }
   }
 
+  // সরাসরি সার্ভিস ফাংশন কল (ডিবি Query)
+  const dbUser = await getUserProfile(userId);
+
   const user: AuthUser = {
-    userId: (payload.userId as string) || "",
-    name: (payload.name as string) || "User",
-    email: (payload.email as string) || "",
-    role: (payload.role as string) || "MEMBER",
-    status: (payload.status as string) || "ACTIVE",
+    userId: dbUser?.userId || userId,
+    name: dbUser?.name || "User",
+    email: dbUser?.email || "",
+    role: dbUser?.role || "MEMBER",
+    status: dbUser?.status || "",
   };
 
   return (
