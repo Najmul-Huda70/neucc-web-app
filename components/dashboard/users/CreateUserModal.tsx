@@ -2,22 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-
-
 export interface CommitteePost {
-  postId: string;
+  postId?: string;
   postTitle: string;
-  // Prisma relation অনুযায়ী single user অথবা multiple relation type যুক্ত করুন:
-  user?: {
-    userId: string;
-    name: string;
-    email?: string;
-  } | null;
-  users?: {
-    userId?: string;
-    name?: string;
-    email?: string;
-  } | null;
   user_posts?: {
     user?: {
       name?: string;
@@ -26,12 +13,13 @@ export interface CommitteePost {
 }
 
 export interface CommitteeOption {
-  id?: string;
+  committeeId?: string;
   type: string;
   year: number;
   status: string;
   posts: CommitteePost[];
 }
+
 interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -46,9 +34,9 @@ const INITIAL_FORM_STATE = {
   name: "",
   email: "",
   role: "MEMBER",
-  committeeId: "",
+  selectedCommitteeKey: "", // format: "TYPE|YEAR" e.g. "EXECUTIVE|2027"
   postMode: "new" as "existing" | "new",
-  existingPostId: "",
+  existingPostTitle: "",
   newPostTitle: "",
 };
 
@@ -83,8 +71,10 @@ export default function CreateUserModal({
 
           if (activeCommittees.length === 1) {
             const single = activeCommittees[0];
-            const cId = single.id || `${single.type}-${single.year}`;
-            setForm((prev) => ({ ...prev, committeeId: cId }));
+            setForm((prev) => ({
+              ...prev,
+              selectedCommitteeKey: `${single.type}|${single.year}`,
+            }));
           }
         }
       })
@@ -95,8 +85,8 @@ export default function CreateUserModal({
     if (!requiresPost) {
       setForm((f) => ({
         ...f,
-        committeeId: "",
-        existingPostId: "",
+        selectedCommitteeKey: "",
+        existingPostTitle: "",
         newPostTitle: "",
         postMode: "new",
       }));
@@ -105,23 +95,29 @@ export default function CreateUserModal({
 
   if (!isOpen) return null;
 
+  // সিলেক্ট করা টাইপ ও ইয়ার ফিল্টার
+  const [selectedType, selectedYearStr] = form.selectedCommitteeKey.split("|");
+  const selectedYear = selectedYearStr ? parseInt(selectedYearStr, 10) : null;
+
   const selectedCommittee = committees.find(
-    (c) => (c.id || `${c.type}-${c.year}`) === form.committeeId
+    (c) => c.type === selectedType && c.year === selectedYear
   );
-const generateRandomPassword = (length = 12) => {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-  let password = "";
-  for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-};
+
+  const generateRandomPassword = (length = 12) => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (requiresPost) {
-      if (!form.committeeId) {
+      if (!form.selectedCommitteeKey) {
         setError("Admin and Moderator accounts must be assigned to a committee.");
         return;
       }
@@ -129,7 +125,7 @@ const generateRandomPassword = (length = 12) => {
         setError("Enter a post title to create for this member.");
         return;
       }
-      if (form.postMode === "existing" && !form.existingPostId) {
+      if (form.postMode === "existing" && !form.existingPostTitle) {
         setError("Select an existing post to assign.");
         return;
       }
@@ -137,31 +133,46 @@ const generateRandomPassword = (length = 12) => {
 
     setLoading(true);
     try {
-      let resolvedPostTitle = "";
-      if (requiresPost) {
-        if (form.postMode === "new") {
-          resolvedPostTitle = form.newPostTitle;
-        } else {
-          const foundPost = selectedCommittee?.posts.find(
-            (p) => (p.postId || p.postTitle) === form.existingPostId
+      let realCommitteeId = "";
+      let realExistingPostId = "";
+
+      // 🔍 ১. টাইপ এবং ইয়ার দিয়ে আসল Database committeeId খুঁজে বের করা
+      if (requiresPost && selectedType && selectedYear) {
+        const lookupRes = await fetch(
+          `/api/committees/lookup?type=${selectedType}&year=${selectedYear}`
+        );
+        const lookupData = await lookupRes.json();
+
+        if (!lookupRes.ok || !lookupData.committeeId) {
+          throw new Error("Could not find database ID for selected committee.");
+        }
+        realCommitteeId = lookupData.committeeId;
+
+        // 🔍 ২. Existing Post সিলেক্ট করা থাকলে সেটির আসল postId খোঁজা
+        if (form.postMode === "existing" && form.existingPostTitle) {
+          const matchedPost = lookupData.posts?.find(
+            (p: any) => p.postTitle === form.existingPostTitle
           );
-          resolvedPostTitle = foundPost ? foundPost.postTitle : form.existingPostId;
+          if (matchedPost) {
+            realExistingPostId = matchedPost.postId;
+          }
         }
       }
-const autoGeneratedPassword = generateRandomPassword(12);
-      // Exact Payload Construction for API
+
+      const autoGeneratedPassword = generateRandomPassword(12);
+
       const payload = {
-        adminUserId: form.userId,
-        adminName: form.name,
-        adminEmail: form.email,
+        userId: form.userId,
+        name: form.name,
+        email: form.email,
         password: autoGeneratedPassword,
         role: form.role,
         isCommitteeMember: requiresPost,
         ...(requiresPost && {
-          committeeId: selectedCommittee?.id || form.committeeId,
-          type: selectedCommittee?.type,
-          year: selectedCommittee?.year,
-          postTitle: resolvedPostTitle,
+          committeeId: realCommitteeId, // 👈 DB real UUID
+          postMode: form.postMode,
+          newPostTitle: form.newPostTitle,
+          existingPostId: realExistingPostId,
         }),
       };
 
@@ -207,7 +218,6 @@ const autoGeneratedPassword = generateRandomPassword(12);
             </div>
           )}
 
-          {/* User ID / Student ID Input */}
           <div>
             <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
               User ID / Student ID
@@ -249,6 +259,7 @@ const autoGeneratedPassword = generateRandomPassword(12);
               className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
             />
           </div>
+
           <div>
             <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
               Role
@@ -264,7 +275,6 @@ const autoGeneratedPassword = generateRandomPassword(12);
             </select>
           </div>
 
-          {/* Committee post section — only shown for Admin/Moderator */}
           {requiresPost && (
             <div className="space-y-3 rounded-xl border border-[var(--btn-primary-bg)]/30 bg-[var(--badge-bg)] p-3.5">
               <p className="text-[11px] font-semibold text-[var(--btn-primary-bg)]">
@@ -283,21 +293,21 @@ const autoGeneratedPassword = generateRandomPassword(12);
                 ) : (
                   <select
                     required
-                    value={form.committeeId}
+                    value={form.selectedCommitteeKey}
                     onChange={(e) =>
                       setForm({
                         ...form,
-                        committeeId: e.target.value,
-                        existingPostId: "",
+                        selectedCommitteeKey: e.target.value,
+                        existingPostTitle: "",
                       })
                     }
                     className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
                   >
                     <option value="">Select a committee</option>
                     {committees.map((c) => {
-                      const cId = c.id || `${c.type}-${c.year}`;
+                      const key = `${c.type}|${c.year}`;
                       return (
-                        <option key={cId} value={cId}>
+                        <option key={key} value={key}>
                           {`The ${c.type} Committee-${c.year}`}
                         </option>
                       );
@@ -341,18 +351,17 @@ const autoGeneratedPassword = generateRandomPassword(12);
               ) : (
                 <select
                   required
-                  value={form.existingPostId}
+                  value={form.existingPostTitle}
                   onChange={(e) =>
-                    setForm({ ...form, existingPostId: e.target.value })
+                    setForm({ ...form, existingPostTitle: e.target.value })
                   }
                   className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
                 >
                   <option value="">Select a post to reassign</option>
-                  {selectedCommittee?.posts.map((p, index) => {
-                    const currentUser = p.user_posts?.[0]?.user?.name || "—";
-                    const pKey = p.postId || `post-${index}`;
+                  {selectedCommittee?.posts.map((p, idx) => {
+                    const currentUser = p.user_posts?.[0]?.user?.name || "Unassigned";
                     return (
-                      <option key={pKey} value={p.postId || p.postTitle}>
+                      <option key={idx} value={p.postTitle}>
                         {p.postTitle} (currently: {currentUser})
                       </option>
                     );

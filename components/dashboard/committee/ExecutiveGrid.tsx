@@ -1,7 +1,7 @@
 "use client";
 
+import MemberCard from "@/components/MemberCard";
 import { Post } from "@/lib/types";
-import MemberCard from "./MemberCard";
 
 interface ExecutiveGridProps {
   posts: Post[];

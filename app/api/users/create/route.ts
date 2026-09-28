@@ -15,6 +15,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
+
     const {
       userId,
       name,
@@ -57,13 +58,13 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. Duplicate User Id and Email Check
+    // 3. Duplicate Check
     const existingUser = await prisma.user.findFirst({
-      where:
-      {
-        OR: [{ email }, { userId }]
-      }
+      where: {
+        OR: [{ email }, { userId }],
+      },
     });
+
     if (existingUser) {
       const isEmailDuplicate = existingUser.email === email;
       return NextResponse.json(
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
           success: false,
           message: isEmailDuplicate
             ? "A user with this email already exists."
-            : "A user with this User ID already exists."
+            : "A user with this User ID already exists.",
         },
         { status: 409 }
       );
@@ -98,7 +99,7 @@ export async function POST(req: Request) {
         let targetPostId = existingPostId;
 
         if (postMode === "new") {
-          // Create new post under committee
+          // Create new post under target committee
           const newPost = await tx.post.create({
             data: {
               postId: randomUUID(),
@@ -110,14 +111,13 @@ export async function POST(req: Request) {
           targetPostId = newPost.postId;
           assignedPostTitle = newPost.postTitle;
         } else if (postMode === "existing") {
-          // Find existing post title for email notification
           const post = await tx.post.findUnique({
             where: { postId: existingPostId },
           });
           if (post) assignedPostTitle = post.postTitle;
         }
 
-        // Link User and Post in UserPost join table
+        // Link User and Post in userPost join table
         if (targetPostId) {
           await tx.userPost.create({
             data: {
@@ -131,7 +131,7 @@ export async function POST(req: Request) {
       }
     });
 
-    // 5. Send Email Credentials (Outside Transaction)
+    // 5. Send Email Credentials
     try {
       await sendNewAccountCredentials({
         userId,
@@ -149,10 +149,10 @@ export async function POST(req: Request) {
       success: true,
       message: "User account and committee designation created successfully.",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("User creation transaction error:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to create user due to a server error." },
+      { success: false, message: error.message || "Failed to create user due to a server error." },
       { status: 500 }
     );
   }

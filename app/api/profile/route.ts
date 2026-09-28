@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { JWTPayload } from "@/lib/types";
 import { uploadProfileImage } from "@/lib/imageService";
+import { getUserProfile, userProfileSelect } from "@/lib/services/users";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "fallback_super_secret_key"
@@ -24,32 +25,6 @@ async function getAuthenticatedUser(): Promise<JWTPayload | null> {
   }
 }
 
-// Riktig selection i henhold til Prisma Schema (uten year og uten assignedAt)
-const userProfileSelect = {
-  userId:true,
-  name: true,
-  email: true,
-  role: true,
-  image: true,
-  status: true,
-  user_posts: {
-    select: {
-      post: {
-        select: {
-          postTitle: true,
-          committee: {
-            select: {
-              type: true,
-              year: true,
-              status: true,
-            },
-          },
-        },
-      },
-    },
-  },
-};
-
 // GET: Fetch User Profile
 export async function GET() {
   try {
@@ -58,10 +33,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
-    const userProfile = await prisma.user.findUnique({
-      where: { userId: yearUser.userId },
-      select: userProfileSelect,
-    });
+    // হেলপার ফাংশন থেকে ফেচ করা হচ্ছে
+    const userProfile = await getUserProfile(yearUser.userId);
 
     if (!userProfile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });

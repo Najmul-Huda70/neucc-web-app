@@ -53,7 +53,6 @@ export default function Sidebar({
     router.push("/login");
     router.refresh();
   };
-
   // Safe user variables with fallback
   const userName = user?.name || "User";
   const userEmail = user?.email || "";

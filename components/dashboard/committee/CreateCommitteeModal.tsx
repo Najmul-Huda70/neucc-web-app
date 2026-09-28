@@ -18,7 +18,7 @@ export default function CreateCommitteeModal({
 
   const [formData, setFormData] = useState({
     type: "EXECUTIVE",
-    year: "2026",
+    year: new Date().getFullYear(), // ডিফল্ট বর্তমান বছর রাখা ভাল (যেমন: 2026)
     postTitle: "President",
     adminUserId: "",
     adminName: "",
@@ -27,10 +27,16 @@ export default function CreateCommitteeModal({
 
   if (!isOpen) return null;
 
+  // 1. CHANGE HERE: handleChange আপডেট করা হলো
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value, type } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "number" ? (value === "" ? "" : Number(value)) : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +50,10 @@ export default function CreateCommitteeModal({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          year: Number(formData.year), // নিরাপদ থাকার জন্য পাঠানোর সময় নিশ্চিত Int করে দেওয়া হলো
+        }),
       });
 
       const data = await res.json();
@@ -109,13 +118,14 @@ export default function CreateCommitteeModal({
               </select>
             </div>
 
-            {/* year Year */}
+            {/* Committee Year */}
             <div>
               <label className="block text-xs font-semibold text-[var(--text-primary)]">
-                year (e.g. 2026)
+                Year (e.g. 2026)
               </label>
+              {/* 2. CHANGE HERE: type="number" করা হয়েছে */}
               <input
-                type="text"
+                type="number"
                 name="year"
                 required
                 value={formData.year}
