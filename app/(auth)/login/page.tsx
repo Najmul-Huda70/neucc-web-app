@@ -1,195 +1,436 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
+import Image from "next/image";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleUserIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // User ID অটোমেটিক Uppercase করবে এবং ইনপুট পরিবর্তন হলে এরর মুছে দেবে
-    setUserId(e.target.value.toUpperCase());
-    if (errorMessage) setErrorMessage("");
-  };
+  // Prevent duplicate toast
+  const processedError = useRef<string | null>(null);
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-    if (errorMessage) setErrorMessage("");
+  const clearError = () => {
+    if (errorMessage) {
+      setErrorMessage("");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     setIsLoading(true);
     setErrorMessage("");
-
-    const cleanUserId = userId.trim();
-    const cleanPassword = password.trim();
 
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: cleanUserId, password: cleanPassword }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: userId.trim(),
+          password: password.trim(),
+          rememberMe,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Invalid User ID or Password");
+        throw new Error(
+          data.message || "Invalid User ID or password"
+        );
       }
 
-      // Refresh to update cookie state before redirecting
       router.refresh();
       router.push("/dashboard");
-    } catch (err: any) {
-      setErrorMessage(err.message || "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.";
+
+      setErrorMessage(message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Google login error handling
+  useEffect(() => {
+    const error = searchParams.get("error");
+
+    if (!error) return;
+
+    // Already processed this error
+    if (processedError.current === error) return;
+
+    processedError.current = error;
+
+    switch (error) {
+      case "user_not_found":
+        toast.error(
+          "Account not found. Only registered members can sign in.",
+          {
+            duration: 4000,
+            id: "google-user-not-found",
+          }
+        );
+        break;
+
+      case "account_deactivated":
+        toast.error(
+          "Your account is currently inactive or blocked.",
+          {
+            duration: 4000,
+            id: "google-account-deactivated",
+          }
+        );
+        break;
+
+      case "google_auth_failed":
+        toast.error(
+          "Google authentication failed. Please try again.",
+          {
+            duration: 4000,
+            id: "google-auth-failed",
+          }
+        );
+        break;
+
+      case "no_code":
+        toast.error(
+          "Google login authorization code missing.",
+          {
+            duration: 4000,
+            id: "google-no-code",
+          }
+        );
+        break;
+
+      default:
+        toast.error("Something went wrong. Please try again.", {
+          duration: 4000,
+          id: "google-login-error",
+        });
+    }
+
+    // Remove ?error=... from URL
+    router.replace("/login");
+  }, [searchParams, router]);
+
+  const handleGoogleLogin = () => {
+    const rootUrl =
+      "https://accounts.google.com/o/oauth2/v2/auth";
+
+    const options = {
+      redirect_uri:
+        `${window.location.origin}/api/auth/callback/google`,
+
+      client_id:
+        process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+
+      access_type: "offline",
+      response_type: "code",
+      prompt: "consent",
+
+      scope: [
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/userinfo.email",
+      ].join(" "),
+    };
+
+    const qs = new URLSearchParams(options).toString();
+
+    window.location.href = `${rootUrl}?${qs}`;
+  };
+
+
   return (
     <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
       <div
-        className="w-full max-w-md p-6 sm:p-8 rounded-2xl border shadow-xl transition-colors duration-300"
-        style={{
-          backgroundColor: "var(--card-bg)",
-          borderColor: "var(--btn-secondary-border)",
-        }}
+        className="w-full max-w-5xl grid lg:grid-cols-2 rounded-2xl border shadow-xl overflow-hidden"
+        style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--btn-secondary-border)" }}
       >
-        {/* Header */}
-        <div className="mb-6 text-center">
-          <h1
-            className="text-2xl sm:text-3xl font-bold tracking-tight mb-2"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Welcome Back
-          </h1>
-          <p
-            className="text-sm font-medium"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            Please enter your credentials to sign in
-          </p>
-        </div>
-
-        {/* Error Message */}
-        {errorMessage && (
+        {/* ---------------- LEFT: brand panel ---------------- */}
+        <div
+          className="relative overflow-hidden p-8 sm:p-10 flex flex-col border-b lg:border-b-0 lg:border-r"
+          style={{ backgroundColor: "var(--stat-card-bg)", borderColor: "var(--btn-secondary-border)" }}
+        >
           <div
-            className="mb-5 p-3 rounded-xl text-sm text-center font-semibold bg-red-500/10 border border-red-500/20 animate-shake"
-            style={{ color: "var(--text-important)" }}
-          >
-            {errorMessage}
-          </div>
-        )}
+            className="absolute -top-10 -left-16 w-56 h-56 rounded-full opacity-60"
+            style={{ backgroundColor: "var(--badge-bg)" }}
+          />
+          <div
+            className="absolute -bottom-20 -right-10 w-64 h-64 rounded-full opacity-40"
+            style={{ backgroundColor: "var(--card-bg)" }}
+          />
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* User ID Field */}
-          <div>
-            <label
-              htmlFor="userId"
-              className="block text-xs font-semibold uppercase tracking-wider mb-2"
-              style={{ color: "var(--text-primary)" }}
+          <div className="relative z-10 flex flex-col h-full">
+            <div
+              className="inline-flex items-center gap-3 rounded-xl px-4 py-3 mb-8 self-start"
+              style={{ backgroundColor: "var(--card-bg)" }}
             >
-              User ID
-            </label>
-            <input
-              id="userId"
-              type="text"
-              required
-              value={userId}
-              onChange={handleUserIdChange}
-              placeholder="e.g. CSE2024001"
-              className="w-full px-4 py-3 rounded-xl border text-sm font-medium transition-all outline-none focus:ring-2 focus:ring-teal-500/50 uppercase"
-              style={{
-                backgroundColor: "var(--stat-card-bg)",
-                color: "var(--text-primary)",
-                borderColor: "var(--btn-secondary-border)",
-              }}
-            />
-          </div>
-
-          {/* Password Field */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-xs font-semibold uppercase tracking-wider mb-2"
-              style={{ color: "var(--text-primary)" }}
+              {/* Logo Section */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="w-12 h-16 sm:w-14 sm:h-18 rounded-lg overflow-hidden flex items-center justify-center shrink-0"
             >
-              Password
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={handlePasswordChange}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 pr-12 rounded-xl border text-sm font-medium transition-all outline-none focus:ring-2 focus:ring-teal-500/50"
-                style={{
-                  backgroundColor: "var(--stat-card-bg)",
-                  color: "var(--text-primary)",
-                  borderColor: "var(--btn-secondary-border)",
-                }}
+              <Image
+                src="/image/Logo-NeU-jpg.jpg"
+                alt="Logo NeU"
+                width={56}
+                height={72}
+                priority
+                className="object-cover w-full h-full"
               />
+            </Link>
 
-              {/* Show/Hide Toggle */}
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold px-2 py-1 rounded cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
-                style={{ color: "var(--text-secondary)" }}
+            <div className="flex flex-col">
+              <Link
+                href="/"
+                className="text-base sm:text-lg font-bold text-[var(--text-primary)] leading-tight hover:opacity-80 transition-opacity"
               >
-                {showPassword ? "Hide" : "Show"}
-              </button>
+                Computer Club
+              </Link>
+              <Link
+                href="https://cse.neu.ac.bd"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs sm:text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors line-clamp-1"
+              >
+                Department of Computer Science & Engineering
+              </Link>
+              <Link
+                href="https://neu.ac.bd"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group text-[11px] sm:text-xs flex items-center gap-1 font-bold text-[var(--text-important)]"
+              >
+                Netrokona University
+                <ExternalLink
+                  size={12}
+                  className="transition-transform duration-200 group-hover:-translate-y-0.5"
+                />
+              </Link>
             </div>
           </div>
+            </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3.5 px-4 rounded-xl font-bold text-sm tracking-wide transition-all transform active:scale-[0.98] disabled:opacity-50 cursor-pointer shadow-md mt-2"
-            style={{
-              backgroundColor: "var(--btn-primary-bg)",
-              color: "var(--btn-primary-text)",
-            }}
-          >
-            {isLoading ? (
-              <span className="inline-flex items-center justify-center gap-2">
-                <svg
-                  className="animate-spin h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
+            <div className="flex gap-2.5">
+              <a
+                href="mailto:help@neucc.org"
+                aria-label="Email"
+                className="w-9 h-9 rounded-full border flex items-center justify-center transition-colors hover:opacity-80"
+                style={{ borderColor: "var(--btn-secondary-border)", color: "var(--text-secondary)" }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 6h18v12H3z" />
+                  <path d="m3 7 9 6 9-6" />
                 </svg>
-                Signing in...
-              </span>
-            ) : (
-              "Sign In"
-            )}
+              </a>
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Facebook"
+                className="w-9 h-9 rounded-full border flex items-center justify-center transition-colors hover:opacity-80"
+                style={{ borderColor: "var(--btn-secondary-border)", color: "var(--text-secondary)" }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M13.5 21v-8h2.7l.4-3.1h-3.1V8c0-.9.25-1.5 1.55-1.5H17V3.6c-.3-.04-1.3-.13-2.5-.13-2.5 0-4.2 1.5-4.2 4.3v2.1H7.6V13h2.7v8h3.2Z" />
+                </svg>
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="LinkedIn"
+                className="w-9 h-9 rounded-full border flex items-center justify-center transition-colors hover:opacity-80"
+                style={{ borderColor: "var(--btn-secondary-border)", color: "var(--text-secondary)" }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6.94 8.5H4.2V19.8h2.74V8.5ZM5.57 4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2ZM19.8 19.8h-2.73v-5.9c0-1.4-.5-2.36-1.76-2.36-.96 0-1.53.65-1.78 1.27-.09.22-.11.53-.11.84v6.15H10.7s.04-9.98 0-11.3h2.72v1.6c.36-.56 1.01-1.36 2.46-1.36 1.8 0 3.14 1.17 3.14 3.7v7.36Z" />
+                </svg>
+              </a>
+            </div>
+
+            <div className="mt-12">
+              <span
+                className="block w-8 h-0.5 rounded-full mb-4"
+                style={{ backgroundColor: "var(--text-secondary)" }}
+              />
+              <h2 className="text-2xl font-bold leading-snug mb-3 max-w-xs" style={{ color: "var(--text-primary)" }}>
+                Your Computer Club community, all in one place.
+              </h2>
+              <p className="text-sm leading-relaxed max-w-xs" style={{ color: "var(--text-primary)", opacity: 0.65 }}>
+                Only registered Computer Club members can sign in. Access events, resources, and your member profile securely.
+              </p>
+            </div>
+
+            <div
+              className="mt-auto pt-6 flex items-center justify-between text-xs border-t"
+              style={{ color: "var(--text-primary)", opacity: 0.6, borderColor: "var(--btn-secondary-border)" }}
+            >
+              <span>Netrokona University</span>
+              <span>Developed by Najmul Huda</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ---------------- RIGHT: form ---------------- */}
+        <div className="p-8 sm:p-10 flex flex-col justify-center">
+          <span className="text-xs font-bold tracking-wider uppercase mb-2" style={{ color: "var(--text-secondary)" }}>
+            Member portal
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4" style={{ color: "var(--text-primary)" }}>
+            Log in to your profile
+          </h1>
+
+          <button
+            type="button"
+              onClick={handleGoogleLogin}
+            className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl border font-semibold text-sm cursor-pointer transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "var(--badge-bg)", color: "var(--badge-text)", borderColor: "var(--badge-bg)" }}
+          >
+            <svg width="17" height="17" viewBox="0 0 48 48">
+              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-3.5z" />
+              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.6 6.1 29.6 4 24 4 16 4 9.1 8.4 6.3 14.7z" />
+              <path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.1-5.1l-6.5-5.5C29.6 35 26.9 36 24 36c-5.3 0-9.7-3.1-11.3-7.6l-6.5 5C9 39.6 15.9 44 24 44z" />
+              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.8l6.5 5.5C41.5 36 44 30.6 44 24c0-1.4-.1-2.7-.4-3.5z" />
+            </svg>
+            Continue with Google
           </button>
-        </form>
+
+          <div className="flex items-center gap-3 my-6">
+            <span className="flex-1 h-px" style={{ backgroundColor: "var(--btn-secondary-border)" }} />
+            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)", opacity: 0.5 }}>OR</span>
+            <span className="flex-1 h-px" style={{ backgroundColor: "var(--btn-secondary-border)" }} />
+          </div>
+
+          {errorMessage && (
+            <div
+              className="mb-5 p-3 rounded-xl text-sm text-center font-semibold bg-red-500/10 border border-red-500/20 animate-shake"
+              style={{ color: "var(--text-important)" }}
+            >
+              {errorMessage}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="userId" className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-primary)" }}>
+                User ID
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 opacity-70" style={{ color: "var(--text-secondary)" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 6h18v12H3z" />
+                    <path d="m3 7 9 6 9-6" />
+                  </svg>
+                </span>
+                <input
+                  id="userId"
+                  type="text"
+                  required
+                  value={userId}
+                  onChange={(e) => { setUserId(e.target.value); clearError(); }}
+                  placeholder="Enter your user ID"
+                  className="w-full py-3 pl-10 pr-4 rounded-xl border text-sm font-medium outline-none transition-all focus:ring-2 focus:ring-teal-500/50"
+                  style={{ backgroundColor: "var(--stat-card-bg)", color: "var(--text-primary)", borderColor: "var(--btn-secondary-border)" }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between gap-3 mb-1.5">
+                <label htmlFor="password" className="text-xs font-semibold shrink-0" style={{ color: "var(--text-primary)" }}>
+                  Password
+                </label>
+                <a href="/forgot-password" className="text-xs font-semibold shrink-0 hover:underline" style={{ color: "var(--text-secondary)" }}>
+                  Forgot password?
+                </a>
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 opacity-70" style={{ color: "var(--text-secondary)" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="4" y="10" width="16" height="10" rx="2" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                  </svg>
+                </span>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); clearError(); }}
+                  placeholder="Enter your password"
+                  className="w-full py-3 pl-10 pr-14 rounded-xl border text-sm font-medium outline-none transition-all focus:ring-2 focus:ring-teal-500/50"
+                  style={{ backgroundColor: "var(--stat-card-bg)", color: "var(--text-primary)", borderColor: "var(--btn-secondary-border)" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold px-1 opacity-70 hover:opacity-100 transition-opacity cursor-pointer"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded cursor-pointer accent-teal-600 focus:ring-2 focus:ring-teal-500/50"
+              />
+              <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                Remember me for a month
+              </span>
+            </label>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer shadow-md"
+              style={{ backgroundColor: "var(--btn-primary-bg)", color: "var(--btn-primary-text)" }}
+            >
+              {isLoading ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                "Log in"
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-sm mt-5" style={{ color: "var(--text-primary)", opacity: 0.65 }}>
+            Not a member yet?{" "}
+            <a href="/membership" className="font-semibold hover:underline" style={{ color: "var(--text-secondary)" }}>
+              Apply for the membership
+            </a>
+          </p>
+        </div>
       </div>
     </main>
   );

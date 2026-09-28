@@ -20,12 +20,17 @@ export default function Sidebar({
   {
     label: "Overview",
     href: "/dashboard",
-    roles: ["SUPER_ADMIN","ADMIN", "MODARATOR", "MEMBER"],
+    roles: ["ADMIN", "MODARATOR", "MEMBER"],
   },
   {
     label: "Committee Management",
     href: "/dashboard/committees",
-    roles: ["SUPER_ADMIN", "ADMIN"],
+    roles: [ "ADMIN"],
+  },
+  {
+    label: "User Management",
+    href: "/dashboard/users",
+    roles: ["ADMIN"],
   },
   {
     label: "Notices",
@@ -35,7 +40,7 @@ export default function Sidebar({
   {
     label: "Profile Settings",
     href: "/dashboard/profile",
-    roles: ["SUPER_ADMIN", "ADMIN", "MODARATOR", "MEMBER"],
+    roles: ["ADMIN", "MODARATOR", "MEMBER"],
   },
 ];
   const handleLogout = async () => {

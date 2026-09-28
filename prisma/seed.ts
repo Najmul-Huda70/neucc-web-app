@@ -1,42 +1,101 @@
 import "dotenv/config";
 import * as bcrypt from "bcryptjs";
-import { Role, Status } from "@/generated/prisma/client";
+import { Role, Status, Type } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { sendNewAccountCredentials } from "@/lib/mailer"; 
 
 async function main() {
-  console.log("Seeding database...");
-  const superAdminEmail =
-    process.env.SUPER_ADMIN_EMAIL || "superadmin@example.com";
-  const superAdminPassword =process.env.SUPER_ADMIN_PASSWORD || "ExamplePassword123!";
+  console.log("🌱 Seeding database...");
 
-  // Check if super admin already exists
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+  const adminPassword = process.env.ADMIN_PASSWORD || "AdminPassword123!";
+  const adminUserId = process.env.ADMIN_USER_ID || "vchg5dfgh5";
+  const adminName = process.env.ADMIN_NAME || "Initial Admin";
+
+  // 1. Check if Admin already exists
   const existingUser = await prisma.user.findUnique({
-    where: { email: superAdminEmail },
+    where: { userId: adminUserId },
   });
 
   if (existingUser) {
     console.log(
-      `Super Admin already exists (${superAdminEmail}). Skipping creation.`
+      `⚠️ Admin user already exists (${adminUserId}). Skipping seed execution.`
     );
     return;
   }
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(superAdminPassword, 12);
+  // 2. Hash Password
+  const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
-  // Create Super Admin
-  const superAdmin = await prisma.user.create({
-    data: {
-      userId:process.env.SUPER_ADMIN_USER_ID || "202604",
-      name: "Super Admin",
-      email: superAdminEmail,
-      password: hashedPassword,
-      role: Role.SUPER_ADMIN,
-      status: Status.ACTIVE,
-    },
+  // 3. Database Transaction to Create Committee, Admin User, and Post together
+  const result = await prisma.$transaction(async (tx) => {
+    // Step A: Create Initial Active Committee
+    const committee = await tx.committee.create({
+      data: {
+        type: Type.EXECUTIVE,
+        year: 2026,
+        status: Status.ACTIVE,
+      },
+    });
+
+    // Step B: Create First ADMIN User
+    const adminUser = await tx.user.create({
+      data: {
+        userId: adminUserId,
+        name: adminName,
+        email: adminEmail,
+        password: hashedPassword,
+        role: Role.ADMIN,
+        status: Status.ACTIVE,
+      },
+    });
+
+    // Step C: Create Executive Post
+    const post = await tx.post.create({
+      data: {
+        postTitle: "Advisors",
+        committeeId: committee.committeeId,
+        status: Status.ACTIVE,
+      },
+    });
+
+    // Step D: Create ADMIN user_post connection
+    const userPost = await tx.userPost.create({
+      data: {
+        postId: post.postId,
+        userId: adminUserId,
+        committeeId: committee.committeeId,
+        status: Status.ACTIVE,
+      },
+    });
+
+    return { committee, post, adminUser, userPost };
   });
 
-  console.log(`✅ Super Admin created successfully: ${superAdmin.email}`);
+  console.log("✅ Database seeded successfully!");
+  console.log(
+    `📌 Created Committee: The ${result.committee.type} Committee-${result.committee.year}`
+  );
+  console.log(`📌 Created Post: ${result.post.postTitle}`);
+  console.log(`👤 Created Admin User ID: ${result.adminUser.userId}`);
+
+  // 4. Send Credentials Email to the newly created Admin
+  try {
+    console.log(`📧 Sending credentials email to ${adminEmail}...`);
+    await sendNewAccountCredentials({
+      email: adminEmail,
+      name: adminName,
+      userId: adminUserId,
+      password: adminPassword, // প্লেন পাসওয়ার্ড পাঠানো হচ্ছে
+      role: Role.ADMIN,
+      postTitle: result.post.postTitle,
+      customHeading: "Welcome to NEU Computer Club Portal!",
+      customSubject: "🎉 Initial Admin Credentials - NEU Computer Club",
+    });
+    console.log("✉️ Email sent successfully!");
+  } catch (emailError) {
+    console.error("⚠️ Failed to send email during seeding:", emailError);
+  }
 }
 
 main()

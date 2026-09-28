@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { userId, password } = body;
+    const { userId, password, rememberMe } = body;
 
     // ১. Validation Check
     if (!userId || !password) {
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ৩. Password Verify করুন
+    // ৩. Password Verify
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -37,7 +37,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // ৪. JWT Token তৈরি করুন
+    // ৪. Checkbox টিক দেওয়া থাকলে ৩০ দিন, অন্যথায় ১ দিন মেয়াদ নির্ধারণ
+    const jwtExpiresIn = rememberMe ? "30d" : "1d";
+    const maxAgeSeconds = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24;
+
+    // JWT Token তৈরি
     const secret = process.env.JWT_SECRET || "fallback_super_secret_key";
     const token = jwt.sign(
       {
@@ -45,10 +49,10 @@ export async function POST(req: Request) {
         role: user.role,
       },
       secret,
-      { expiresIn: "1d" } // ১ দিনের জন্য ভ্যালিড
+      { expiresIn: jwtExpiresIn }
     );
 
-    // ৫. Cookie সেট করে Success Response দেওয়া
+    // ৫. Cookie সেট করে Success Response দেওয়া
     const response = NextResponse.json(
       {
         message: "Login successful",
@@ -66,7 +70,7 @@ export async function POST(req: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 24, // 1 day in seconds
+      maxAge: maxAgeSeconds,
       path: "/",
     });
 
