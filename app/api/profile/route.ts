@@ -1,58 +1,66 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { JWTPayload } from "@/lib/types";
 import { uploadProfileImage } from "@/lib/imageService";
 
-async function getAuthenticatedUser() {
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "fallback_super_secret_key"
+);
+
+async function getAuthenticatedUser(): Promise<JWTPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
   if (!token) return null;
 
   try {
-    const secret = process.env.JWT_SECRET || "fallback_super_secret_key";
-    return jwt.verify(token, secret) as JWTPayload;
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload as unknown as JWTPayload;
   } catch {
     return null;
   }
 }
 
-// GET: Fetch User Profile
-export async function GET() {
-  try {
-    const sessionUser = await getAuthenticatedUser();
-    if (!sessionUser) {
-      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
-    }
-
-    const userProfile = await prisma.user.findUnique({
-      where: { userId: sessionUser.userId },
-      select: {
-        userId: true,
-        name: true,
-        email: true,
-        role: true,
-        image: true,
-        status: true,
-        createdAt: true,
-        post: {
-          select: {
-            postId: true,
-            postTitle: true,
-            committee: {
-              select: {
-                id: true,
-                type: true,
-                session: true,
-                status: true,
-              },
+// Riktig selection i henhold til Prisma Schema (uten year og uten assignedAt)
+const userProfileSelect = {
+  userId:true,
+  name: true,
+  email: true,
+  role: true,
+  image: true,
+  status: true,
+  user_posts: {
+    select: {
+      post: {
+        select: {
+          postTitle: true,
+          committee: {
+            select: {
+              type: true,
+              year: true,
+              status: true,
             },
           },
         },
       },
+    },
+  },
+};
+
+// GET: Fetch User Profile
+export async function GET() {
+  try {
+    const yearUser = await getAuthenticatedUser();
+    if (!yearUser) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
+    const userProfile = await prisma.user.findUnique({
+      where: { userId: yearUser.userId },
+      select: userProfileSelect,
     });
 
     if (!userProfile) {
@@ -68,11 +76,11 @@ export async function GET() {
   }
 }
 
-// PATCH: Update Profile Info, Password, Image or Remove Image
+// PATCH: Update Profile Info
 export async function PATCH(req: Request) {
   try {
-    const sessionUser = await getAuthenticatedUser();
-    if (!sessionUser) {
+    const yearUser = await getAuthenticatedUser();
+    if (!yearUser) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
@@ -85,7 +93,7 @@ export async function PATCH(req: Request) {
     const removeImage = formData.get("removeImage") === "true";
 
     const existingUser = await prisma.user.findUnique({
-      where: { userId: sessionUser.userId },
+      where: { userId: yearUser.userId },
     });
 
     if (!existingUser) {
@@ -102,7 +110,7 @@ export async function PATCH(req: Request) {
     if (name) updateData.name = name.trim();
     if (email) updateData.email = email.trim().toLowerCase();
 
-    // 1. Password Change Logic
+    // 1. Passordendring
     if (newPassword) {
       if (!currentPassword) {
         return NextResponse.json(
@@ -125,7 +133,7 @@ export async function PATCH(req: Request) {
       updateData.password = await bcrypt.hash(newPassword, 10);
     }
 
-    // 2. Image Logic (Remove or Update)
+    // 2. Bildehåndtering
     if (removeImage) {
       updateData.image = null;
     } else if (imageFile && imageFile.size > 0) {
@@ -133,33 +141,11 @@ export async function PATCH(req: Request) {
       updateData.image = uploadedImageUrl;
     }
 
-    // 3. Sync Database
+    // 3. Oppdatering i databasen
     const updatedUser = await prisma.user.update({
-      where: { userId: sessionUser.userId },
+      where: { userId: yearUser.userId },
       data: updateData,
-      select: {
-        userId: true,
-        name: true,
-        email: true,
-        role: true,
-        image: true,
-        status: true,
-        createdAt: true,
-        post: {
-          select: {
-            postId: true,
-            postTitle: true,
-            committee: {
-              select: {
-                id: true,
-                type: true,
-                session: true,
-                status: true,
-              },
-            },
-          },
-        },
-      },
+      select: userProfileSelect,
     });
 
     return NextResponse.json(

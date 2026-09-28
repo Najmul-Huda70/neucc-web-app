@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function DashboardPage() {
-  // পরবর্তী সময়ে এই ডাটাগুলো Prisma DB বা JWT Session থেকে ডাইনামিকালি আসবে
+  // পরবর্তী সময়ে এই ডাটাগুলো Prisma DB বা JWT year থেকে ডাইনামিকালি আসবে
   const stats = [
     { label: "Total Members", value: "128", icon: "👥" },
     { label: "Active Committees", value: "4", icon: "🏛️" },

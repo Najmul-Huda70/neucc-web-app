@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Sidebar from "@/components/dashboard/Sidebar";
-import { DashboardClientLayoutProps } from "@/lib/types";
+import { DashboardClientLayoutProps, Role } from "@/lib/types";
 
 export default function DashboardClientLayout({
   children,
@@ -18,7 +18,7 @@ export default function DashboardClientLayout({
       <Sidebar
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
-        userRole={user.role}
+        userRole={user.role as Role}
         user={{
           name: user.name,
           email: user.email,

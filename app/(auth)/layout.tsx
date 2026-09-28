@@ -12,14 +12,12 @@ export default function AuthLayout({
 }) {
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center p-4 transition-colors duration-300"
+      className="min-h-screen w-full flex items-center justify-center transition-colors duration-300"
       style={{
         backgroundColor: "var(--bg-app)",
       }}
     >
-      <div className="w-full max-w-md">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }

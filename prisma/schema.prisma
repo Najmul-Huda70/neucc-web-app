@@ -15,11 +15,15 @@ model User {
   image         String?
   role          Role           @default(MEMBER)
   status        Status         @default(ACTIVE)
+
+  // Forgot Password OTP Fields
+  resetOtp           String?
+  resetOtpExpiresAt  DateTime?
+  
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  postId        String?
   refreshTokens RefreshToken[]
-  post          Post?          @relation(fields: [postId], references: [postId])
+  user_posts    userPost[]
 
   @@map("users")
 }
@@ -36,44 +40,60 @@ model RefreshToken {
 }
 
 model Post {
-  postId      String    @id @default(uuid())
+  postId      String     @id @default(uuid())
   postTitle   String
-  status      Status    @default(ACTIVE)
-  createdAt   DateTime  @default(now())
+  status      Status     @default(ACTIVE)
+  createdAt   DateTime   @default(now())
   committeeId String
-  committee   Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
-  users       User[]
+  committee   Committee  @relation(fields: [committeeId], references: [committeeId], onDelete: Cascade)
+  user_posts  userPost[]
 
   @@map("posts")
 }
 
-model Committee {
-  id        String   @id @default(uuid())
-  type      Type
-  session   String
-  blockReason String?
-  status    String   @default("ACTIVE")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
+model userPost {
+  postId      String
+  post        Post      @relation(fields: [postId], references: [postId], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  committeeId String
+  committee   Committee @relation(fields: [committeeId], references: [committeeId], onDelete: Cascade)
+  status      Status    @default(ACTIVE)
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
 
+  @@id([postId, userId]) // same post-এ many user
+  @@unique([userId, committeeId]) // একজন user, একই committee-তে max ১টা post
+  @@map("user_posts")
+}
+
+model Committee {
+  committeeId String     @id @default(uuid())
+  type        Type
+  year        Int
+  status      Status     @default(ACTIVE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  posts       Post[]
+  user_posts  userPost[]
+
+  @@unique([type,year])
   @@map("committees")
 }
 
 enum Role {
-  SUPER_ADMIN
   ADMIN
-  MODARATOR
+  MODERATOR
   MEMBER
 }
 
 enum Status {
   ACTIVE
-  BLOCKED
+  DEACTIVATED // সাময়িক নিষ্ক্রিয়, আবার active করা যাবে
+  CLOSED // স্থায়ীভাবে বন্ধ, মেয়াদ শেষ
 }
 
 enum Type {
-  ADVISOR
   EXECUTIVE
   ELECTION
 }
