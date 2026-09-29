@@ -44,11 +44,11 @@ export default function UsersPage() {
   }, [users, searchQuery]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 bg-[var(--bg-app)] text-[var(--text-primary)]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 bg-(--bg-app) text-(--text-primary)">
       {/* Top Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 dark:border-slate-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-(--text-primary)">
             User Management
           </h1>
         </div>
@@ -64,7 +64,7 @@ export default function UsersPage() {
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--btn-primary-bg)] hover:opacity-90 text-[var(--btn-primary-text)] text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-(--btn-primary-bg) hover:opacity-90 text-(--btn-primary-text) text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Create New User</span>
@@ -74,19 +74,19 @@ export default function UsersPage() {
 
       {/* Main Content / Table Area */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-[var(--text-secondary)]">
-          <Loader2 className="w-8 h-8 animate-spin text-[var(--btn-primary-bg)]" />
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-(--text-secondary)">
+          <Loader2 className="w-8 h-8 animate-spin text-(--btn-primary-bg)" />
           <p className="text-sm font-medium">Loading Users...</p>
         </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-[var(--btn-secondary-border)] rounded-2xl bg-[var(--card-bg)] shadow-xs">
-          <div className="w-12 h-12 rounded-full bg-[var(--stat-card-bg)] flex items-center justify-center mb-3 text-[var(--text-secondary)]">
+        <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-(--btn-secondary-border) rounded-2xl bg-(--card-bg) shadow-xs">
+          <div className="w-12 h-12 rounded-full bg-(--stat-card-bg) flex items-center justify-center mb-3 text-(--text-secondary)">
             <Users className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+          <h3 className="text-sm font-semibold text-(--text-primary)">
             No users found
           </h3>
-          <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-sm">
+          <p className="text-xs text-(--text-secondary) mt-1 max-w-sm">
             {searchQuery
               ? `No user matching "${searchQuery}" was found in the database.`
               : "There are currently no registered users available."}

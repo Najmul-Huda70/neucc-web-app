@@ -132,8 +132,8 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
 
   if (users.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 border border-dashed border-[var(--btn-secondary-border)] rounded-3xl bg-[var(--card-bg)] shadow-xs">
-        <div className="p-3.5 rounded-full bg-[var(--stat-card-bg)] text-[var(--text-secondary)] mb-3">
+      <div className="flex flex-col items-center justify-center p-12 border border-dashed border-(--btn-secondary-border) rounded-3xl bg-(--card-bg) shadow-xs">
+        <div className="p-3.5 rounded-full bg-(--stat-card-bg) text-(--text-secondary) mb-3">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -143,10 +143,10 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
             />
           </svg>
         </div>
-        <p className="text-[var(--text-primary)] font-semibold text-base mb-1">
+        <p className="text-(--text-primary) font-semibold text-base mb-1">
           No users found
         </p>
-        <p className="text-[var(--text-secondary)] text-xs text-center max-w-sm">
+        <p className="text-(--text-secondary) text-xs text-center max-w-sm">
           No user matching your search or filter was found in the database.
         </p>
       </div>
@@ -156,7 +156,7 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
   return (
     <>
       {/* Desktop / Tablet Layout */}
-      <div className="hidden sm:block overflow-x-auto rounded-2xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)]">
+      <div className="hidden sm:block overflow-x-auto rounded-2xl border border-(--btn-secondary-border) bg-(--card-bg)">
         <table className="w-full text-left text-xs table-fixed">
           <colgroup>
             <col className="w-[30%]" />
@@ -165,12 +165,12 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
             <col className="w-[15%]" />
             <col className="w-[10%]" />
           </colgroup>
-          <thead className="bg-[var(--stat-card-bg)] text-[var(--text-secondary)] border-b border-[var(--btn-secondary-border)]">
+          <thead className="bg-(--stat-card-bg) text-(--text-secondary) border-b border-(--btn-secondary-border)">
             <tr>
               <th className="p-3">
                 <button
                   onClick={cycleNameSort}
-                  className="flex items-center gap-1 font-semibold hover:text-[var(--text-primary)] cursor-pointer"
+                  className="flex items-center gap-1 font-semibold hover:text-(--text-primary) cursor-pointer"
                 >
                   Name <span className="text-[10px]">{nameSort === "asc" ? "▲" : nameSort === "desc" ? "▼" : "↕"}</span>
                 </button>
@@ -218,7 +218,7 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
         <div className="flex items-center justify-between gap-2 px-1">
           <button
             onClick={cycleNameSort}
-            className="flex items-center gap-1 text-xs font-semibold text-[var(--text-secondary)] cursor-pointer"
+            className="flex items-center gap-1 text-xs font-semibold text-(--text-secondary) cursor-pointer"
           >
             Sort by name <span className="text-[10px]">{nameSort === "asc" ? "▲" : nameSort === "desc" ? "▼" : "↕"}</span>
           </button>

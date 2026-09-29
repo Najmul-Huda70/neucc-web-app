@@ -43,7 +43,7 @@ export default function LoginBrandPanel() {
             <div className="flex flex-col">
               <Link
                 href="/"
-                className="text-base sm:text-lg font-bold text-[var(--text-primary)] leading-tight hover:opacity-80 transition-opacity"
+                className="text-base sm:text-lg font-bold text-(--text-primary) leading-tight hover:opacity-80 transition-opacity"
               >
                 Computer Club
               </Link>
@@ -51,7 +51,7 @@ export default function LoginBrandPanel() {
                 href="https://cse.neu.ac.bd"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs sm:text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors line-clamp-1"
+                className="text-xs sm:text-sm font-semibold text-(--text-secondary) hover:text-(--text-primary) transition-colors line-clamp-1"
               >
                 Department of Computer Science & Engineering
               </Link>
@@ -59,7 +59,7 @@ export default function LoginBrandPanel() {
                 href="https://neu.ac.bd"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group text-[11px] sm:text-xs flex items-center gap-1 font-bold text-[var(--text-important)]"
+                className="group text-[11px] sm:text-xs flex items-center gap-1 font-bold text-(--text-important)"
               >
                 Netrokona University
                 <ExternalLink

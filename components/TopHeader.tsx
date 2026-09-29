@@ -45,7 +45,7 @@ export default function TopHeader({
   setIsMobileMenuOpen,
 }: TopHeaderProps) {
   return (
-    <div className="w-full border-b border-[var(--btn-secondary-border)] bg-[var(--card-bg)]">
+    <div className="w-full border-b border-(--btn-secondary-border) bg-(--card-bg)">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-3">
           {/* Logo Section */}
@@ -67,7 +67,7 @@ export default function TopHeader({
             <div className="flex flex-col">
               <Link
                 href="/"
-                className="text-base sm:text-lg font-bold text-[var(--text-primary)] leading-tight hover:opacity-80 transition-opacity"
+                className="text-base sm:text-lg font-bold text-(--text-primary) leading-tight hover:opacity-80 transition-opacity"
               >
                 Computer Club
               </Link>
@@ -75,7 +75,7 @@ export default function TopHeader({
                 href="https://cse.neu.ac.bd"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs sm:text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors line-clamp-1"
+                className="text-xs sm:text-sm font-semibold text-(--text-secondary) hover:text-(--text-primary) transition-colors line-clamp-1"
               >
                 Department of Computer Science & Engineering
               </Link>
@@ -83,7 +83,7 @@ export default function TopHeader({
                 href="https://neu.ac.bd"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group text-[11px] sm:text-xs flex items-center gap-1 font-bold text-[var(--text-important)]"
+                className="group text-[11px] sm:text-xs flex items-center gap-1 font-bold text-(--text-important)"
               >
                 Netrokona University
                 <ExternalLink
@@ -96,12 +96,12 @@ export default function TopHeader({
 
           {/* Desktop Contact & Social */}
           <div className="hidden lg:flex items-center gap-4">
-            <div className="h-8 w-px bg-[var(--btn-secondary-border)]" />
+            <div className="h-8 w-px bg-(--btn-secondary-border)" />
 
             <Link
               href="mailto:computerclub@neu.ac.bd"
               aria-label="Email us"
-              className="w-9 h-9 flex items-center justify-center rounded-full text-[var(--text-secondary)] border border-[var(--btn-secondary-border)] hover:text-white hover:bg-[var(--btn-primary-bg)] transition-colors duration-200"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-(--text-secondary) border border-(--btn-secondary-border) hover:text-white hover:bg-(--btn-primary-bg) transition-colors duration-200"
             >
               <Mail size={18} />
             </Link>
@@ -112,7 +112,7 @@ export default function TopHeader({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
-                className="w-9 h-9 flex items-center justify-center rounded-full text-[var(--text-secondary)] border border-[var(--btn-secondary-border)] hover:text-white hover:bg-[#1877F2] transition-colors duration-200"
+                className="w-9 h-9 flex items-center justify-center rounded-full text-(--text-secondary) border border-(--btn-secondary-border) hover:text-white hover:bg-[#1877F2] transition-colors duration-200"
               >
                 <FacebookIcon className="w-4 h-4" />
               </Link>
@@ -121,7 +121,7 @@ export default function TopHeader({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
-                className="w-9 h-9 flex items-center justify-center rounded-full text-[var(--text-secondary)] border border-[var(--btn-secondary-border)] hover:text-white hover:bg-[#0A66C2] transition-colors duration-200"
+                className="w-9 h-9 flex items-center justify-center rounded-full text-(--text-secondary) border border-(--btn-secondary-border) hover:text-white hover:bg-[#0A66C2] transition-colors duration-200"
               >
                 <LinkedinIcon className="w-4 h-4" />
               </Link>
@@ -132,7 +132,7 @@ export default function TopHeader({
           {setIsMobileMenuOpen && (
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-[var(--text-primary)] hover:bg-[var(--stat-card-bg)] border border-[var(--btn-secondary-border)]"
+              className="lg:hidden p-2 rounded-lg text-(--text-primary) hover:bg-(--stat-card-bg) border border-(--btn-secondary-border)"
               aria-label="Toggle Menu"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}

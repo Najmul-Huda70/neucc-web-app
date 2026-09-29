@@ -46,8 +46,8 @@ export default function Navbar() {
     const isActive = pathname === path;
     return `px-4 py-2.5 rounded-md inline-block font-semibold transition-colors ${
       isActive
-        ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm"
-        : "text-[var(--text-primary)] hover:text-[var(--btn-primary-bg)] hover:bg-[var(--stat-card-bg)]"
+        ? "bg-(--btn-primary-bg) text-(--btn-primary-text) shadow-sm"
+        : "text-(--text-primary) hover:text-(--btn-primary-bg) hover:bg-(--stat-card-bg)"
     }`;
   };
 
@@ -55,8 +55,8 @@ export default function Navbar() {
     const isActive = pathname === path;
     return `block px-3 py-2 rounded-md transition-colors ${
       isActive
-        ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold"
-        : "hover:bg-[var(--stat-card-bg)]"
+        ? "bg-(--btn-primary-bg) text-(--btn-primary-text) font-bold"
+        : "hover:bg-(--stat-card-bg)"
     }`;
   };
 
@@ -71,7 +71,7 @@ export default function Navbar() {
       />
 
       {/* Main Desktop Sticky Navigation Menu Bar */}
-      <nav className="sticky top-0 z-50 hidden lg:block w-full border-b border-[var(--btn-secondary-border)] bg-[var(--card-bg)] shadow-sm">
+      <nav className="sticky top-0 z-50 hidden lg:block w-full border-b border-(--btn-secondary-border) bg-(--card-bg) shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ul className="flex items-center justify-center gap-1 text-sm py-1">
             <li>
@@ -95,8 +95,8 @@ export default function Navbar() {
               <button
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-md font-semibold transition-colors cursor-pointer ${
                   isCommitteeActive
-                    ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm"
-                    : "text-[var(--text-primary)] hover:text-[var(--btn-primary-bg)] hover:bg-[var(--stat-card-bg)]"
+                    ? "bg-(--btn-primary-bg) text-(--btn-primary-text) shadow-sm"
+                    : "text-(--text-primary) hover:text-(--btn-primary-bg) hover:bg-(--stat-card-bg)"
                 }`}
               >
                 Committees
@@ -108,14 +108,14 @@ export default function Navbar() {
 
               {/* Hover Dropdown Menu */}
               <div className="absolute left-0 top-full pt-1 hidden group-hover:block w-52 z-50">
-                <ul className="bg-[var(--card-bg)] border border-[var(--btn-secondary-border)] rounded-lg shadow-lg py-2 flex flex-col">
+                <ul className="bg-(--card-bg) border border-(--btn-secondary-border) rounded-lg shadow-lg py-2 flex flex-col">
                   <li>
                     <Link
                       href="/committee/executive"
                       className={`px-4 py-2 text-xs font-semibold block transition-colors ${
                         pathname === "/committee/executive"
-                          ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)]"
-                          : "hover:bg-[var(--stat-card-bg)] hover:text-[var(--btn-primary-bg)]"
+                          ? "bg-(--btn-primary-bg) text-(--btn-primary-text)"
+                          : "hover:bg-(--stat-card-bg) hover:text-(--btn-primary-bg)"
                       }`}
                     >
                       Executive Committee
@@ -126,8 +126,8 @@ export default function Navbar() {
                       href="/committee/election"
                       className={`px-4 py-2 text-xs font-semibold block transition-colors ${
                         pathname === "/committee/election"
-                          ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)]"
-                          : "hover:bg-[var(--stat-card-bg)] hover:text-[var(--btn-primary-bg)]"
+                          ? "bg-(--btn-primary-bg) text-(--btn-primary-text)"
+                          : "hover:bg-(--stat-card-bg) hover:text-(--btn-primary-bg)"
                       }`}
                     >
                       Election Committee
@@ -158,8 +158,8 @@ export default function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-b border-[var(--btn-secondary-border)] bg-[var(--card-bg)] px-4 pt-3 pb-6 space-y-2 sticky top-[80px] z-50">
-          <ul className="flex flex-col font-medium text-sm text-[var(--text-primary)] space-y-1">
+        <div className="lg:hidden border-b border-(--btn-secondary-border) bg-(--card-bg) px-4 pt-3 pb-6 space-y-2 sticky top-20 z-50">
+          <ul className="flex flex-col font-medium text-sm text-(--text-primary) space-y-1">
             <li>
               <Link
                 href="/"
@@ -196,8 +196,8 @@ export default function Navbar() {
                 }
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-left transition-colors ${
                   isCommitteeActive
-                    ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold"
-                    : "hover:bg-[var(--stat-card-bg)]"
+                    ? "bg-(--btn-primary-bg) text-(--btn-primary-text) font-bold"
+                    : "hover:bg-(--stat-card-bg)"
                 }`}
               >
                 Committees
@@ -209,15 +209,15 @@ export default function Navbar() {
                 />
               </button>
               {isMobileCommitteeOpen && (
-                <ul className="pl-4 mt-1 space-y-1 border-l-2 border-[var(--btn-secondary-border)] ml-3">
+                <ul className="pl-4 mt-1 space-y-1 border-l-2 border-(--btn-secondary-border) ml-3">
                   <li>
                     <Link
                       href="/committee/executive"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block px-3 py-1.5 text-xs rounded-md ${
                         pathname === "/committee/executive"
-                          ? "font-bold text-[var(--btn-primary-bg)]"
-                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                          ? "font-bold text-(--btn-primary-bg)"
+                          : "text-(--text-secondary) hover:text-(--text-primary)"
                       }`}
                     >
                       Executive Committee
@@ -229,8 +229,8 @@ export default function Navbar() {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block px-3 py-1.5 text-xs rounded-md ${
                         pathname === "/committee/election"
-                          ? "font-bold text-[var(--btn-primary-bg)]"
-                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                          ? "font-bold text-(--btn-primary-bg)"
+                          : "text-(--text-secondary) hover:text-(--text-primary)"
                       }`}
                     >
                       Election Committee
@@ -270,10 +270,10 @@ export default function Navbar() {
           </ul>
 
           {/* Mobile Social Links */}
-          <div className="pt-4 mt-2 border-t border-[var(--btn-secondary-border)] flex items-center gap-3">
+          <div className="pt-4 mt-2 border-t border-(--btn-secondary-border) flex items-center gap-3">
             <Link
               href="mailto:computerclub@neu.ac.bd"
-              className="p-2 rounded-full border border-[var(--btn-secondary-border)] text-[var(--text-secondary)]"
+              className="p-2 rounded-full border border-(--btn-secondary-border) text-(--text-secondary)"
             >
               <Mail size={18} />
             </Link>
@@ -281,7 +281,7 @@ export default function Navbar() {
               href="https://facebook.com/your-page"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-full border border-[var(--btn-secondary-border)] text-[var(--text-secondary)]"
+              className="p-2 rounded-full border border-(--btn-secondary-border) text-(--text-secondary)"
             >
               <FacebookIcon className="w-4 h-4" />
             </Link>
@@ -289,7 +289,7 @@ export default function Navbar() {
               href="https://linkedin.com/company/your-page"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-full border border-[var(--btn-secondary-border)] text-[var(--text-secondary)]"
+              className="p-2 rounded-full border border-(--btn-secondary-border) text-(--text-secondary)"
             >
               <LinkedinIcon className="w-4 h-4" />
             </Link>

@@ -170,7 +170,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="min-h-screen bg-[#f4f6f8] flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-[1000px] bg-white rounded-3xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[580px] relative">
+      <div className="w-full max-w-250 bg-white rounded-3xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-145 relative">
 
         {/* LEFT SIDE (Branding) */}
         <div className="md:col-span-5 bg-[#f8faf9] p-8 lg:p-10 flex flex-col justify-between relative overflow-hidden border-r border-slate-100">
@@ -204,7 +204,7 @@ export default function ForgotPasswordPage() {
 
         {/* RIGHT SIDE (Form Steps) */}
         <div className="md:col-span-7 bg-white p-8 lg:p-12 flex flex-col justify-center">
-          <div className="max-w-[380px] w-full mx-auto space-y-6">
+          <div className="max-w-95 w-full mx-auto space-y-6">
 
             <Link href="/login" className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:underline">
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Login

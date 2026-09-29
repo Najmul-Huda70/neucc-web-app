@@ -33,8 +33,8 @@ export default function Sidebar({
       roles: ["ADMIN"],
     },
     {
-      label: "Notices",
-      href: "/dashboard/notices",
+      label: "Events Management",
+      href: "/dashboard/events",
       roles: ["ADMIN", "MODERATOR", "MEMBER"],
     },
     {
@@ -118,7 +118,7 @@ export default function Sidebar({
       {/* 3. SIDEBAR / MOBILE RIGHT DRAWER                     */}
       {/* ---------------------------------------------------- */}
       <aside
-        className={`fixed lg:sticky top-0 z-50 w-72 h-screen h-[100dvh] border-l lg:border-l-0 lg:border-r flex flex-col transform transition-transform duration-300 ease-in-out shrink-0
+        className={`fixed lg:sticky top-0 z-50 w-72 h-dvh border-l lg:border-l-0 lg:border-r flex flex-col transform transition-transform duration-300 ease-in-out shrink-0
           right-0 lg:left-0 ${
             isSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
           }`}
@@ -191,14 +191,14 @@ export default function Sidebar({
         </div>
 
         {/* Navigation Items Filtered by Role */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-6 [scrollbar-width:thin] [scrollbar-color:var(--btn-secondary-border)_transparent]">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin [scrollbar-color:var(--btn-secondary-border)_transparent]">
           <div>
             <div className="flex items-center justify-between mb-2 px-2">
               <p
                 className="text-[10px] font-bold uppercase tracking-wider"
                 style={{ color: "var(--text-secondary)" }}
               >
-                Dashboard
+                Events Management
               </p>
               {/* Dynamic Role Badge */}
               <span className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase bg-teal-500/10 text-teal-600 border border-teal-500/20">

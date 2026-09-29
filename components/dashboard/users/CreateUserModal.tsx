@@ -196,15 +196,15 @@ export default function CreateUserModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-[var(--card-bg)] p-6 shadow-xl border border-[var(--btn-secondary-border)] sm:p-8">
-        <div className="flex items-center justify-between border-b border-[var(--btn-secondary-border)] pb-4">
-          <h2 className="text-lg font-bold text-[var(--text-primary)]">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-(--card-bg) p-6 shadow-xl border border-(--btn-secondary-border) sm:p-8">
+        <div className="flex items-center justify-between border-b border-(--btn-secondary-border) pb-4">
+          <h2 className="text-lg font-bold text-(--text-primary)">
             Create New User
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-[var(--text-secondary)] hover:bg-[var(--stat-card-bg)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="rounded-lg p-1 text-(--text-secondary) hover:bg-(--stat-card-bg) hover:text-(--text-primary) transition-colors cursor-pointer"
           >
             ✕
           </button>
@@ -212,13 +212,13 @@ export default function CreateUserModal({
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {error && (
-            <div className="rounded-xl border border-[var(--text-important)]/30 bg-[var(--text-important)]/10 p-3 text-xs font-medium text-[var(--text-important)]">
+            <div className="rounded-xl border border-(--text-important)/30 bg-(--text-important)/10 p-3 text-xs font-medium text-(--text-important)">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
+            <label className="block text-xs font-semibold text-(--text-primary) mb-1">
               User ID / Student ID
             </label>
             <input
@@ -227,12 +227,12 @@ export default function CreateUserModal({
               placeholder="e.g. 2023001"
               value={form.userId}
               onChange={(e) => setForm({ ...form, userId: e.target.value })}
-              className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+              className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) p-2.5 text-xs text-(--text-primary) focus:border-(--btn-primary-bg) focus:outline-hidden"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
+            <label className="block text-xs font-semibold text-(--text-primary) mb-1">
               Full Name
             </label>
             <input
@@ -241,12 +241,12 @@ export default function CreateUserModal({
               placeholder="Full Name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+              className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) p-2.5 text-xs text-(--text-primary) focus:border-(--btn-primary-bg) focus:outline-hidden"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
+            <label className="block text-xs font-semibold text-(--text-primary) mb-1">
               Email
             </label>
             <input
@@ -255,18 +255,18 @@ export default function CreateUserModal({
               placeholder="user@neu.ac.bd"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+              className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) p-2.5 text-xs text-(--text-primary) focus:border-(--btn-primary-bg) focus:outline-hidden"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
+            <label className="block text-xs font-semibold text-(--text-primary) mb-1">
               Role
             </label>
             <select
               value={form.role}
               onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
+              className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) p-2.5 text-xs text-(--text-primary) focus:border-(--btn-primary-bg) focus:outline-hidden cursor-pointer"
             >
               <option value="MEMBER">Member</option>
               <option value="MODERATOR">Moderator</option>
@@ -275,18 +275,18 @@ export default function CreateUserModal({
           </div>
 
           {requiresPost && (
-            <div className="space-y-3 rounded-xl border border-[var(--btn-primary-bg)]/30 bg-[var(--badge-bg)] p-3.5">
-              <p className="text-[11px] font-semibold text-[var(--btn-primary-bg)]">
+            <div className="space-y-3 rounded-xl border border-(--btn-primary-bg)/30 bg-(--badge-bg) p-3.5">
+              <p className="text-[11px] font-semibold text-(--btn-primary-bg)">
                 Required — {form.role === "ADMIN" ? "Admin" : "Moderator"} accounts must hold a committee post
               </p>
 
               <div>
-                <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
+                <label className="block text-xs font-semibold text-(--text-primary) mb-1">
                   Committee
                 </label>
                 
                 {committees.length === 1 ? (
-                  <div className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] p-2.5 text-xs text-[var(--text-primary)] font-medium">
+                  <div className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) p-2.5 text-xs text-(--text-primary) font-medium">
                     {`The ${committees[0].type} Committee-${committees[0].year}`}
                   </div>
                 ) : (
@@ -300,7 +300,7 @@ export default function CreateUserModal({
                         existingPostTitle: "",
                       })
                     }
-                    className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
+                    className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) p-2.5 text-xs text-(--text-primary) focus:border-(--btn-primary-bg) focus:outline-hidden cursor-pointer"
                   >
                     <option value="">Select a committee</option>
                     {committees.map((c) => {
@@ -315,13 +315,13 @@ export default function CreateUserModal({
                 )}
               </div>
 
-              <div className="flex gap-4 text-xs font-medium text-[var(--text-primary)] pt-1">
+              <div className="flex gap-4 text-xs font-medium text-(--text-primary) pt-1">
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
                     type="radio"
                     checked={form.postMode === "new"}
                     onChange={() => setForm({ ...form, postMode: "new" })}
-                    className="accent-[var(--btn-primary-bg)]"
+                    className="accent-(--btn-primary-bg)"
                   />
                   Create new post
                 </label>
@@ -330,7 +330,7 @@ export default function CreateUserModal({
                     type="radio"
                     checked={form.postMode === "existing"}
                     onChange={() => setForm({ ...form, postMode: "existing" })}
-                    className="accent-[var(--btn-primary-bg)]"
+                    className="accent-(--btn-primary-bg)"
                   />
                   Assign existing post
                 </label>
@@ -345,7 +345,7 @@ export default function CreateUserModal({
                   onChange={(e) =>
                     setForm({ ...form, newPostTitle: e.target.value })
                   }
-                  className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+                  className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--card-bg) p-2.5 text-xs text-(--text-primary) focus:border-(--btn-primary-bg) focus:outline-hidden"
                 />
               ) : (
                 <select
@@ -354,7 +354,7 @@ export default function CreateUserModal({
                   onChange={(e) =>
                     setForm({ ...form, existingPostTitle: e.target.value })
                   }
-                  className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] p-2.5 text-xs text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
+                  className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--card-bg) p-2.5 text-xs text-(--text-primary) focus:border-(--btn-primary-bg) focus:outline-hidden cursor-pointer"
                 >
                   <option value="">Select a post to reassign</option>
                   {selectedCommittee?.posts.map((p, idx) => {
@@ -370,19 +370,19 @@ export default function CreateUserModal({
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--btn-secondary-border)]">
+          <div className="flex justify-end gap-3 pt-4 border-t border-(--btn-secondary-border)">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--stat-card-bg)] transition-colors cursor-pointer"
+              className="rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) px-4 py-2 text-xs font-semibold text-(--text-primary) hover:bg-(--stat-card-bg) transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[var(--btn-primary-bg)] px-5 py-2 text-xs font-semibold text-[var(--btn-primary-text)] shadow-xs hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer"
+              className="rounded-xl bg-(--btn-primary-bg) px-5 py-2 text-xs font-semibold text-(--btn-primary-text) shadow-xs hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer"
             >
               {loading ? "Creating..." : "Create User"}
             </button>

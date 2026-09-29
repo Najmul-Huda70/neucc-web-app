@@ -100,14 +100,14 @@ export default function ColumnFilterDropdown({ label, options, selected, onChang
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={`flex items-center gap-1 font-semibold transition-colors ${
-          isActive ? "text-[var(--btn-primary-bg)]" : "text-[var(--text-secondary)]"
+          isActive ? "text-(--btn-primary-bg)" : "text-(--text-secondary)"
         }`}
       >
         {label}
         <svg viewBox="0 0 24 24" className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="M3 5h18M6 12h12M10 19h4" strokeLinecap="round" />
         </svg>
-        {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[var(--btn-primary-bg)] shrink-0" />}
+        {isActive && <span className="w-1.5 h-1.5 rounded-full bg-(--btn-primary-bg) shrink-0" />}
       </button>
 
       {mounted && createPortal(
@@ -127,18 +127,18 @@ export default function ColumnFilterDropdown({ label, options, selected, onChang
                 width: MENU_WIDTH,
                 zIndex: 100,
               }}
-              className="rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] p-2 shadow-lg"
+              className="rounded-xl border border-(--btn-secondary-border) bg-(--card-bg) p-2 shadow-lg"
             >
               {options.map((opt) => (
                 <label
                   key={opt.value}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--stat-card-bg)] cursor-pointer"
+                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-(--text-primary) hover:bg-(--stat-card-bg) cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={selected.includes(opt.value)}
                     onChange={() => toggleValue(opt.value)}
-                    className="accent-[var(--btn-primary-bg)]"
+                    className="accent-(--btn-primary-bg)"
                   />
                   {opt.label}
                 </label>
@@ -147,7 +147,7 @@ export default function ColumnFilterDropdown({ label, options, selected, onChang
                 <button
                   type="button"
                   onClick={() => onChange([])}
-                  className="mt-1 w-full rounded-lg px-2 py-1.5 text-[11px] font-semibold text-[var(--text-important)] hover:bg-[var(--text-important)]/10"
+                  className="mt-1 w-full rounded-lg px-2 py-1.5 text-[11px] font-semibold text-(--text-important) hover:bg-(--text-important)/10"
                 >
                   Clear filter
                 </button>

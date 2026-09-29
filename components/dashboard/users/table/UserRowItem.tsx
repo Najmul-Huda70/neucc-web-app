@@ -46,15 +46,15 @@ export default function UserRowItem({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="border-t border-[var(--btn-secondary-border)] text-[var(--text-primary)]"
+        className="border-t border-(--btn-secondary-border) text-(--text-primary)"
       >
         <td className="p-3 font-medium">
           {user.name}
           {postTitles && (
-            <div className="text-[10px] font-normal text-[var(--text-secondary)]">{postTitles}</div>
+            <div className="text-[10px] font-normal text-(--text-secondary)">{postTitles}</div>
           )}
         </td>
-        <td className="p-3 text-[var(--text-secondary)]">{user.email}</td>
+        <td className="p-3 text-(--text-secondary)">{user.email}</td>
         <td className="p-3">
           <RoleBadge role={user.role} onClick={onRoleClick} />
         </td>
@@ -65,7 +65,7 @@ export default function UserRowItem({
           <button
             onClick={onDeleteClick}
             disabled={isBusy}
-            className="rounded-lg border border-[var(--text-important)]/40 px-2.5 py-1 text-[10px] font-semibold text-[var(--text-important)] hover:bg-[var(--text-important)]/10 disabled:opacity-50 cursor-pointer"
+            className="rounded-lg border border-(--text-important)/40 px-2.5 py-1 text-[10px] font-semibold text-(--text-important) hover:bg-(--text-important)/10 disabled:opacity-50 cursor-pointer"
           >
             Delete
           </button>
@@ -81,24 +81,24 @@ export default function UserRowItem({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2 }}
-      className="rounded-2xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] p-4 space-y-3"
+      className="rounded-2xl border border-(--btn-secondary-border) bg-(--card-bg) p-4 space-y-3"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-semibold text-sm text-[var(--text-primary)] truncate">{user.name}</p>
-          <p className="text-[11px] text-[var(--text-secondary)] truncate">{user.email}</p>
+          <p className="font-semibold text-sm text-(--text-primary) truncate">{user.name}</p>
+          <p className="text-[11px] text-(--text-secondary) truncate">{user.email}</p>
           {postTitles && (
-            <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">{postTitles}</p>
+            <p className="text-[10px] text-(--text-secondary) mt-0.5">{postTitles}</p>
           )}
         </div>
         <StatusBadge status={user.status} onClick={onStatusClick} />
       </div>
-      <div className="flex items-center justify-between gap-2 pt-1 border-t border-[var(--btn-secondary-border)]">
+      <div className="flex items-center justify-between gap-2 pt-1 border-t border-(--btn-secondary-border)">
         <RoleBadge role={user.role} onClick={onRoleClick} />
         <button
           onClick={onDeleteClick}
           disabled={isBusy}
-          className="rounded-lg border border-[var(--text-important)]/40 px-2 py-1 text-[10px] font-semibold text-[var(--text-important)] hover:bg-[var(--text-important)]/10 disabled:opacity-50 cursor-pointer"
+          className="rounded-lg border border-(--text-important)/40 px-2 py-1 text-[10px] font-semibold text-(--text-important) hover:bg-(--text-important)/10 disabled:opacity-50 cursor-pointer"
         >
           Delete
         </button>

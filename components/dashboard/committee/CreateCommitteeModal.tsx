@@ -77,16 +77,16 @@ export default function CreateCommitteeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-      <div className="w-full max-w-lg rounded-3xl bg-[var(--card-bg)] p-6 shadow-2xl sm:p-8">
+      <div className="w-full max-w-lg rounded-3xl bg-(--card-bg) p-6 shadow-2xl sm:p-8">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--btn-secondary-border)] pb-4">
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">
+        <div className="flex items-center justify-between border-b border-(--btn-secondary-border) pb-4">
+          <h2 className="text-xl font-bold text-(--text-primary)">
             Create New Committee
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-[var(--text-secondary)] hover:bg-[var(--stat-card-bg)] hover:text-[var(--text-primary)] cursor-pointer"
+            className="rounded-lg p-1 text-(--text-secondary) hover:bg-(--stat-card-bg) hover:text-(--text-primary) cursor-pointer"
           >
             ✕
           </button>
@@ -95,7 +95,7 @@ export default function CreateCommitteeModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {error && (
-            <div className="rounded-xl border border-[var(--text-important)]/30 bg-[var(--text-important)]/10 p-3 text-xs text-[var(--text-important)]">
+            <div className="rounded-xl border border-(--text-important)/30 bg-(--text-important)/10 p-3 text-xs text-(--text-important)">
               {error}
             </div>
           )}
@@ -103,14 +103,14 @@ export default function CreateCommitteeModal({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Committee Type */}
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-primary)]">
+              <label className="block text-xs font-semibold text-(--text-primary)">
                 Committee Type
               </label>
               <select
                 name="type"
                 value={formData.type}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+                className="mt-1 w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden"
               >
                 <option value="EXECUTIVE">Executive</option>
                 <option value="ELECTION">Election</option>
@@ -120,7 +120,7 @@ export default function CreateCommitteeModal({
 
             {/* Committee Year */}
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-primary)]">
+              <label className="block text-xs font-semibold text-(--text-primary)">
                 Year (e.g. 2026)
               </label>
               {/* 2. CHANGE HERE: type="number" করা হয়েছে */}
@@ -131,14 +131,14 @@ export default function CreateCommitteeModal({
                 value={formData.year}
                 onChange={handleChange}
                 placeholder="2026"
-                className="mt-1 w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+                className="mt-1 w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden"
               />
             </div>
           </div>
 
           {/* Post Title */}
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-primary)]">
+            <label className="block text-xs font-semibold text-(--text-primary)">
               Admin Post Title
             </label>
             <input
@@ -148,19 +148,19 @@ export default function CreateCommitteeModal({
               value={formData.postTitle}
               onChange={handleChange}
               placeholder="e.g. President"
-              className="mt-1 w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+              className="mt-1 w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden"
             />
           </div>
 
-          <div className="border-t border-[var(--btn-secondary-border)] pt-3">
-            <p className="mb-3 text-xs font-semibold text-[var(--text-secondary)]">
+          <div className="border-t border-(--btn-secondary-border) pt-3">
+            <p className="mb-3 text-xs font-semibold text-(--text-secondary)">
               Initial Admin Details
             </p>
 
             <div className="space-y-3">
               {/* Admin User ID */}
               <div>
-                <label className="block text-xs font-medium text-[var(--text-primary)]">
+                <label className="block text-xs font-medium text-(--text-primary)">
                   User ID / Student ID
                 </label>
                 <input
@@ -170,13 +170,13 @@ export default function CreateCommitteeModal({
                   value={formData.adminUserId}
                   onChange={handleChange}
                   placeholder="e.g. 2023001"
-                  className="mt-1 w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+                  className="mt-1 w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden"
                 />
               </div>
 
               {/* Admin Name */}
               <div>
-                <label className="block text-xs font-medium text-[var(--text-primary)]">
+                <label className="block text-xs font-medium text-(--text-primary)">
                   Full Name
                 </label>
                 <input
@@ -186,13 +186,13 @@ export default function CreateCommitteeModal({
                   value={formData.adminName}
                   onChange={handleChange}
                   placeholder="Full Name"
-                  className="mt-1 w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+                  className="mt-1 w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden"
                 />
               </div>
 
               {/* Admin Email */}
               <div>
-                <label className="block text-xs font-medium text-[var(--text-primary)]">
+                <label className="block text-xs font-medium text-(--text-primary)">
                   Email Address
                 </label>
                 <input
@@ -202,7 +202,7 @@ export default function CreateCommitteeModal({
                   value={formData.adminEmail}
                   onChange={handleChange}
                   placeholder="user@neu.ac.bd"
-                  className="mt-1 w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+                  className="mt-1 w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden"
                 />
               </div>
             </div>
@@ -214,14 +214,14 @@ export default function CreateCommitteeModal({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded-xl border border-[var(--btn-secondary-border)] px-4 py-2 text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--stat-card-bg)] cursor-pointer"
+              className="rounded-xl border border-(--btn-secondary-border) px-4 py-2 text-xs font-semibold text-(--text-secondary) hover:bg-(--stat-card-bg) cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[var(--btn-primary-bg)] px-5 py-2 text-xs font-semibold text-[var(--btn-primary-text)] shadow-xs hover:opacity-90 disabled:opacity-50 cursor-pointer"
+              className="rounded-xl bg-(--btn-primary-bg) px-5 py-2 text-xs font-semibold text-(--btn-primary-text) shadow-xs hover:opacity-90 disabled:opacity-50 cursor-pointer"
             >
               {loading ? "Creating..." : "Create Committee"}
             </button>

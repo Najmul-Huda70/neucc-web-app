@@ -61,7 +61,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[300px]">
+      <div className="flex justify-center items-center min-h-75">
         <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
       </div>
     );
