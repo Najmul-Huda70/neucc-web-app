@@ -17,6 +17,7 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json();
+    console.log(body);
     const {
       userId,
       role,
@@ -91,8 +92,9 @@ export async function PATCH(req: Request) {
     }
 
     let assignedPostTitle: string | undefined;
-
-    // 4. Clean & Readable Transaction Logic
+    
+  
+     // 4. Clean & Readable Transaction Logic
     const updated = await prisma.$transaction(async (tx) => {
 
       // ========================================================
@@ -141,15 +143,13 @@ export async function PATCH(req: Request) {
       // CASE 2: Demoted from MODERATOR / ADMIN to MEMBER
       // ========================================================
       if (isDemotingToMember) {
-        // Mark active posts as CLOSED for this user
-        await tx.userPost.updateMany({
+        // Mark active posts as Removed for this user
+        await tx.userPost.deleteMany({
           where: {
             userId,
+            committeeId,
             status: Status.ACTIVE,
-          },
-          data: {
-            status: Status.CLOSED,
-          },
+          }
         });
       }
 

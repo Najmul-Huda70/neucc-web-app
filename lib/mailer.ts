@@ -29,11 +29,11 @@ interface RoleChangeEmailOptions {
   newRole: string;
   postTitle?: string;
   postRemoved?: boolean;
-}
+} 
 interface StatusChangeEmailOptions {
   email: string;
   name: string;
-  status: "ACTIVE" | "DEACTIVATED";
+  status: "ACTIVE" | "DEACTIVATED" | "CLOSED";
 }
 interface AccountDeletedEmailOptions {
   email: string;
@@ -48,25 +48,45 @@ interface SendOtpEmailOptions {
  * Common HTML Wrapper Footer & Header for Consistent Branding
  */
 const clubHeaderAndFooter = (content: string) => `
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
     
-    <!-- Header / Logo Area with University Logo -->
-    <div style="border-bottom: 2px solid #288C83; padding-bottom: 16px; margin-bottom: 20px; text-align: center;">
-      <img src="cid:universityLogo" alt="Netrokona University Logo" style="max-width: 140px; height: auto; margin-bottom: 10px; display: inline-block;" />
-      <h2 style="color: #288C83; margin: 0 0 4px 0; font-size: 22px; font-weight: 700;">Computer Club</h2>
-      <p style="margin: 0; font-size: 13px; color: #64748b; font-weight: 600;">
-        Department of Computer Science & Engineering<br/>
-        Netrokona University
-      </p>
-    </div>
+    <!-- Header: Logo + single-line text -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 2px solid #288C83; padding-bottom: 12px; margin-bottom: 20px; width: 100%;">
+      <tr>
+        <td style="width: 38px; vertical-align: middle; padding-right: 8px;">
+          <img src="cid:universityLogo" alt="NEU Logo" width="34" style="display: block; width: 34px; height: auto;" />
+        </td>
+        <td style="vertical-align: middle;">
+          <p style="margin: 0; font-size: 14px; font-weight: 700; color: #288C83; line-height: 1.4;">
+            Computer Club, Dept. of CSE, Netrokona University
+          </p>
+        </td>
+      </tr>
+    </table>
 
     ${content}
 
     <!-- Footer -->
     <div style="margin-top: 28px; padding-top: 16px; border-top: 1px dashed #cbd5e1; text-align: center; font-size: 12px; color: #64748b;">
       <p style="margin: 0 0 4px 0; font-weight: bold; color: #0f172a;">Computer Club</p>
-      <p style="margin: 0 0 4px 0;">Dept. of Computer Science & Engineering, Netrokona University</p>
-      <p style="margin: 0;">Official Contact: <a href="mailto:computerclub@neu.ac.bd" style="color: #288C83; text-decoration: none; font-weight: 600;">computerclub@neu.ac.bd</a></p>
+      <p style="margin: 0 0 4px 0;">Dept. of Computer Science & Engineering</p>
+      <p style="margin: 0 0 4px 0;">Netrokona University, Netrokona, Bangladesh</p>
+      <p style="margin: 0 0 8px 0;">
+        Official Contact: <a href="mailto:computerclub@neu.ac.bd" style="color: #288C83; text-decoration: none; font-weight: 600;">computerclub@neu.ac.bd</a>
+      </p>
+
+      <p style="margin: 0 0 10px 0;">
+        <a href="https://www.facebook.com/profile.php?id=61578378787104" style="color: #288C83; text-decoration: none; margin: 0 6px;">Facebook</a> |
+        <a href="https://www.linkedin.com/company/neu-computer-club" style="color: #288C83; text-decoration: none; margin: 0 6px;">Linkedin</a> |
+        <a href="https://neucc-web-app.vercel.app/" style="color: #288C83; text-decoration: none; margin: 0 6px;">Website</a>
+      </p>
+
+      <p style="margin: 0 0 4px 0; font-size: 11px; color: #94a3b8;">
+        You are receiving this email because you are a registered member of Computer Club, Dept. of CSE, NeU.
+      </p>
+      <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+        © ${new Date().getFullYear()} Computer Club, Dept. of CSE, NeU. All rights reserved.
+      </p>
     </div>
 
   </div>
@@ -231,33 +251,63 @@ export async function sendRoleChangeNotification({
 }
 
 /**
- * Notifies a user when their account is DEACTIVATED or reactivated
+ * Notifies a user when their account status changes (ACTIVE, DEACTIVATED, CLOSED)
  */
 export async function sendStatusChangeNotification({ email, name, status }: StatusChangeEmailOptions) {
-  const isDEACTIVATED = status === "DEACTIVATED";
+  const isDeactivated = status === "DEACTIVATED";
+  const isClosed = status === "CLOSED";
+  const isActive = status === "ACTIVE";
+
+  // Status অনুযায়ী Dynamic Content সেট করা
+  let title = "Account Status Updated";
+  let titleColor = "#0f172a";
+  let bgColor = "#f8fafc";
+  let borderColor = "#94a3b8";
+  let textColor = "#334155";
+  let statusMessage = "";
+
+  if (isActive) {
+    title = "Account Activated";
+    titleColor = "#15803d";
+    bgColor = "#f0fdf4";
+    borderColor = "#22c55e";
+    textColor = "#166534";
+    statusMessage = "Your account has been <strong>ACTIVATED</strong> by an administrator. You can now log in and access your dashboard normally.";
+  } else if (isDeactivated) {
+    title = "Account Deactivated";
+    titleColor = "#b45309";
+    bgColor = "#fffbe0";
+    borderColor = "#f59e0b";
+    textColor = "#92400e";
+    statusMessage = "Your account has been temporarily <strong>DEACTIVATED</strong> by an administrator. You will not be able to log in until your account is re-activated.";
+  } else if (isClosed) {
+    title = "Account Closed";
+    titleColor = "#b91c1c";
+    bgColor = "#fef2f2";
+    borderColor = "#ef4444";
+    textColor = "#991b1b";
+    statusMessage = "Your account has been permanently <strong>CLOSED</strong> by an administrator. Access to the club system for this account has been revoked.";
+  }
 
   const content = `
-    <h3 style="color: ${isDEACTIVATED ? "#d9534f" : "#0f172a"}; margin-top: 0; font-size: 18px;">
-      Account ${isDEACTIVATED ? "DEACTIVATED" : "Reactivated"}
+    <h3 style="color: ${titleColor}; margin-top: 0; font-size: 18px;">
+      ${title}
     </h3>
     <p style="font-size: 15px; color: #334155;">Hello <strong>${name}</strong>,</p>
-    <div style="background-color: ${isDEACTIVATED ? "#fef2f2" : "#f0fdf4"}; padding: 16px; border-left: 4px solid ${
-    isDEACTIVATED ? "#ef4444" : "#22c55e"
-  }; border-radius: 6px; margin: 20px 0;">
-      <p style="margin: 0; font-size: 14px; color: ${isDEACTIVATED ? "#991b1b" : "#166534"}; line-height: 1.6;">
-        Your account has been <strong>${isDEACTIVATED ? "DEACTIVATED" : "reactivated"}</strong> by an administrator.
-        ${isDEACTIVATED ? "You will not be able to log in until this is reversed." : "You can now log in normally."}
+    <div style="background-color: ${bgColor}; padding: 16px; border-left: 4px solid ${borderColor}; border-radius: 6px; margin: 20px 0;">
+      <p style="margin: 0; font-size: 14px; color: ${textColor}; line-height: 1.6;">
+        ${statusMessage}
       </p>
     </div>
     <p style="font-size: 12px; color: #94a3b8; margin-top: 24px;">
-      If you have questions about this change, please contact the current administration.
+      If you have questions regarding this account status update, please contact the current executive committee.
     </p>
   `;
 
   return await transporter.sendMail({
     from: `"Netrokona University Computer Club" <${process.env.EMAIL_USER || "computerclub@neu.ac.bd"}>`,
     to: email,
-    subject: `Notice: Your Account Has Been ${isDEACTIVATED ? "DEACTIVATED" : "Reactivated"} - NEU Computer Club`,
+    subject: `Notice: Your Account Status is now ${status} - NEU Computer Club`,
     html: clubHeaderAndFooter(content),
     attachments: [logoAttachment],
   });

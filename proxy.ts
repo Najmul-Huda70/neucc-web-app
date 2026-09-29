@@ -2,60 +2,83 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-// Routes config
 const PRIVATE_PATH_PREFIX = "/dashboard";
 const ADMIN_ONLY_PATHS = ["/dashboard/committees", "/dashboard/users"];
+
+// Helper function to verify JWT
+async function verifyToken(token: string) {
+  try {
+    const secret = new TextEncoder().encode(
+      process.env.JWT_SECRET || "your-secret-key"
+    );
+    // jwtVerify automatic token-er 'exp' (Expiration Time) check kore
+    const { payload } = await jwtVerify(token, secret);
+    return { valid: true, payload };
+  } catch (error) {
+    return { valid: false, payload: null };
+  }
+}
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("token")?.value;
 
-  // ১. ইউজার ইতিমধ্যে লগইন থাকলে তাকে /login পেজে ঢুকতে না দিয়ে ড্যাশবোর্ডে রিডাইরেক্ট করবে
-  if (token && pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+  // 1. User login page-e jawar chesta korle
+  if (pathname === "/login") {
+    if (token) {
+      const { valid } = await verifyToken(token);
+      // Token valid thaklei shudhu dashboard-e pathabe
+      if (valid) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+      // Token expired/invalid hole login page access korte dibe ebong bad token delete korbe
+      const response = NextResponse.next();
+      response.cookies.delete("token");
+      return response;
+    }
+    return NextResponse.next();
   }
 
-  // ২. Check if route is private (/dashboard*)
+  // 2. Private routes (/dashboard*) check
   if (pathname.startsWith(PRIVATE_PATH_PREFIX)) {
-    // Token না থাকলে সরাসরি Login পেজে রিডাইরেক্ট
+    // Token na thakle login page-e callback URL soho redirect
     if (!token) {
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(loginUrl);
     }
 
-    try {
-      // ৩. Verify JWT Token using 'jose'
-      const secret = new TextEncoder().encode(
-        process.env.JWT_SECRET || "your-secret-key"
-      );
+    // 3. Verify JWT Token & Expiration
+    const { valid, payload } = await verifyToken(token);
 
-      const { payload } = await jwtVerify(token, secret);
-      const userRole = payload.role as string; // 'ADMIN' | 'MODERATOR' | 'MEMBER'
-
-      // ৪. Admin-only Route Access Control
-      const isAdminRoute = ADMIN_ONLY_PATHS.some((path) =>
-        pathname.startsWith(path)
-      );
-
-      if (isAdminRoute && userRole !== "ADMIN") {
-        return NextResponse.redirect(new URL("/dashboard", req.url));
-      }
-
-      // ৫. Authorization success, proceed
-      return NextResponse.next();
-    } catch (error) {
-      console.error("Middleware Auth Error:", error);
-      // Expired বা Invalid Token হলে Login পেজে পাঠাবে
+    if (!valid || !payload) {
+      // Token Expired / Invalid / Malformed hole cookie clear kore Login page-e pathabe
       const loginUrl = new URL("/login", req.url);
-      return NextResponse.redirect(loginUrl);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      
+      const response = NextResponse.redirect(loginUrl);
+      // Browser theke expired cookie remove kora hoche
+      response.cookies.delete("token"); 
+      return response;
     }
+
+    // 4. Role-Based Access Control (Admin-only routes)
+    const userRole = payload.role as string; // 'ADMIN' | 'MODERATOR' | 'MEMBER'
+    const isAdminRoute = ADMIN_ONLY_PATHS.some((path) =>
+      pathname.startsWith(path)
+    );
+
+    if (isAdminRoute && userRole !== "ADMIN") {
+      // User Access na thakle unauthorized access/dashboard-e redirect
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    return NextResponse.next();
   }
 
   return NextResponse.next();
 }
 
-// Matcher config
 export const config = {
   matcher: ["/dashboard/:path*", "/login"],
 };

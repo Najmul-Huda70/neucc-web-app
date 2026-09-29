@@ -6,8 +6,8 @@ import { UserBase } from "@/lib/types";
 import ColumnFilterDropdown from "./ColumnFilterDropdown";
 import UserRowItem from "./table/UserRowItem";
 import StatusChangeModal, { StatusType } from "@/components/dashboard/users/StatusChangeModal";
-import CloseUserModal from "./CloseUserModal";
 import RoleChangeModal from "./RoleChangeModal";
+import DeleteUserConfirmationModal from "./DeleteUserConfirmationModal";
 
 export interface UserRow extends UserBase {
   posts?: { postId: string; postTitle: string }[];
@@ -76,7 +76,6 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
     }
   };
 
-  // Status Modal Dropdown Confirm Handler
   const handleStatusConfirm = async (newStatus: StatusType) => {
     if (!statusChangeUser) return;
     const success = await patchUser(statusChangeUser.userId, { status: newStatus });
@@ -159,6 +158,13 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
       {/* Desktop / Tablet Layout */}
       <div className="hidden sm:block overflow-x-auto rounded-2xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)]">
         <table className="w-full text-left text-xs table-fixed">
+          <colgroup>
+            <col className="w-[30%]" />
+            <col className="w-[30%]" />
+            <col className="w-[15%]" />
+            <col className="w-[15%]" />
+            <col className="w-[10%]" />
+          </colgroup>
           <thead className="bg-[var(--stat-card-bg)] text-[var(--text-secondary)] border-b border-[var(--btn-secondary-border)]">
             <tr>
               <th className="p-3">
@@ -170,7 +176,7 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
                 </button>
               </th>
               <th className="p-3 font-semibold">Email</th>
-              <th className="p-3">
+              <th className="p-3 text-center">
                 <ColumnFilterDropdown
                   label="Role"
                   options={ROLE_OPTIONS}
@@ -178,7 +184,7 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
                   onChange={setRoleFilter}
                 />
               </th>
-              <th className="p-3">
+              <th className="p-3 text-center">
                 <ColumnFilterDropdown
                   label="Status"
                   options={STATUS_OPTIONS}
@@ -266,7 +272,7 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
       />
 
       {/* User Closed Modal */}
-      <CloseUserModal
+      <DeleteUserConfirmationModal
         isOpen={!!deleteUserTarget}
         userName={deleteUserTarget?.name || "User"}
         loading={busyId === deleteUserTarget?.userId}
