@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export type StatusType = "ACTIVE" | "DEACTIVED" | "CLOSED";
+export type StatusType = "ACTIVE" | "DEACTIVATED" | "CLOSED";
 
 interface StatusChangeModalProps {
   isOpen: boolean;
@@ -47,7 +47,7 @@ export default function StatusChangeModal({
     }
   };
 
-  const isDanger = selectedStatus === "DEACTIVED" || selectedStatus === "CLOSED";
+  const isDanger = selectedStatus === "DEACTIVATED" || selectedStatus === "CLOSED";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
@@ -88,7 +88,7 @@ export default function StatusChangeModal({
               className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] p-2.5 text-xs font-medium text-[var(--text-primary)] focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
             >
               <option value="ACTIVE">ACTIVE</option>
-              <option value="DEACTIVED">DEACTIVED</option>
+              <option value="DEACTIVATED">DEACTIVATED</option>
               <option value="CLOSED">CLOSED</option>
             </select>
           </div>

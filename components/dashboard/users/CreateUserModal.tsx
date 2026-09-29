@@ -80,7 +80,6 @@ export default function CreateUserModal({
       })
       .catch((err) => console.error("Failed to load committees:", err));
   }, [isOpen]);
-
   useEffect(() => {
     if (!requiresPost) {
       setForm((f) => ({

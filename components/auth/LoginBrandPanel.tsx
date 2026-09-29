@@ -61,7 +61,7 @@ export default function LoginBrandPanel() {
                 rel="noopener noreferrer"
                 className="group text-[11px] sm:text-xs flex items-center gap-1 font-bold text-[var(--text-important)]"
               >
-                North East University Bangladesh
+                Netrokona University
                 <ExternalLink
                   size={12}
                   className="transition-transform duration-200 group-hover:-translate-y-0.5"
@@ -153,7 +153,7 @@ export default function LoginBrandPanel() {
             borderColor: "var(--btn-secondary-border)",
           }}
         >
-          <span>North East University Bangladesh</span>
+          <span>Netrokona University</span>
           <span>Developed by Najmul Huda</span>
         </div>
       </div>

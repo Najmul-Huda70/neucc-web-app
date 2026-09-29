@@ -171,7 +171,7 @@ export default function Sidebar({
                 className="group text-[11px] sm:text-xs flex items-center gap-1 font-bold truncate"
                 style={{ color: "var(--text-important)" }}
               >
-                <span className="truncate">North East University Bangladesh</span>
+                <span className="truncate">Netrokona University</span>
                 <ExternalLink
                   size={12}
                   className="shrink-0 transition-transform duration-200 group-hover:-translate-y-0.5"
