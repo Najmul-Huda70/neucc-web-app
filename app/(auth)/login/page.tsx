@@ -20,7 +20,7 @@ export default function LoginPage() {
           fallback={
             <div className="p-8 sm:p-10 flex flex-col justify-center items-center">
               <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-2" />
-              <p className="text-xs text-[var(--text-secondary)]">
+              <p className="text-xs text-(--text-secondary)">
                 Loading portal...
               </p>
             </div>

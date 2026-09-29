@@ -42,10 +42,10 @@ export default function Hero() {
   };
 
   return (
-    <section className="w-full bg-[var(--card-bg)] text-[var(--text-primary)] border-b border-[var(--btn-secondary-border)]">
+    <section className="w-full bg-(--card-bg) text-(--text-primary) border-b border-(--btn-secondary-border)">
       
       {/* Top Image Slider Section */}
-      <div className="relative w-full h-[320px] sm:h-[450px] md:h-[580px] overflow-hidden group">
+      <div className="relative w-full h-80 sm:h-112.5 md:h-145 overflow-hidden group">
         
         {/* Images Wrap */}
         {slides.map((slide, index) => (
@@ -94,7 +94,7 @@ export default function Hero() {
               aria-label={`Go to slide ${index + 1}`}
               className={`h-2 transition-all duration-300 rounded-full cursor-pointer ${
                 index === currentSlide
-                  ? "w-8 bg-[var(--btn-primary-bg)]"
+                  ? "w-8 bg-(--btn-primary-bg)"
                   : "w-2 bg-white/50 hover:bg-white"
               }`}
             />
@@ -108,10 +108,10 @@ export default function Hero() {
           
           {/* Left Text Box */}
           <div className="md:col-span-7 flex flex-col justify-center space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-[var(--btn-primary-bg)]">
+            <span className="text-xs font-bold uppercase tracking-wider text-(--btn-primary-bg)">
               ABOUT THE CLUB
             </span>
-            <p className="text-base sm:text-lg text-[var(--text-primary)] leading-relaxed font-normal">
+            <p className="text-base sm:text-lg text-(--text-primary) leading-relaxed font-normal">
               Computer Club is where CSE students at NeU write code, ship
               projects, run workshops, and argue about tabs vs. spaces.
               Everyone who likes making things is welcome.
@@ -122,14 +122,14 @@ export default function Hero() {
           <div className="md:col-span-5 flex flex-col justify-center space-y-3">
             <Link
               href="/events"
-              className="w-full py-3.5 px-6 rounded bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-semibold text-center text-xs sm:text-sm tracking-wider uppercase hover:opacity-90 transition-all shadow-md"
+              className="w-full py-3.5 px-6 rounded bg-(--btn-primary-bg) text-(--btn-primary-text) font-semibold text-center text-xs sm:text-sm tracking-wider uppercase hover:opacity-90 transition-all shadow-md"
             >
               EXPLORE EVENTS
             </Link>
             
             <Link
               href="/membership"
-              className="w-full py-3.5 px-6 rounded bg-transparent border border-[var(--text-primary)] text-[var(--text-primary)] font-semibold text-center text-xs sm:text-sm tracking-wider uppercase hover:bg-[var(--stat-card-bg)] transition-all"
+              className="w-full py-3.5 px-6 rounded bg-transparent border border-(--text-primary) text-(--text-primary) font-semibold text-center text-xs sm:text-sm tracking-wider uppercase hover:bg-(--stat-card-bg) transition-all"
             >
               BECOME A MEMBER
             </Link>

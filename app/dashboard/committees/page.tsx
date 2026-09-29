@@ -82,25 +82,25 @@ export default function CommitteePage() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-20 text-center text-[var(--text-secondary)] font-medium">
+      <div className="max-w-6xl mx-auto px-4 py-20 text-center text-(--text-secondary) font-medium">
         Loading Committee Data...
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-4 space-y-6 bg-[var(--bg-app)] text-[var(--text-primary)]">
+    <div className="max-w-6xl mx-auto px-4 py-4 space-y-6 bg-(--bg-app) text-(--text-primary)">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+          <h1 className="text-2xl font-bold text-(--text-primary)">
             Committee Management
           </h1>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-[var(--btn-primary-bg)] hover:opacity-90 text-[var(--btn-primary-text)] text-xs font-semibold px-4 py-2.5 rounded-xl transition-all self-start sm:self-auto shadow-xs cursor-pointer"
+          className="bg-(--btn-primary-bg) hover:opacity-90 text-(--btn-primary-text) text-xs font-semibold px-4 py-2.5 rounded-xl transition-all self-start sm:self-auto shadow-xs cursor-pointer"
         >
           + Create New Committee
         </button>
@@ -118,11 +118,11 @@ export default function CommitteePage() {
       )}
 
       {!activeCommittee ? (
-        <div className="text-center p-12 border border-dashed border-[var(--btn-secondary-border)] rounded-3xl bg-[var(--stat-card-bg)] my-10">
-          <h3 className="text-base font-semibold text-[var(--text-primary)]">
+        <div className="text-center p-12 border border-dashed border-(--btn-secondary-border) rounded-3xl bg-(--stat-card-bg) my-10">
+          <h3 className="text-base font-semibold text-(--text-primary)">
             No Committee Found
           </h3>
-          <p className="text-xs text-[var(--text-secondary)] mt-1">
+          <p className="text-xs text-(--text-secondary) mt-1">
             There is no committee configured for {selectedType} ({selectedyear}).
           </p>
         </div>

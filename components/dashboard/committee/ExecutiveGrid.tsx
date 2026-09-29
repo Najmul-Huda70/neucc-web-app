@@ -11,8 +11,8 @@ interface ExecutiveGridProps {
 export default function ExecutiveGrid({ posts, title }: ExecutiveGridProps) {
   if (!posts || posts.length === 0) {
     return (
-      <div className="text-center p-12 border border-dashed border-[var(--btn-secondary-border)] rounded-3xl bg-[var(--stat-card-bg)] my-6">
-        <p className="text-[var(--text-secondary)] font-medium text-sm">
+      <div className="text-center p-12 border border-dashed border-(--btn-secondary-border) rounded-3xl bg-(--stat-card-bg) my-6">
+        <p className="text-(--text-secondary) font-medium text-sm">
           No executive posts found for this committee.
         </p>
       </div>
@@ -27,8 +27,8 @@ export default function ExecutiveGrid({ posts, title }: ExecutiveGridProps) {
   return (
     <div className="space-y-8 my-8">
       {/* Section Title */}
-      <div className="border-b-2 border-[var(--text-secondary)] w-fit pb-1">
-        <h3 className="text-lg font-bold text-[var(--text-secondary)]">
+      <div className="border-b-2 border-(--text-secondary) w-fit pb-1">
+        <h3 className="text-lg font-bold text-(--text-secondary)">
           {title}
         </h3>
       </div>

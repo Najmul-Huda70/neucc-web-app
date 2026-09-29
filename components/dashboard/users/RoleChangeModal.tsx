@@ -159,44 +159,44 @@ export default function RoleChangeModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="w-full max-w-md rounded-3xl bg-[var(--card-bg)] p-6 shadow-xl border border-[var(--btn-secondary-border)] max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-md rounded-3xl bg-(--card-bg) p-6 shadow-xl border border-(--btn-secondary-border) max-h-[90vh] overflow-y-auto"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[var(--btn-secondary-border)] pb-3">
-              <h2 className="text-base font-bold text-[var(--text-primary)]">
+            <div className="flex items-center justify-between border-b border-(--btn-secondary-border) pb-3">
+              <h2 className="text-base font-bold text-(--text-primary)">
                 Change Role
               </h2>
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg p-1 text-[var(--text-secondary)] hover:bg-[var(--stat-card-bg)] transition-colors cursor-pointer"
+                className="rounded-lg p-1 text-(--text-secondary) hover:bg-(--stat-card-bg) transition-colors cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <p className="mt-3 text-xs text-[var(--text-primary)]/70">
+            <p className="mt-3 text-xs text-(--text-primary)/70">
               Updating role for{" "}
-              <span className="font-semibold text-[var(--text-primary)]">
+              <span className="font-semibold text-(--text-primary)">
                 {user.name}
               </span>
             </p>
 
             <div className="mt-4 space-y-4">
               {error && (
-                <div className="rounded-xl border border-[var(--text-important)]/30 bg-[var(--text-important)]/10 p-2.5 text-xs font-medium text-[var(--text-important)]">
+                <div className="rounded-xl border border-(--text-important)/30 bg-(--text-important)/10 p-2.5 text-xs font-medium text-(--text-important)">
                   {error}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
+                <label className="block text-xs font-semibold text-(--text-primary) mb-1">
                   Role
                 </label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as Role)}
-                  className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
+                  className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden cursor-pointer"
                 >
                   <option value="MEMBER">Member</option>
                   <option value="MODERATOR">Moderator</option>
@@ -212,14 +212,14 @@ export default function RoleChangeModal({
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="space-y-3 overflow-hidden rounded-xl border border-[var(--btn-primary-bg)]/30 bg-[var(--badge-bg)] p-3.5"
+                    className="space-y-3 overflow-hidden rounded-xl border border-(--btn-primary-bg)/30 bg-(--badge-bg) p-3.5"
                   >
-                    <p className="text-[11px] font-semibold text-[var(--btn-primary-bg)]">
+                    <p className="text-[11px] font-semibold text-(--btn-primary-bg)">
                       Required — {role === "ADMIN" ? "Admin" : "Moderator"} accounts must hold a committee post
                     </p>
 
                     <div>
-                      <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
+                      <label className="block text-xs font-semibold text-(--text-primary) mb-1">
                         Committee
                       </label>
                       <select
@@ -228,7 +228,7 @@ export default function RoleChangeModal({
                           setSelectedCommitteeKey(e.target.value);
                           setExistingPostTitle("");
                         }}
-                        className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
+                        className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--card-bg) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden cursor-pointer"
                       >
                         <option value="">Select a committee</option>
                         {committees.map((c) => {
@@ -242,13 +242,13 @@ export default function RoleChangeModal({
                       </select>
                     </div>
 
-                    <div className="flex gap-4 text-xs font-medium text-[var(--text-primary)] pt-1">
+                    <div className="flex gap-4 text-xs font-medium text-(--text-primary) pt-1">
                       <label className="flex items-center gap-1.5 cursor-pointer">
                         <input
                           type="radio"
                           checked={postMode === "new"}
                           onChange={() => setPostMode("new")}
-                          className="accent-[var(--btn-primary-bg)]"
+                          className="accent-(--btn-primary-bg)"
                         />
                         Create new post
                       </label>
@@ -257,7 +257,7 @@ export default function RoleChangeModal({
                           type="radio"
                           checked={postMode === "existing"}
                           onChange={() => setPostMode("existing")}
-                          className="accent-[var(--btn-primary-bg)]"
+                          className="accent-(--btn-primary-bg)"
                         />
                         Assign existing post
                       </label>
@@ -269,13 +269,13 @@ export default function RoleChangeModal({
                         placeholder="e.g. Vice President"
                         value={newPostTitle}
                         onChange={(e) => setNewPostTitle(e.target.value)}
-                        className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden"
+                        className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--card-bg) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden"
                       />
                     ) : (
                       <select
                         value={existingPostTitle}
                         onChange={(e) => setExistingPostTitle(e.target.value)}
-                        className="w-full rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--card-bg)] text-[var(--text-primary)] p-2.5 text-xs focus:border-[var(--btn-primary-bg)] focus:outline-hidden cursor-pointer"
+                        className="w-full rounded-xl border border-(--btn-secondary-border) bg-(--card-bg) text-(--text-primary) p-2.5 text-xs focus:border-(--btn-primary-bg) focus:outline-hidden cursor-pointer"
                       >
                         <option value="">Select a post to reassign</option>
                         {selectedCommittee?.posts?.map((p, idx) => {
@@ -299,7 +299,7 @@ export default function RoleChangeModal({
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="overflow-hidden rounded-xl border border-[var(--text-important)]/30 bg-[var(--text-important)]/10 p-3 text-xs font-medium text-[var(--text-important)]"
+                    className="overflow-hidden rounded-xl border border-(--text-important)/30 bg-(--text-important)/10 p-3 text-xs font-medium text-(--text-important)"
                   >
                     Switching to Member will remove {user.name}&apos;s current post
                     {userPosts.length > 1 ? "s" : ""}:{" "}
@@ -310,12 +310,12 @@ export default function RoleChangeModal({
             </div>
 
             {/* Footer Buttons */}
-            <div className="mt-6 flex justify-end gap-3 pt-3 border-t border-[var(--btn-secondary-border)]">
+            <div className="mt-6 flex justify-end gap-3 pt-3 border-t border-(--btn-secondary-border)">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="rounded-xl border border-[var(--btn-secondary-border)] bg-[var(--bg-app)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--stat-card-bg)] transition-colors cursor-pointer"
+                className="rounded-xl border border-(--btn-secondary-border) bg-(--bg-app) px-4 py-2 text-xs font-semibold text-(--text-primary) hover:bg-(--stat-card-bg) transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -323,7 +323,7 @@ export default function RoleChangeModal({
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading}
-                className="rounded-xl bg-[var(--btn-primary-bg)] px-5 py-2 text-xs font-semibold text-[var(--btn-primary-text)] hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                className="rounded-xl bg-(--btn-primary-bg) px-5 py-2 text-xs font-semibold text-(--btn-primary-text) hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
               >
                 {loading ? "Saving..." : "Submit"}
               </button>
