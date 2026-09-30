@@ -1,9 +1,9 @@
-import { Role, Status, Type } from "@/generated/prisma/client";
+import { Role, Status, CommitteeType } from "@/generated/prisma/client";
 
-export { Role, Status, Type };
+export { Role, Status, CommitteeType };
 
 /* ============================================================
- * REUSABLE BASE TYPES
+ * REUSABLE BASE CommitteeType
  * ============================================================ */
 
 export interface Timestamps {
@@ -16,7 +16,7 @@ export interface WithStatus {
 }
 
 /* ============================================================
- * USER TYPES
+ * USER CommitteeType
  * ============================================================ */
 
 export interface AuthUser extends WithStatus {
@@ -39,7 +39,7 @@ export interface JWTPayload {
 export type UserDetail = Partial<AuthUser>;
 
 /* ============================================================
- * COMMITTEE & POST TYPES (API Response Compatible)
+ * COMMITTEE & POST CommitteeTypeS (API Response Compatible)
  * ============================================================ */
 
 export interface UserPost extends Partial<WithStatus>, Partial<Timestamps> {
@@ -54,7 +54,7 @@ export interface Post extends WithStatus {
 
 export interface Committee extends WithStatus, Partial<Timestamps> {
   committeeId?: string;
-  type: Type | string;
+  type: CommitteeType | string;
   year: number;
   posts: Post[];
 }

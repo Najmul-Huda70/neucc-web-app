@@ -7,7 +7,7 @@ import {
   sendNewAccountCredentials,
 } from "@/lib/mailer";
 import { verifyRole } from "@/lib/auth";
-import { Role, Status, Type } from "@/lib/types";
+import { CommitteeType, Role, Status } from "@/lib/types";
 
 // Strong Random Password Generator
 function generateRandomPassword(length = 14): string {
@@ -125,7 +125,7 @@ export async function POST(req: Request) {
       // Step H: Create New Committee
       const newCommittee = await tx.committee.create({
         data: {
-          type: type as Type,
+          type: type as CommitteeType,
           year: year,
           status: Status.ACTIVE,
         },

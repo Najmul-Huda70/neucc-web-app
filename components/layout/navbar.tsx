@@ -89,52 +89,10 @@ export default function Navbar() {
                 Notice
               </Link>
             </li>
-
-            {/* Dropdown for Committees */}
-            <li className="relative group">
-              <button
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-md font-semibold transition-colors cursor-pointer ${
-                  isCommitteeActive
-                    ? "bg-(--btn-primary-bg) text-(--btn-primary-text) shadow-sm"
-                    : "text-(--text-primary) hover:text-(--btn-primary-bg) hover:bg-(--stat-card-bg)"
-                }`}
-              >
+            <li>
+              <Link href="/committee" className={getLinkClass("/committee")}>
                 Committees
-                <ChevronDown
-                  size={16}
-                  className="transition-transform group-hover:rotate-180"
-                />
-              </button>
-
-              {/* Hover Dropdown Menu */}
-              <div className="absolute left-0 top-full pt-1 hidden group-hover:block w-52 z-50">
-                <ul className="bg-(--card-bg) border border-(--btn-secondary-border) rounded-lg shadow-lg py-2 flex flex-col">
-                  <li>
-                    <Link
-                      href="/committee/executive"
-                      className={`px-4 py-2 text-xs font-semibold block transition-colors ${
-                        pathname === "/committee/executive"
-                          ? "bg-(--btn-primary-bg) text-(--btn-primary-text)"
-                          : "hover:bg-(--stat-card-bg) hover:text-(--btn-primary-bg)"
-                      }`}
-                    >
-                      Executive Committee
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/committee/election"
-                      className={`px-4 py-2 text-xs font-semibold block transition-colors ${
-                        pathname === "/committee/election"
-                          ? "bg-(--btn-primary-bg) text-(--btn-primary-text)"
-                          : "hover:bg-(--stat-card-bg) hover:text-(--btn-primary-bg)"
-                      }`}
-                    >
-                      Election Committee
-                    </Link>
-                  </li>
-                </ul>
-              </div>
+              </Link>
             </li>
 
             <li>

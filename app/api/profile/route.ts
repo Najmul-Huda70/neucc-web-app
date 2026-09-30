@@ -4,8 +4,8 @@ import { jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { JWTPayload } from "@/lib/types";
-import { uploadProfileImage } from "@/lib/imageService";
 import { getUserProfile, userProfileSelect } from "@/lib/services/users";
+import { deleteImage, extractPublicId, uploadImage } from "@/lib/cloudinary";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "fallback_super_secret_key"
@@ -106,11 +106,29 @@ export async function PATCH(req: Request) {
       updateData.password = await bcrypt.hash(newPassword, 10);
     }
 
-    // 2. Bildehåndtering
+    // 2. ইমেজ হ্যান্ডলিং
     if (removeImage) {
+      // যদি আগের কোনো ইমেজ থেকে থাকে, Cloudinary থেকে ডিলিট করে দেয়া
+      if (existingUser.image) {
+        const publicId = extractPublicId(existingUser.image);
+        if (publicId) await deleteImage(publicId);
+      }
       updateData.image = null;
     } else if (imageFile && imageFile.size > 0) {
-      const uploadedImageUrl = await uploadProfileImage(imageFile);
+      // Step A: File কে Base64 Data URI তে কনভার্ট করা (যেহেতু uploadImage শুধু string এক্সেপ্ট করে)
+      const arrayBuffer = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64Image = `data:${imageFile.type};base64,${buffer.toString("base64")}`;
+
+      // Step B: নতুন ইমেজ Cloudinary তে আপলোড করা
+      const uploadedImageUrl = await uploadImage(base64Image, "profile_images");
+
+      // Step C: আপলোড সফল হলে পুরানো পিকচারটি Cloudinary থেকে মুছে ফেলা (Clean up)
+      if (existingUser.image) {
+        const publicId = extractPublicId(existingUser.image);
+        if (publicId) await deleteImage(publicId);
+      }
+
       updateData.image = uploadedImageUrl;
     }
 

@@ -30,6 +30,7 @@ export default async function DashboardLayout({
     userId: dbUser?.userId || userId,
     name: dbUser?.name || "User",
     email: dbUser?.email || "",
+    image: dbUser?.image || null,
     role: dbUser?.role || "MEMBER",
     status: dbUser?.status || "",
   };
