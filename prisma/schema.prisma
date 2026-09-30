@@ -7,23 +7,27 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  userId        String         @id
-  name          String
-  email         String         @unique
-  password      String
-  image         String?
-  role          Role           @default(MEMBER)
-  status        Status         @default(ACTIVE)
+// ─────────────────────────────────────────────
+// Users & Auth
+// ─────────────────────────────────────────────
 
-  // Forgot Password OTP Fields
-  resetOtp           String?
-  resetOtpExpiresAt  DateTime?
-  
+model User {
+  userId   String  @id
+  name     String
+  email    String  @unique
+  password String
+  image    String?
+  role     Role    @default(MEMBER)
+  status   Status  @default(ACTIVE)
+
+  // Forgot Password OTP Fields (store the OTP hashed, never plain text)
+  resetOtp          String?
+  resetOtpExpiresAt DateTime?
+
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
-  user_posts    userPost[]
+  user_posts    UserPost[]
 
   @@map("users")
 }
@@ -36,7 +40,27 @@ model RefreshToken {
   userId    String
   user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
+  @@index([userId])
   @@map("refresh_tokens")
+}
+
+// ─────────────────────────────────────────────
+// Committee, Posts
+// ─────────────────────────────────────────────
+
+model Committee {
+  committeeId String        @id @default(uuid())
+  type        CommitteeType
+  year        Int
+  status      Status        @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  posts       Post[]
+  user_posts  UserPost[]
+  events      Events[]
+
+  @@unique([type, year])
+  @@map("committees")
 }
 
 model Post {
@@ -46,40 +70,151 @@ model Post {
   createdAt   DateTime   @default(now())
   committeeId String
   committee   Committee  @relation(fields: [committeeId], references: [committeeId], onDelete: Cascade)
-  user_posts  userPost[]
+  user_posts  UserPost[]
 
+  @@index([committeeId])
   @@map("posts")
 }
 
-model userPost {
+model UserPost {
   postId      String
   post        Post      @relation(fields: [postId], references: [postId], onDelete: Cascade)
   userId      String
   user        User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  // Kept so the DB can enforce "one post per user per committee".
+  // In your service code, make sure it matches post.committeeId.
   committeeId String
   committee   Committee @relation(fields: [committeeId], references: [committeeId], onDelete: Cascade)
   status      Status    @default(ACTIVE)
   updatedAt   DateTime  @updatedAt
   createdAt   DateTime  @default(now())
 
-  @@id([postId, userId]) // same post-এ many user
-  @@unique([userId, committeeId]) // একজন user, একই committee-তে max ১টা post
+  @@id([postId, userId]) // many users can hold the same post
+  @@unique([userId, committeeId]) // one user, max one post per committee
+  @@index([committeeId])
   @@map("user_posts")
 }
 
-model Committee {
-  committeeId String     @id @default(uuid())
-  type        Type
-  year        Int
-  status      Status     @default(ACTIVE)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  posts       Post[]
-  user_posts  userPost[]
+// ─────────────────────────────────────────────
+// Events
+// ─────────────────────────────────────────────
 
-  @@unique([type,year])
-  @@map("committees")
+model Events {
+  eventId          String      @id @default(uuid())
+  slug             String      @unique // for the share link: /events/<slug>
+  type             EventType
+  bannerUrl        String?
+  title            String
+  shortDescription String      @db.VarChar(200) // for cards and link previews
+  description      String      @db.Text // markdown
+  venue            String
+  start            DateTime
+  end              DateTime? // validate end > start in the API
+  status           EventStatus @default(DRAFT)
+
+  // Registration
+  registrationRequired Boolean   @default(false)
+  registrationDeadline DateTime?
+  maxSeats             Int?
+  fee                  Decimal?  @db.Decimal(10, 2)
+
+  // Type-specific data (instructor, speakers, prizes, team size...). Validate with Zod.
+  details Json?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  committeeId String
+  committee   Committee @relation(fields: [committeeId], references: [committeeId], onDelete: Cascade)
+
+  eventSponsors  EventSponsor[]
+  eventResources EventResource[]
+  galleries      Gallery[]
+
+  @@index([committeeId, type, status])
+  @@index([status, start]) // public "upcoming events" list
+  @@map("events")
 }
+
+// ─────────────────────────────────────────────
+// Sponsors
+// ─────────────────────────────────────────────
+
+model Sponsor {
+  sponsorId     String         @id @default(uuid())
+  name          String
+  logoUrl       String?
+  website       String?
+  contactPerson String?
+  email         String?
+  phone         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  eventSponsors EventSponsor[]
+
+  @@map("sponsors")
+}
+
+model EventSponsor {
+  id           String       @id @default(uuid())
+  eventId      String
+  event        Events       @relation(fields: [eventId], references: [eventId], onDelete: Cascade)
+  sponsorId    String
+  sponsor      Sponsor      @relation(fields: [sponsorId], references: [sponsorId], onDelete: Cascade)
+  tier         SponsorTier?
+  displayOrder Int          @default(0)
+  isPublic     Boolean      @default(false) // show only after the sponsor is confirmed
+  comment      String? // internal note about the sponsor for this event
+  createdAt    DateTime     @default(now())
+
+  @@unique([eventId, sponsorId]) // same sponsor only once per event
+  @@index([sponsorId])
+  @@map("event_sponsors")
+}
+
+// ─────────────────────────────────────────────
+// Gallery (event photos + general club photos)
+// ─────────────────────────────────────────────
+
+model Gallery {
+  galleryId String    @id @default(uuid())
+  eventId   String? // null = general club image
+  event     Events?   @relation(fields: [eventId], references: [eventId], onDelete: SetNull)
+  imageUrl  String
+  caption   String?
+  location  String?
+  date      DateTime?
+  isPublic  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([eventId])
+  @@map("galleries")
+}
+
+// ─────────────────────────────────────────────
+// Event links (registration form, meeting link, rules, slides...)
+// ─────────────────────────────────────────────
+
+model EventResource {
+  resourceId String       @id @default(uuid())
+  eventId    String
+  event      Events       @relation(fields: [eventId], references: [eventId], onDelete: Cascade)
+  type       ResourceType @default(OTHER)
+  title      String
+  url        String
+  status     Status       @default(DEACTIVATED)
+  startDate  DateTime? // when the link becomes visible
+  endDate    DateTime? // when the link stops being visible
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([eventId, status])
+  @@map("event_resources")
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
 
 enum Role {
   ADMIN
@@ -89,11 +224,45 @@ enum Role {
 
 enum Status {
   ACTIVE
-  DEACTIVATED // সাময়িক নিষ্ক্রিয়, আবার active করা যাবে
-  CLOSED // স্থায়ীভাবে বন্ধ, মেয়াদ শেষ
+  DEACTIVATED // temporarily inactive, can be re-activated
+  CLOSED // permanently closed, expired
 }
 
-enum Type {
+enum CommitteeType {
   EXECUTIVE
   ELECTION
+}
+
+enum EventType {
+  WORKSHOP
+  SEMINAR
+  CONFERENCE
+  CONTEST
+  ELECTION
+  OTHER
+}
+
+enum EventStatus {
+  DRAFT // not visible publicly
+  PUBLISHED // visible; upcoming/ongoing/ended can be computed from start & end
+  CANCELLED
+  COMPLETED
+}
+
+enum SponsorTier {
+  TITLE
+  PLATINUM
+  GOLD
+  SILVER
+  BRONZE
+  PARTNER
+}
+
+enum ResourceType {
+  REGISTRATION
+  MEETING
+  RULES
+  SLIDES
+  RECORDING
+  OTHER
 }

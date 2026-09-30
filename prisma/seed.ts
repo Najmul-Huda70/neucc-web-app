@@ -1,6 +1,6 @@
 import "dotenv/config";
 import * as bcrypt from "bcryptjs";
-import { Role, Status, Type } from "@/generated/prisma/client";
+import { CommitteeType, Role, Status } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendNewAccountCredentials } from "@/lib/mailer"; 
 
@@ -32,7 +32,7 @@ async function main() {
     // Step A: Create Initial Active Committee
     const committee = await tx.committee.create({
       data: {
-        type: Type.EXECUTIVE,
+        type: CommitteeType.EXECUTIVE,
         year: 2026,
         status: Status.ACTIVE,
       },

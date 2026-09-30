@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Type } from "@/lib/types";
+import { CommitteeType } from "@/lib/types";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const type = searchParams.get("type") as Type;
+  const type = searchParams.get("type") as CommitteeType;
   const yearStr = searchParams.get("year");
 
   if (!type || !yearStr) {

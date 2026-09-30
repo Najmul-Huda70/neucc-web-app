@@ -91,20 +91,13 @@ export default function CommitteePage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-4 space-y-6 bg-(--bg-app) text-(--text-primary)">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+      {/* <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
         <div>
           <h1 className="text-2xl font-bold text-(--text-primary)">
-            Committee Management
+            Committees
           </h1>
         </div>
-
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-(--btn-primary-bg) hover:opacity-90 text-(--btn-primary-text) text-xs font-semibold px-4 py-2.5 rounded-xl transition-all self-start sm:self-auto shadow-xs cursor-pointer"
-        >
-          + Create New Committee
-        </button>
-      </div>
+      </div> */}
 
       {committees.length > 0 && (
         <CommitteeFilters
@@ -132,12 +125,6 @@ export default function CommitteePage() {
           title={`${activeCommittee.type} Committee - ${selectedyear}`}
         />
       )}
-
-      <CreateCommitteeModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchCommittees}
-      />
 
       <JoinBanner />
     </div>
