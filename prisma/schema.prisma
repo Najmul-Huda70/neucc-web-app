@@ -112,15 +112,6 @@ model Events {
   end              DateTime? // validate end > start in the API
   status           EventStatus @default(DRAFT)
 
-  // Registration
-  registrationRequired Boolean   @default(false)
-  registrationDeadline DateTime?
-  maxSeats             Int?
-  fee                  Decimal?  @db.Decimal(10, 2)
-
-  // Type-specific data (instructor, speakers, prizes, team size...). Validate with Zod.
-  details Json?
-
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   committeeId String
