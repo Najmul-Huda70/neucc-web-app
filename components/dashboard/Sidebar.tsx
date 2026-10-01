@@ -35,7 +35,7 @@ export default function Sidebar({
     {
       label: "Events Management",
       href: "/dashboard/events",
-      roles: ["ADMIN", "MODERATOR", "MEMBER"],
+      roles: ["ADMIN", "MODERATOR"],
     },
     {
       label: "Profile Settings",

@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     // Database Query with Schema Relations
     const committees = await prisma.committee.findMany({
       orderBy: { createdAt: "desc" },
       select: {
+        committeeId: true,
         type: true,
         year: true,
         status: true,
@@ -38,7 +39,7 @@ export async function GET(req: Request) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Get Committees API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to fetch committees" },
