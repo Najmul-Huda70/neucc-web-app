@@ -73,11 +73,11 @@ body {
   line-height: 1.8;
 }
 
-.event-markdown > :first-child {
+.event-markdown> :first-child {
   margin-top: 0;
 }
 
-.event-markdown > :last-child {
+.event-markdown> :last-child {
   margin-bottom: 0;
 }
 
@@ -91,33 +91,128 @@ body {
   line-height: 1.25;
 }
 
-.event-markdown h1 { font-size: 1.75rem; border-bottom: 1px solid var(--btn-secondary-border); padding-bottom: 0.55rem; }
-.event-markdown h2 { font-size: 1.35rem; border-bottom: 1px solid var(--btn-secondary-border); padding-bottom: 0.4rem; }
-.event-markdown h3 { font-size: 1.1rem; }
-.event-markdown h4 { font-size: 1rem; }
+.event-markdown h1 {
+  font-size: 1.75rem;
+}
+
+.event-markdown h2 {
+  font-size: 1.35rem;
+}
+
+.event-markdown h3 {
+  font-size: 1.1rem;
+}
+
+.event-markdown h4 {
+  font-size: 1rem;
+}
+
 .event-markdown p,
 .event-markdown ul,
 .event-markdown ol,
 .event-markdown blockquote,
 .event-markdown pre,
-.event-markdown table { margin: 0.8rem 0; }
-.event-markdown hr { margin: 2rem 0; border: 0; border-top: 1px solid var(--btn-secondary-border); }
-.event-markdown ul { list-style: disc; padding-left: 1.5rem; }
-.event-markdown ol { list-style: decimal; padding-left: 1.5rem; }
-.event-markdown a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 2px; }
-.event-markdown a:hover { color: var(--btn-primary-bg); }
-.event-markdown blockquote { border-left: 3px solid var(--btn-primary-bg); padding-left: 1rem; color: var(--text-secondary); }
-.event-markdown code { border-radius: 0.35rem; background: var(--stat-card-bg); padding: 0.15rem 0.35rem; font-size: 0.82em; }
-.event-markdown pre { overflow-x: auto; border: 1px solid var(--btn-secondary-border); border-radius: 0.75rem; background: var(--stat-card-bg); padding: 1rem; }
-.event-markdown pre code { background: transparent; padding: 0; }
-.event-markdown table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
+.event-markdown table {
+  margin: 0.8rem 0;
+}
+
+.event-markdown hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid var(--btn-secondary-border);
+}
+
+.event-markdown ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.event-markdown ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.event-markdown a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.event-markdown a:hover {
+  color: var(--btn-primary-bg);
+}
+
+.event-markdown blockquote {
+  border-left: 3px solid var(--btn-primary-bg);
+  padding-left: 1rem;
+  color: var(--text-secondary);
+}
+
+.event-markdown code {
+  border-radius: 0.35rem;
+  background: var(--stat-card-bg);
+  padding: 0.15rem 0.35rem;
+  font-size: 0.82em;
+}
+
+.event-markdown pre {
+  overflow-x: auto;
+  border: 1px solid var(--btn-secondary-border);
+  border-radius: 0.75rem;
+  background: var(--stat-card-bg);
+  padding: 1rem;
+}
+
+.event-markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.event-markdown table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
 .event-markdown th,
-.event-markdown td { border: 1px solid var(--btn-secondary-border); padding: 0.55rem 0.7rem; text-align: left; }
-.event-markdown th { background: var(--stat-card-bg); color: var(--text-primary); font-weight: 700; }
-.event-markdown img { display: block; max-width: 100%; height: auto; margin: 1.25rem auto; border: 1px solid var(--btn-secondary-border); border-radius: 0.75rem; }
-.event-markdown input[type="checkbox"] { width: 0.9rem; height: 0.9rem; accent-color: var(--btn-primary-bg); margin-right: 0.45rem; vertical-align: -0.1rem; }
-.event-markdown .contains-task-list { list-style: none; padding-left: 0; }
-.event-markdown .task-list-item { list-style: none; }
+.event-markdown td {
+  border: 1px solid var(--btn-secondary-border);
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+}
+
+.event-markdown th {
+  background: var(--stat-card-bg);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.event-markdown img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.25rem auto;
+  border: 1px solid var(--btn-secondary-border);
+  border-radius: 0.75rem;
+}
+
+.event-markdown input[type="checkbox"] {
+  width: 0.9rem;
+  height: 0.9rem;
+  accent-color: var(--btn-primary-bg);
+  margin-right: 0.45rem;
+  vertical-align: -0.1rem;
+}
+
+.event-markdown .contains-task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.event-markdown .task-list-item {
+  list-style: none;
+}
 
 .event-description-shell {
   padding: 1.25rem 1.5rem 2.25rem;

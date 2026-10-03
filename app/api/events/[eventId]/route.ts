@@ -12,27 +12,41 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
+    const auth = await verifyRole(["ADMIN", "MODERATOR", "MEMBER"]);
     const { eventId: slug } = await params;
     const event = await prisma.events.findUnique({
-      where: { slug },
+      where: { slug, ...(auth.isAuthorized ? {} : { status: EventStatus.PUBLISHED }) },
       include: {
         committee: true,
-        eventSponsors: { include: { sponsor: true }, orderBy: { displayOrder: "asc" } },
-        eventResources: { orderBy: { createdAt: "asc" } },
-        galleries: { orderBy: { createdAt: "asc" } },
+        eventSponsors: auth.isAuthorized
+          ? { include: { sponsor: true }, orderBy: { displayOrder: "asc" } }
+          : { where: { isPublic: true }, select: { id: true, tier: true, displayOrder: true, sponsor: { select: { sponsorId: true, name: true, logoUrl: true, website: true } } }, orderBy: { displayOrder: "asc" } },
+        galleries: auth.isAuthorized
+          ? { orderBy: { createdAt: "asc" } }
+          : { where: { isPublic: true }, orderBy: { createdAt: "asc" } },
       },
     });
 
     if (!event) return NextResponse.json({ success: false, message: "Event not found." }, { status: 404 });
-    return NextResponse.json({ success: true, data: event });
+    const relatedEvents = await prisma.events.findMany({
+      where: { eventId: { not: event.eventId }, type: event.type, status: EventStatus.PUBLISHED },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+      select: {
+        eventId: true,
+        slug: true,
+        title: true,
+        shortDescription: true,
+        type: true,
+        cardBannerUrl: true,
+        committee: { select: { type: true, year: true } },
+      },
+    });
+    return NextResponse.json({ success: true, data: { ...event, relatedEvents } });
   } catch (error) {
     console.error("Get Event API Error:", error);
     return NextResponse.json({ success: false, message: "Failed to fetch event." }, { status: 500 });
   }
-}
-
-function isValidDate(value: unknown): value is string {
-  return typeof value === "string" && !Number.isNaN(new Date(value).getTime());
 }
 
 export async function PATCH(
@@ -52,14 +66,9 @@ export async function PATCH(
       return NextResponse.json({ success: false, message: "Request body must be an object." }, { status: 400 });
     }
 
-    const start = body.start === undefined ? existing.start : body.start;
-    const end = body.end === undefined ? existing.end : body.end;
     if (body.type !== undefined && !eventTypes.includes(body.type)) return NextResponse.json({ success: false, message: "type is invalid." }, { status: 400 });
     if (body.status !== undefined && !eventStatuses.includes(body.status)) return NextResponse.json({ success: false, message: "status is invalid." }, { status: 400 });
     if (body.shortDescription !== undefined && (typeof body.shortDescription !== "string" || body.shortDescription.length > 200)) return NextResponse.json({ success: false, message: "shortDescription must be 200 characters or fewer." }, { status: 400 });
-    if (!isValidDate(start) && !(start instanceof Date)) return NextResponse.json({ success: false, message: "start must be a valid date." }, { status: 400 });
-    if (end !== null && end !== undefined && !isValidDate(end) && !(end instanceof Date)) return NextResponse.json({ success: false, message: "end must be a valid date." }, { status: 400 });
-    if (end && new Date(end) <= new Date(start)) return NextResponse.json({ success: false, message: "end must be after start." }, { status: 400 });
     if (body.committeeId !== undefined) {
       const committee = await prisma.committee.findUnique({ where: { committeeId: body.committeeId } });
       if (!committee) return NextResponse.json({ success: false, message: "Committee not found." }, { status: 404 });
@@ -79,12 +88,10 @@ export async function PATCH(
         ...(body.title !== undefined ? { title: body.title } : {}),
         ...(body.shortDescription !== undefined ? { shortDescription: body.shortDescription } : {}),
         ...(body.description !== undefined ? { description: body.description } : {}),
-        ...(body.venue !== undefined ? { venue: body.venue } : {}),
         ...(body.committeeId !== undefined ? { committeeId: body.committeeId } : {}),
-        ...(body.start !== undefined ? { start: new Date(body.start) } : {}),
-        ...(body.end !== undefined ? { end: body.end ? new Date(body.end) : null } : {}),
         ...(body.status !== undefined ? { status: body.status as EventStatus } : {}),
-        ...(body.bannerUrl !== undefined ? { bannerUrl: body.bannerUrl } : {}),
+        ...(body.cardBannerUrl !== undefined ? { cardBannerUrl: body.cardBannerUrl } : {}),
+        ...(body.detailBannerUrl !== undefined ? { detailBannerUrl: body.detailBannerUrl } : {}),
       },
     });
 

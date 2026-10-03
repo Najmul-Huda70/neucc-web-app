@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyRole } from "@/lib/auth";
-import { ResourceType, SponsorTier, Status } from "@/generated/prisma/enums";
+import { SponsorTier } from "@/generated/prisma/enums";
 
 type RelationBody = Record<string, unknown>;
 
-const resourceTypes = Object.values(ResourceType) as string[];
-const resourceStatuses = Object.values(Status) as string[];
 const sponsorTiers = Object.values(SponsorTier) as string[];
 
 function optionalDate(value: unknown) {
@@ -40,18 +38,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ eventId
         const sponsor = await tx.sponsor.create({ data: { name: body.name as string, logoUrl: typeof body.logoUrl === "string" ? body.logoUrl : null, website: typeof body.website === "string" ? body.website : null } });
         return tx.eventSponsor.create({ data: { eventId, sponsorId: sponsor.sponsorId, tier: (body.tier as SponsorTier | undefined) ?? null, isPublic: body.isPublic === true, comment: typeof body.comment === "string" ? body.comment : null }, include: { sponsor: true } });
       });
-      return NextResponse.json({ success: true, data: result }, { status: 201 });
-    }
-
-    if (relation === "resource") {
-      if (typeof body.title !== "string" || !body.title.trim() || typeof body.url !== "string" || !body.url.trim()) return NextResponse.json({ success: false, message: "Resource title and URL are required." }, { status: 400 });
-      if (body.type && !resourceTypes.includes(body.type as string)) return NextResponse.json({ success: false, message: "Resource type is invalid." }, { status: 400 });
-      if (body.status && !resourceStatuses.includes(body.status as string)) return NextResponse.json({ success: false, message: "Resource status is invalid." }, { status: 400 });
-      if (invalidDate(body.startDate) || invalidDate(body.endDate)) return NextResponse.json({ success: false, message: "Resource dates must be valid." }, { status: 400 });
-      const startDate = optionalDate(body.startDate);
-      const endDate = optionalDate(body.endDate);
-      if (startDate && endDate && endDate < startDate) return NextResponse.json({ success: false, message: "Resource end date must not be before start date." }, { status: 400 });
-      const result = await prisma.eventResource.create({ data: { eventId, title: body.title as string, url: body.url as string, type: (body.type as ResourceType | undefined) ?? ResourceType.OTHER, status: (body.status as Status | undefined) ?? Status.DEACTIVATED, startDate, endDate } });
       return NextResponse.json({ success: true, data: result }, { status: 201 });
     }
 
@@ -89,17 +75,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ eventI
       return NextResponse.json({ success: true, data: result });
     }
 
-    if (body.relation === "resource") {
-      const existing = await prisma.eventResource.findFirst({ where: { resourceId: relationId, eventId } });
-      if (!existing) return NextResponse.json({ success: false, message: "Event resource not found." }, { status: 404 });
-      const startDate = body.startDate === undefined ? existing.startDate : optionalDate(body.startDate);
-      const endDate = body.endDate === undefined ? existing.endDate : optionalDate(body.endDate);
-      if (body.startDate !== undefined && invalidDate(body.startDate) || body.endDate !== undefined && invalidDate(body.endDate)) return NextResponse.json({ success: false, message: "Resource dates must be valid." }, { status: 400 });
-      if (startDate && endDate && endDate < startDate) return NextResponse.json({ success: false, message: "Resource end date must not be before start date." }, { status: 400 });
-      const result = await prisma.eventResource.update({ where: { resourceId: relationId }, data: { ...(typeof body.title === "string" ? { title: body.title } : {}), ...(typeof body.url === "string" ? { url: body.url } : {}), ...(body.type !== undefined ? { type: body.type as ResourceType } : {}), ...(body.status !== undefined ? { status: body.status as Status } : {}), ...(body.startDate !== undefined ? { startDate } : {}), ...(body.endDate !== undefined ? { endDate } : {}) } });
-      return NextResponse.json({ success: true, data: result });
-    }
-
     if (body.relation === "gallery") {
       const existing = await prisma.gallery.findFirst({ where: { galleryId: relationId, eventId } });
       if (!existing) return NextResponse.json({ success: false, message: "Gallery item not found." }, { status: 404 });
@@ -123,7 +98,6 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ event
     const body = (await req.json()) as RelationBody;
     const relationId = typeof body.relationId === "string" ? body.relationId : "";
     if (body.relation === "sponsor") await prisma.eventSponsor.deleteMany({ where: { id: relationId, eventId } });
-    else if (body.relation === "resource") await prisma.eventResource.deleteMany({ where: { resourceId: relationId, eventId } });
     else if (body.relation === "gallery") await prisma.gallery.deleteMany({ where: { galleryId: relationId, eventId } });
     else return NextResponse.json({ success: false, message: "Unsupported relation." }, { status: 400 });
     return NextResponse.json({ success: true, message: "Relation deleted." });
