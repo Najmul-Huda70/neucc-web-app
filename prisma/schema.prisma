@@ -103,13 +103,11 @@ model Events {
   eventId          String      @id @default(uuid())
   slug             String      @unique // for the share link: /events/<slug>
   type             EventType
-  bannerUrl        String?
+  cardBannerUrl    String?
+  detailBannerUrl  String?
   title            String
   shortDescription String      @db.VarChar(200) // for cards and link previews
   description      String      @db.Text // markdown
-  venue            String
-  start            DateTime
-  end              DateTime? // validate end > start in the API
   status           EventStatus @default(DRAFT)
 
   createdAt   DateTime  @default(now())
@@ -118,11 +116,10 @@ model Events {
   committee   Committee @relation(fields: [committeeId], references: [committeeId], onDelete: Cascade)
 
   eventSponsors  EventSponsor[]
-  eventResources EventResource[]
   galleries      Gallery[]
 
   @@index([committeeId, type, status])
-  @@index([status, start]) // public "upcoming events" list
+  @@index([status])
   @@map("events")
 }
 
@@ -183,27 +180,6 @@ model Gallery {
 }
 
 // ─────────────────────────────────────────────
-// Event links (registration form, meeting link, rules, slides...)
-// ─────────────────────────────────────────────
-
-model EventResource {
-  resourceId String       @id @default(uuid())
-  eventId    String
-  event      Events       @relation(fields: [eventId], references: [eventId], onDelete: Cascade)
-  type       ResourceType @default(OTHER)
-  title      String
-  url        String
-  status     Status       @default(DEACTIVATED)
-  startDate  DateTime? // when the link becomes visible
-  endDate    DateTime? // when the link stops being visible
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-
-  @@index([eventId, status])
-  @@map("event_resources")
-}
-
-// ─────────────────────────────────────────────
 // Enums
 // ─────────────────────────────────────────────
 
@@ -235,7 +211,7 @@ enum EventType {
 
 enum EventStatus {
   DRAFT // not visible publicly
-  PUBLISHED // visible; upcoming/ongoing/ended can be computed from start & end
+  PUBLISHED // visible on public event pages
   CANCELLED
   COMPLETED
 }
@@ -247,13 +223,4 @@ enum SponsorTier {
   SILVER
   BRONZE
   PARTNER
-}
-
-enum ResourceType {
-  REGISTRATION
-  MEETING
-  RULES
-  SLIDES
-  RECORDING
-  OTHER
 }
