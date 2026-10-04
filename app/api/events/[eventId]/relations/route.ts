@@ -32,10 +32,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ eventId
     const relation = body.relation;
 
     if (relation === "sponsor") {
-      if (typeof body.name !== "string" || !body.name.trim()) return NextResponse.json({ success: false, message: "Sponsor name is required." }, { status: 400 });
+      const sponsorId = typeof body.sponsorId === "string" && body.sponsorId ? body.sponsorId : null;
+      if (!sponsorId && (typeof body.name !== "string" || !body.name.trim())) return NextResponse.json({ success: false, message: "Select an existing sponsor or provide a company name." }, { status: 400 });
       if (body.tier && !sponsorTiers.includes(body.tier as string)) return NextResponse.json({ success: false, message: "Sponsor tier is invalid." }, { status: 400 });
       const result = await prisma.$transaction(async (tx) => {
-        const sponsor = await tx.sponsor.create({ data: { name: body.name as string, logoUrl: typeof body.logoUrl === "string" ? body.logoUrl : null, website: typeof body.website === "string" ? body.website : null } });
+        const sponsor = sponsorId
+          ? await tx.sponsor.findUnique({ where: { sponsorId } })
+          : await tx.sponsor.findFirst({ where: { name: { equals: (body.name as string).trim(), mode: "insensitive" } } }) ?? await tx.sponsor.create({ data: { name: (body.name as string).trim(), logoUrl: typeof body.logoUrl === "string" ? body.logoUrl : null, website: typeof body.website === "string" ? body.website : null } });
+        if (!sponsor) throw new Error("Sponsor not found.");
+        await tx.sponsor.update({ where: { sponsorId: sponsor.sponsorId }, data: {
+          ...(body.logoUrl !== undefined ? { logoUrl: body.logoUrl as string || null } : {}),
+          ...(sponsorId && typeof body.name === "string" && body.name.trim() ? { name: body.name.trim() } : {}),
+          ...(typeof body.website === "string" ? { website: body.website.trim() || null } : {}),
+          ...(typeof body.contactPerson === "string" ? { contactPerson: body.contactPerson.trim() || null } : {}),
+          ...(typeof body.email === "string" ? { email: body.email.trim() || null } : {}),
+          ...(typeof body.phone === "string" ? { phone: body.phone.trim() || null } : {}),
+        } });
         return tx.eventSponsor.create({ data: { eventId, sponsorId: sponsor.sponsorId, tier: (body.tier as SponsorTier | undefined) ?? null, isPublic: body.isPublic === true, comment: typeof body.comment === "string" ? body.comment : null }, include: { sponsor: true } });
       });
       return NextResponse.json({ success: true, data: result }, { status: 201 });
@@ -69,8 +81,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ eventI
       const eventSponsor = await prisma.eventSponsor.findFirst({ where: { id: relationId, eventId }, select: { sponsorId: true } });
       if (!eventSponsor) return NextResponse.json({ success: false, message: "Event sponsor not found." }, { status: 404 });
       const result = await prisma.$transaction(async (tx) => {
-        await tx.sponsor.update({ where: { sponsorId: eventSponsor.sponsorId }, data: { ...(typeof body.name === "string" ? { name: body.name } : {}), ...(body.logoUrl !== undefined ? { logoUrl: body.logoUrl as string || null } : {}), ...(body.website !== undefined ? { website: body.website as string || null } : {}) } });
-        return tx.eventSponsor.update({ where: { id: relationId }, data: { ...(body.tier !== undefined ? { tier: body.tier ? body.tier as SponsorTier : null } : {}), ...(body.isPublic !== undefined ? { isPublic: body.isPublic === true } : {}), ...(body.comment !== undefined ? { comment: body.comment as string || null } : {}) }, include: { sponsor: true } });
+        const selectedSponsorId = typeof body.sponsorId === "string" && body.sponsorId ? body.sponsorId : eventSponsor.sponsorId;
+        const sponsor = await tx.sponsor.findUnique({ where: { sponsorId: selectedSponsorId } });
+        if (!sponsor) throw new Error("Sponsor not found.");
+        await tx.sponsor.update({ where: { sponsorId: selectedSponsorId }, data: {
+          ...(!body.sponsorId && typeof body.name === "string" ? { name: body.name.trim() } : {}),
+          ...(body.logoUrl !== undefined ? { logoUrl: body.logoUrl as string || null } : {}),
+          ...(typeof body.website === "string" ? { website: body.website.trim() || null } : {}),
+          ...(typeof body.contactPerson === "string" ? { contactPerson: body.contactPerson.trim() || null } : {}),
+          ...(typeof body.email === "string" ? { email: body.email.trim() || null } : {}),
+          ...(typeof body.phone === "string" ? { phone: body.phone.trim() || null } : {}),
+        } });
+        return tx.eventSponsor.update({ where: { id: relationId }, data: { sponsorId: selectedSponsorId, ...(body.tier !== undefined ? { tier: body.tier ? body.tier as SponsorTier : null } : {}), ...(body.isPublic !== undefined ? { isPublic: body.isPublic === true } : {}), ...(body.comment !== undefined ? { comment: body.comment as string || null } : {}) }, include: { sponsor: true } });
       });
       return NextResponse.json({ success: true, data: result });
     }
