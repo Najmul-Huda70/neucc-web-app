@@ -86,7 +86,7 @@ export default function PublicEventDetailsPage() {
       >
         <EventHeader variant="editorial" title={event.title} shortDescription={event.shortDescription} type={event.type} status={event.status} detailBannerUrl={event.detailBannerUrl} committee={event.committee} />
 
-        <div className="mx-auto w-full max-w-[1440px] px-5 py-10 sm:px-10 sm:py-14 lg:px-16">
+        <div className="mx-auto w-full max-w-360 px-5 py-10 sm:px-10 sm:py-14 lg:px-16">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-20">
             {/* Markdown Description */}
             <motion.section 
@@ -152,7 +152,7 @@ export default function PublicEventDetailsPage() {
           whileInView={{ opacity: 1, y: 0 }} 
           viewport={{ once: true, amount: 0.15 }} 
           transition={{ duration: 0.5 }} 
-          className="mx-auto mt-8 w-full max-w-[1440px] px-5 pb-16 sm:px-10 lg:px-16"
+          className="mx-auto mt-8 w-full max-w-1440px px-5 pb-16 sm:px-10 lg:px-16"
         >
           <div className="mb-5 flex items-end justify-between gap-4 border-b border-[#d9d5cc] pb-4">
             <div>

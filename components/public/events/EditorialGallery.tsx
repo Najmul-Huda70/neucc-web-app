@@ -120,7 +120,7 @@ export default function EditorialGallery({ images }: EditorialGalleryProps) {
           return (
             <article
               key={image.galleryId}
-              className="editorial-gallery-card group relative aspect-[4/3] overflow-hidden bg-[#ded8cd] opacity-0 shadow-[0_10px_30px_rgba(53,43,30,0.08)] focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-[#8e6b45]"
+              className="editorial-gallery-card group relative aspect-4/3 overflow-hidden bg-[#ded8cd] opacity-0 shadow-[0_10px_30px_rgba(53,43,30,0.08)] focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-[#8e6b45]"
               style={{ "--gallery-delay": `${cardIndex * 80}ms` } as CSSProperties}
               tabIndex={0}
               role="button"
@@ -135,7 +135,7 @@ export default function EditorialGallery({ images }: EditorialGalleryProps) {
             >
               <Image src={previousImage.imageUrl} alt="" fill unoptimized sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className={`absolute inset-0 object-cover transition-opacity duration-1000 ease-out ${isFading ? "opacity-100" : "opacity-0"} group-hover:scale-105 group-focus-within:scale-105`} />
               <Image src={currentImage.imageUrl} alt={title} fill unoptimized sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className={`absolute inset-0 object-cover transition-opacity duration-1000 ease-out ${isFading ? "opacity-0" : "opacity-100"} group-hover:scale-105 group-focus-within:scale-105`} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100" />
               <div className="absolute inset-x-0 bottom-0 translate-y-4 p-5 text-white opacity-0 transition duration-500 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
                 <div className="mb-3 h-px w-0 bg-white/80 transition-all duration-700 group-hover:w-12 group-focus-within:w-12" />
                 <h3 className="font-serif text-2xl leading-tight">{title}</h3>

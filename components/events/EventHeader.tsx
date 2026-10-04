@@ -1,6 +1,5 @@
 import { ArrowDown } from "lucide-react";
 import Image from "next/image";
-import type { ReactNode } from "react";
 
 export type EventHeaderData = {
   title: string;
@@ -11,22 +10,22 @@ export type EventHeaderData = {
   committee: { type: string; year: number };
 };
 
-type EventHeaderProps = EventHeaderData & { actions?: ReactNode; variant?: "default" | "editorial" };
+type EventHeaderProps = EventHeaderData & { variant?: "default" | "editorial" };
 
-export default function EventHeader({ title, shortDescription, type, status, detailBannerUrl, committee, actions, variant = "default" }: EventHeaderProps) {
+export default function EventHeader({ title, shortDescription, type, status, detailBannerUrl, committee, variant = "default" }: EventHeaderProps) {
   if (variant === "editorial") {
     return (
-      <header className="relative isolate min-h-[32rem] overflow-hidden bg-[#172b28] text-white sm:min-h-[38rem]">
+      <header className="relative isolate min-h-128 overflow-hidden bg-[#172b28] text-white sm:min-h-152">
         {detailBannerUrl ? <Image src={detailBannerUrl} alt="" fill unoptimized sizes="100vw" className="absolute inset-0 -z-20 object-cover opacity-75" priority /> : <div className="absolute inset-0 -z-20 bg-[#20332f]" />}
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(10,25,22,0.92)_0%,rgba(10,25,22,0.68)_42%,rgba(10,25,22,0.18)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-linear-to-t from-[#10211e]/80 to-transparent" />
-        <div className="relative mx-auto flex min-h-[30rem] max-w-7xl items-end px-4 py-8 sm:min-h-[38rem] sm:px-10 sm:py-14 lg:px-16">
+        <div className="relative mx-auto flex min-h-120 max-w-7xl items-end px-4 py-8 sm:min-h-152 sm:px-10 sm:py-14 lg:px-16">
           <div className="w-full max-w-5xl">
             <div className="mb-8 flex items-start justify-between gap-4 border-b border-white/20 pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#e8cda6] sm:items-center sm:gap-5 sm:text-xs">
               <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="break-words">{type}</span>
+              <span className="wrap-break-word">{type}</span>
               <span className="h-1 w-1 rounded-full bg-[#e8cda6]" />
-              <span className="break-words">{committee.type} Committee · {committee.year}</span>
+              <span className="wrap-break-word">{committee.type} Committee · {committee.year}</span>
               </div>
               <span className="hidden text-white/60 sm:block">NEUCC / Event</span>
             </div>
