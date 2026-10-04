@@ -1,15 +1,17 @@
 "use client";
 
-import { ExternalLink, ImageIcon, Loader2, UsersRound } from "lucide-react";
+import { AlertTriangle, Clock3, Info, Loader2, UsersRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import EventHeader from "@/components/events/EventHeader";
 import EventCard, { type PublicEventCardData } from "@/components/public/events/EventCard";
+import EditorialGallery from "@/components/public/events/EditorialGallery";
 
 type PublicEventSponsor = {
   id: string;
@@ -30,6 +32,22 @@ type PublicEventDetail = {
   eventSponsors: PublicEventSponsor[];
   galleries: PublicEventGallery[];
   relatedEvents: PublicEventCardData[];
+};
+
+function getMarkdownHeadingMeta(children: ReactNode) {
+  const text = String(children).toLowerCase();
+  if (text.includes("schedule") || text.includes("time")) return { icon: Clock3, className: "event-markdown-heading--schedule" };
+  if (text.includes("rule") || text.includes("warning")) return { icon: AlertTriangle, className: "event-markdown-heading--rules" };
+  return { icon: Info, className: "event-markdown-heading--default" };
+}
+
+const markdownComponents = {
+  h2: ({ children }: { children?: ReactNode }) => {
+    const { icon: Icon, className } = getMarkdownHeadingMeta(children);
+    return <h2 className={`event-markdown-section-heading ${className}`}><Icon size={18} aria-hidden="true" /><span>{children}</span></h2>;
+  },
+  h3: ({ children }: { children?: ReactNode }) => <h3 className="event-markdown-subheading">{children}</h3>,
+  p: ({ children }: { children?: ReactNode }) => <p className="event-markdown-paragraph">{children}</p>,
 };
 
 export default function PublicEventDetailsPage() {
@@ -59,18 +77,17 @@ export default function PublicEventDetailsPage() {
   if (error || !event) return <div className="mx-auto max-w-5xl px-4 py-16"><p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-700">{error || "Event not found."}</p></div>;
 
   return (
-  <div className="min-h-[calc(100vh-8rem)] bg-(--bg-app) px-4 py-6 text-(--text-primary) sm:px-6 lg:py-8">
-    <div className="mx-auto w-full max-w-7xl">
-      <motion.article 
+  <div className="min-h-screen bg-[#f3f1eb] text-[#202522]">
+    <motion.article 
         initial={{ opacity: 0, y: 22 }} 
         animate={{ opacity: 1, y: 0 }} 
         transition={{ duration: 0.55 }} 
-        className="overflow-hidden rounded-2xl bg-(--card-bg)"
+        className="overflow-hidden bg-[#fffdfa]"
       >
-        <EventHeader title={event.title} shortDescription={event.shortDescription} type={event.type} detailBannerUrl={event.detailBannerUrl} committee={event.committee} />
+        <EventHeader variant="editorial" title={event.title} shortDescription={event.shortDescription} type={event.type} status={event.status} detailBannerUrl={event.detailBannerUrl} committee={event.committee} />
 
-        <div className="p-5 sm:p-8">
-          <div className=" space-y-6 border-t border-gray-100/10">
+        <div className="mx-auto w-full max-w-360 px-5 py-10 sm:px-10 sm:py-14 lg:px-16">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-20">
             {/* Markdown Description */}
             <motion.section 
               initial={{ opacity: 0 }} 
@@ -78,12 +95,24 @@ export default function PublicEventDetailsPage() {
               viewport={{ once: true, amount: 0.2 }} 
               transition={{ duration: 0.4 }}
             >
-              <article className="event-markdown mx-0! max-w-3xl! text-left">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {event.description}
-                </ReactMarkdown>
+              <article className="event-markdown event-markdown-editorial mx-0! max-w-3xl! text-left">
+                <div className="mb-8 flex items-center gap-3 border-b border-[#d9d5cc] pb-4">
+                  <span className="h-2 w-2 rounded-full bg-[#9b744e]" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#9b744e]">Event details</p>
+                </div>
+                <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{event.description}</ReactMarkdown>
               </article>
             </motion.section>
+
+            <aside className="self-start border-t border-[#d9d5cc] pt-6 lg:sticky lg:top-8 lg:border-t-0 lg:border-l lg:pl-7">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9b744e]">At a glance</p>
+              <dl className="mt-5 divide-y divide-[#e4e0d7] border-y border-[#e4e0d7]">
+                <div className="py-4"><dt className="text-[11px] uppercase tracking-[0.14em] text-[#7a817b]">Event type</dt><dd className="mt-1 text-sm font-bold">{event.type}</dd></div>
+                <div className="py-4"><dt className="text-[11px] uppercase tracking-[0.14em] text-[#7a817b]">Committee</dt><dd className="mt-1 text-sm font-bold">{event.committee.type}<span className="font-normal text-[#7a817b]"> · {event.committee.year}</span></dd></div>
+                <div className="py-4"><dt className="text-[11px] uppercase tracking-[0.14em] text-[#7a817b]">Status</dt><dd className="mt-1 inline-flex items-center gap-2 text-sm font-bold"><span className="h-2 w-2 rounded-full bg-[#288c83]" />{event.status}</dd></div>
+              </dl>
+            </aside>
+          </div>
 
             {/* Sponsors Section */}
             {event.eventSponsors.length > 0 && (
@@ -93,64 +122,28 @@ export default function PublicEventDetailsPage() {
                 viewport={{ once: true, amount: 0.2 }} 
                 transition={{ duration: 0.4 }}
               >
-                <div className="mb-3 flex items-center gap-2">
-                  <UsersRound size={16} className="text-(--btn-primary-bg)" />
-                  <h2 className="text-base font-black">Supported by</h2>
+                <div className="mb-5 flex items-center gap-3 border-t border-[#d9d5cc] pt-16">
+                  <UsersRound size={17} className="text-[#9b744e]" />
+                  <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9b744e]">Partners</p><h2 className="font-serif text-2xl">Supported by</h2></div>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {event.eventSponsors.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 rounded-xl bg-(--stat-card-bg) p-3">
-                      {item.sponsor.logoUrl ? (
-                        <Image src={item.sponsor.logoUrl} alt="" width={42} height={42} unoptimized className="h-10 w-10 rounded-lg object-contain" />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--card-bg) text-xs font-black text-(--btn-primary-bg)">
-                          {item.sponsor.name.slice(0, 1)}
+                    <div key={item.id} className="group flex items-center justify-center border border-[#e2ded6] bg-[#faf8f3] p-5 transition-colors hover:border-[#b99a73] hover:bg-[#f4eee5]">
+                      <div className="min-w-0 text-center">
+                        <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9b744e]">{item.tier || "Partner"}</p>
+                        <div className="group relative flex h-16 w-36 items-center justify-center" title={item.sponsor.name}>
+                          {item.sponsor.logoUrl ? <Image src={item.sponsor.logoUrl} alt={item.sponsor.name} width={120} height={48} unoptimized className="max-h-12 w-auto max-w-32 object-contain" /> : <span className="text-xs text-(--text-secondary)">Logo unavailable</span>}
                         </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold">{item.sponsor.name}</p>
-                        <p className="text-[11px] text-(--text-secondary)">{item.tier || "Partner"}</p>
                       </div>
-                      {item.sponsor.website && (
-                        <a href={item.sponsor.website} target="_blank" rel="noreferrer" aria-label={`Visit ${item.sponsor.name}`} className="ml-auto text-(--text-secondary) hover:text-(--btn-primary-bg)">
-                          <ExternalLink size={15} />
-                        </a>
-                      )}
                     </div>
                   ))}
                 </div>
               </motion.section>
             )}
 
-            {/* Gallery Section */}
-            {event.galleries.length > 0 && (
-              <motion.section 
-                initial={{ opacity: 0 }} 
-                whileInView={{ opacity: 1 }} 
-                viewport={{ once: true, amount: 0.2 }} 
-                transition={{ duration: 0.4 }}
-              >
-                <div className="mb-3 flex items-center gap-2">
-                  <ImageIcon size={16} className="text-(--btn-primary-bg)" />
-                  <h2 className="text-base font-black">Event gallery</h2>
-                </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {event.galleries.map((image) => (
-                    <figure key={image.galleryId} className="group overflow-hidden rounded-xl bg-(--stat-card-bg)">
-                      <div className="relative aspect-square overflow-hidden">
-                        <Image src={image.imageUrl} alt={image.caption || event.title} fill unoptimized sizes="(max-width: 640px) 50vw, 300px" className="object-cover transition duration-500 group-hover:scale-105" />
-                      </div>
-                      {(image.caption || image.location) && (
-                        <figcaption className="p-2 text-[11px] text-(--text-secondary)">{image.caption || image.location}</figcaption>
-                      )}
-                    </figure>
-                  ))}
-                </div>
-              </motion.section>
-            )}
+            <div className="mt-16 border-t border-[#d9d5cc] pt-10"><EditorialGallery images={event.galleries} /></div>
           </div>
-        </div>
-      </motion.article>
+          </motion.article>
 
       {/* Related Events */}
       {event.relatedEvents.length > 0 && (
@@ -159,11 +152,11 @@ export default function PublicEventDetailsPage() {
           whileInView={{ opacity: 1, y: 0 }} 
           viewport={{ once: true, amount: 0.15 }} 
           transition={{ duration: 0.5 }} 
-          className="mt-8"
+          className="mx-auto mt-8 w-full max-w-1440px px-5 pb-16 sm:px-10 lg:px-16"
         >
-          <div className="mb-4 flex items-end justify-between gap-4">
+          <div className="mb-5 flex items-end justify-between gap-4 border-b border-[#d9d5cc] pb-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-(--btn-primary-bg)">Keep exploring</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9b744e]">Keep exploring</p>
               <h2 className="mt-1 text-xl font-black tracking-tight sm:text-2xl">More {event.type.toLowerCase()} events</h2>
             </div>
             <Link href={`/events?type=${event.type}`} className="hidden text-xs font-bold text-(--text-secondary) hover:text-(--btn-primary-bg) sm:block">
@@ -179,7 +172,6 @@ export default function PublicEventDetailsPage() {
           </div>
         </motion.section>
       )}
-    </div>
   </div>
 )
 };
