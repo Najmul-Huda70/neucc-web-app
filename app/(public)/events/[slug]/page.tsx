@@ -28,6 +28,9 @@ type PublicEventDetail = {
   type: string;
   status: string;
   detailBannerUrl?: string | null;
+  startDate?: string | Date | null;
+  endDate?: string | Date | null;
+  vanue?: string | null;
   committee: { type: string; year: number };
   eventSponsors: PublicEventSponsor[];
   galleries: PublicEventGallery[];
@@ -77,23 +80,32 @@ export default function PublicEventDetailsPage() {
   if (error || !event) return <div className="mx-auto max-w-5xl px-4 py-16"><p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-700">{error || "Event not found."}</p></div>;
 
   return (
-  <div className="min-h-screen bg-[#f3f1eb] text-[#202522]">
-    <motion.article 
-        initial={{ opacity: 0, y: 22 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        transition={{ duration: 0.55 }} 
+    <div className="min-h-screen bg-[#f3f1eb] text-[#202522]">
+      <motion.article
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
         className="overflow-hidden bg-[#fffdfa]"
       >
-        <EventHeader variant="editorial" title={event.title} shortDescription={event.shortDescription} type={event.type} status={event.status} detailBannerUrl={event.detailBannerUrl} committee={event.committee} />
-
+        <EventHeader
+          title={event.title}
+          shortDescription={event.shortDescription}
+          type={event.type}
+          status={event.status}
+          detailBannerUrl={event.detailBannerUrl}
+          committee={event.committee}
+          startDate={event.startDate}
+          endDate={event.endDate}
+          vanue={event.vanue}
+        />
         <div className="mx-auto w-full max-w-360 px-5 py-10 sm:px-10 sm:py-14 lg:px-16">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-20">
             {/* Markdown Description */}
-            <motion.section 
-              initial={{ opacity: 0 }} 
-              whileInView={{ opacity: 1 }} 
-              viewport={{ once: true, amount: 0.2 }} 
-              transition={{ duration: 0.4 }}
+            <motion.section
+              initial={{ opacity: 0, y: -15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5 }}
             >
               <article className="event-markdown event-markdown-editorial mx-0! max-w-3xl! text-left">
                 <div className="mb-8 flex items-center gap-3 border-b border-[#d9d5cc] pb-4">
@@ -114,44 +126,44 @@ export default function PublicEventDetailsPage() {
             </aside>
           </div>
 
-            {/* Sponsors Section */}
-            {event.eventSponsors.length > 0 && (
-              <motion.section 
-                initial={{ opacity: 0 }} 
-                whileInView={{ opacity: 1 }} 
-                viewport={{ once: true, amount: 0.2 }} 
-                transition={{ duration: 0.4 }}
-              >
-                <div className="mb-5 flex items-center gap-3 border-t border-[#d9d5cc] pt-16">
-                  <UsersRound size={17} className="text-[#9b744e]" />
-                  <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9b744e]">Partners</p><h2 className="font-serif text-2xl">Supported by</h2></div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {event.eventSponsors.map((item) => (
-                    <div key={item.id} className="group flex items-center justify-center border border-[#e2ded6] bg-[#faf8f3] p-5 transition-colors hover:border-[#b99a73] hover:bg-[#f4eee5]">
-                      <div className="min-w-0 text-center">
-                        <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9b744e]">{item.tier || "Partner"}</p>
-                        <div className="group relative flex h-16 w-36 items-center justify-center" title={item.sponsor.name}>
-                          {item.sponsor.logoUrl ? <Image src={item.sponsor.logoUrl} alt={item.sponsor.name} width={120} height={48} unoptimized className="max-h-12 w-auto max-w-32 object-contain" /> : <span className="text-xs text-(--text-secondary)">Logo unavailable</span>}
-                        </div>
+          {/* Sponsors Section */}
+          {event.eventSponsors.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: -15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="mb-5 flex items-center gap-3 border-t border-[#d9d5cc] pt-16">
+                <UsersRound size={17} className="text-[#9b744e]" />
+                <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9b744e]">Partners</p><h2 className="font-serif text-2xl">Supported by</h2></div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {event.eventSponsors.map((item) => (
+                  <div key={item.id} className="group flex items-center justify-center border border-[#e2ded6] bg-[#faf8f3] p-5 transition-colors hover:border-[#b99a73] hover:bg-[#f4eee5]">
+                    <div className="min-w-0 text-center">
+                      <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9b744e]">{item.tier || "Partner"}</p>
+                      <div className="group relative flex h-16 w-36 items-center justify-center" title={item.sponsor.name}>
+                        {item.sponsor.logoUrl ? <Image src={item.sponsor.logoUrl} alt={item.sponsor.name} width={120} height={48} unoptimized className="max-h-12 w-auto max-w-32 object-contain" /> : <span className="text-xs text-(--text-secondary)">Logo unavailable</span>}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </motion.section>
-            )}
+                  </div>
+                ))}
+              </div>
+            </motion.section>
+          )}
 
-            <div className="mt-16 border-t border-[#d9d5cc] pt-10"><EditorialGallery images={event.galleries} /></div>
-          </div>
-          </motion.article>
+          <div className="mt-16 border-t border-[#d9d5cc] pt-10"><EditorialGallery images={event.galleries} /></div>
+        </div>
+      </motion.article>
 
       {/* Related Events */}
       {event.relatedEvents.length > 0 && (
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }} 
-          whileInView={{ opacity: 1, y: 0 }} 
-          viewport={{ once: true, amount: 0.15 }} 
-          transition={{ duration: 0.5 }} 
+        <motion.section
+          initial={{ opacity: 0, y: -15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.5 }}
           className="mx-auto mt-8 w-full max-w-1440px px-5 pb-16 sm:px-10 lg:px-16"
         >
           <div className="mb-5 flex items-end justify-between gap-4 border-b border-[#d9d5cc] pb-4">
@@ -165,13 +177,13 @@ export default function PublicEventDetailsPage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {event.relatedEvents.slice(0, 3).map((related, index) => (
-              <motion.div key={related.eventId} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.35, delay: index * 0.08 }}>
+              <motion.div key={related.eventId} initial={{ opacity: 0, y: -10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.35, delay: index * 0.08 }}>
                 <EventCard event={related} />
               </motion.div>
             ))}
           </div>
         </motion.section>
       )}
-  </div>
-)
-};
+    </div>
+  );
+}

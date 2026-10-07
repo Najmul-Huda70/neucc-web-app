@@ -106,6 +106,9 @@ model Events {
   cardBannerUrl    String?
   detailBannerUrl  String?
   title            String
+  startDate        DateTime?
+  endDate          DateTime?
+  vanue            String?
   shortDescription String      @db.VarChar(200) // for cards and link previews
   description      String      @db.Text // markdown
   status           EventStatus @default(DRAFT)
