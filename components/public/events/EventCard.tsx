@@ -48,7 +48,6 @@ function formatEventDate(startDate?: string | Date | null, endDate?: string | Da
 
 export default function EventCard({ event }: { event: PublicEventCardData }) {
   const [copied, setCopied] = useState(false);
-
   // Copy URL handler
   const handleCopy = async (e: React.MouseEvent) => {
     e.preventDefault(); // Link-এ রিডাইরেক্ট হওয়া আটকানোর জন্য

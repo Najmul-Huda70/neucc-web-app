@@ -54,7 +54,6 @@ export default function EventHeader({
 }: EventHeaderData) {
   const formattedDate = formatEventDate(startDate, endDate);
 
-  // Framer Motion Stagger Parent Variant
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -66,9 +65,8 @@ export default function EventHeader({
     },
   };
 
-  // Children Animation Variant with strict TypeScript typing
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: -25 },
     visible: {
       opacity: 1,
       y: 0,
@@ -80,13 +78,13 @@ export default function EventHeader({
   };
 
   return (
-    <header className="relative isolate aspect-[2.2/1] min-h-[320px] w-full overflow-hidden bg-[#0f172a] text-white shadow-xl sm:min-h-[420px]">
-      {/* Background Banner with Motion Scale & Fade Effect */}
+    <header className="relative isolate aspect-[2.2/1] min-h-[320px] w-full overflow-hidden bg-[#faf8f3] border-b border-[#d9d5cc] sm:min-h-[420px]">
+      {/* Background Banner - Full Clear & Sharp */}
       {detailBannerUrl ? (
         <motion.div
-          initial={{ scale: 1.08, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.6 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          initial={{ scale: 1.03, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.95 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
           className="absolute inset-0 -z-20 h-full w-full"
         >
           <Image
@@ -100,43 +98,43 @@ export default function EventHeader({
           />
         </motion.div>
       ) : (
-        <div className="absolute inset-0 -z-20 bg-gradient-to-br from-[#1e293b] to-[#0f172a]" />
+        <div className="absolute inset-0 -z-20 bg-gradient-to-br from-[#faf8f3] to-[#ebd2ba]/40" />
       )}
 
-      {/* Dark Gradient Overlay for High Contrast */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/40 to-black/60" />
+      {/* Subtle Bottom Vignette Gradient for Text Contrast */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
 
       {/* Main Container */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative flex h-full flex-col justify-between p-6 sm:p-10 lg:p-12"
+        className="relative flex h-full flex-col justify-between p-6 sm:p-10 lg:p-12 text-white"
       >
         {/* Top Section */}
         <motion.div
           variants={itemVariants}
-          className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
+          className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.2em] sm:text-sm drop-shadow-md"
         >
-          {/* Top Left: Type with indicator */}
-          <div className="flex items-center gap-2 text-emerald-400">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+          {/* Top Left: Type */}
+          <div className="flex items-center gap-2 text-[#f3e5d8]">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-[#e2b887]" />
             <span>— {type}</span>
           </div>
 
           {/* Top Right: Committee & Year */}
-          <div className="font-mono text-right tracking-wider text-white/90">
+          <div className="font-mono text-right tracking-wider text-white">
             <div>{committee?.type}</div>
-            <div className="text-xs text-emerald-300/70">{committee?.year}</div>
+            <div className="text-xs text-[#dcd6cd]">{committee?.year}</div>
           </div>
         </motion.div>
 
         {/* Bottom Section */}
         <div className="mt-auto pt-6">
-          {/* Event Title */}
+          {/* Title */}
           <motion.h1
             variants={itemVariants}
-            className="text-2xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl lg:text-6xl"
+            className="font-serif text-2xl font-black tracking-tight text-white drop-shadow-lg sm:text-4xl md:text-5xl lg:text-6xl"
           >
             {title}
           </motion.h1>
@@ -144,20 +142,20 @@ export default function EventHeader({
           {/* Date & Venue Footer Bar */}
           <motion.div
             variants={itemVariants}
-            className="mt-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-t border-white/20 pt-4 text-xs font-semibold text-gray-300 sm:text-sm"
+            className="mt-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-t border-white/30 pt-4 text-xs font-semibold text-gray-200 sm:text-sm drop-shadow-md"
           >
             <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
               {/* Date Block */}
               {formattedDate ? (
                 <div>
-                  <span className="text-gray-400">Date: </span>
-                  <span className="text-white">{formattedDate}</span>
+                  <span className="text-gray-300">Date: </span>
+                  <span className="font-bold text-white">{formattedDate}</span>
                 </div>
               ) : (
                 startDate && (
                   <div>
-                    <span className="text-gray-400">Date: </span>
-                    <span className="text-white">{String(startDate)}</span>
+                    <span className="text-gray-300">Date: </span>
+                    <span className="font-bold text-white">{String(startDate)}</span>
                   </div>
                 )
               )}
@@ -165,8 +163,8 @@ export default function EventHeader({
               {/* Venue Block */}
               {vanue && (
                 <div>
-                  <span className="text-gray-400">Venue: </span>
-                  <span className="text-white">{vanue}</span>
+                  <span className="text-gray-300">Venue: </span>
+                  <span className="font-bold text-white">{vanue}</span>
                 </div>
               )}
             </div>

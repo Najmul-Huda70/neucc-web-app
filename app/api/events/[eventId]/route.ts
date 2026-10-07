@@ -39,6 +39,9 @@ export async function GET(
         shortDescription: true,
         type: true,
         cardBannerUrl: true,
+        startDate: true,
+        endDate: true,
+        vanue: true,
         committee: { select: { type: true, year: true } },
       },
     });

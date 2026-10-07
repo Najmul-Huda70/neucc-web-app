@@ -78,7 +78,6 @@ export default function PublicEventDetailsPage() {
 
   if (loading) return <div className="flex items-center justify-center gap-3 py-24 text-sm text-(--text-secondary)"><Loader2 className="animate-spin" /> Loading event...</div>;
   if (error || !event) return <div className="mx-auto max-w-5xl px-4 py-16"><p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-700">{error || "Event not found."}</p></div>;
-
   return (
     <div className="min-h-screen bg-[#f3f1eb] text-[#202522]">
       <motion.article
