@@ -3,10 +3,8 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Users } from "lucide-react";
-import type { Area } from "react-easy-crop";
 
-import EventGallerySection, { type PublicEventGallery } from "./EventGallerySection";
-import GalleryCropModal from "./GalleryCropModal";
+import EventGallerySection from "./EventGallerySection";
 import RelationEditorModal, { type GalleryRelation, type SponsorOption } from "./RelationEditorModal";
 import SponsorCard, { type SponsorRelation } from "./SponsorCard";
 
@@ -20,30 +18,6 @@ type RelationManagerProps = {
 
 type RelationKind = "sponsor" | "gallery";
 
-function createGalleryCrop(imageSrc: string, crop: Area) {
-  return new Promise<File>((resolve, reject) => {
-    const image = new window.Image();
-    image.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = crop.width;
-      canvas.height = crop.height;
-      const context = canvas.getContext("2d");
-      if (!context) return reject(new Error("Unable to prepare the gallery image."));
-      context.drawImage(image, crop.x, crop.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
-      canvas.toBlob(
-        (blob) =>
-          blob
-            ? resolve(new File([blob], "gallery-image.jpg", { type: "image/jpeg" }))
-            : reject(new Error("Unable to export the gallery image.")),
-        "image/jpeg",
-        0.92
-      );
-    };
-    image.onerror = () => reject(new Error("Unable to read the gallery image."));
-    image.src = imageSrc;
-  });
-}
-
 export default function EventRelationsPanel({
   eventId,
   eventSponsors,
@@ -54,12 +28,6 @@ export default function EventRelationsPanel({
   const [editor, setEditor] = useState<{ kind: RelationKind; item?: SponsorRelation | GalleryRelation } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [galleryCropSource, setGalleryCropSource] = useState("");
-  const [galleryCropFile, setGalleryCropFile] = useState<File | null>(null);
-  const [galleryCrop, setGalleryCrop] = useState({ x: 0, y: 0 });
-  const [galleryZoom, setGalleryZoom] = useState(1);
-  const [galleryCropPixels, setGalleryCropPixels] = useState<Area | null>(null);
   const [sponsorOptions, setSponsorOptions] = useState<SponsorOption[]>([]);
 
   useEffect(() => {
@@ -73,7 +41,6 @@ export default function EventRelationsPanel({
 
   const openEditor = (kind: RelationKind, item?: SponsorRelation | GalleryRelation) => {
     setError(null);
-    setGalleryCropFile(null);
     setEditor({ kind, item });
   };
 
@@ -106,17 +73,9 @@ export default function EventRelationsPanel({
       if (editor.kind === "gallery") {
         payload.isPublic = form.get("isPublic") === "on";
         const image = form.get("image");
-        if (image instanceof File && image.size > 0 && !galleryCropFile) {
-          setGalleryCropSource(URL.createObjectURL(image));
-          setGalleryCrop({ x: 0, y: 0 });
-          setGalleryZoom(1);
-          setGalleryCropPixels(null);
-          setBusy(false);
-          return;
-        }
         if (image instanceof File && image.size > 0) {
           const uploadBody = new FormData();
-          uploadBody.append("file", galleryCropFile || image);
+          uploadBody.append("file", image);
           const uploadResponse = await fetch("/api/uploads", { method: "POST", body: uploadBody });
           const uploadData = await uploadResponse.json();
           if (!uploadResponse.ok) throw new Error(uploadData.message || "Gallery image upload failed.");
@@ -137,7 +96,6 @@ export default function EventRelationsPanel({
       if (!response.ok) throw new Error(data.message || "Unable to save relation.");
 
       setEditor(null);
-      setGalleryCropFile(null);
       onChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save relation.");
@@ -146,8 +104,47 @@ export default function EventRelationsPanel({
     }
   };
 
+  // Direct Modal Save Action for EditorialGallery (Title, Venue, Date & Cropped Image)
+  const handleSaveGallery = async (data: {
+    galleryId: string;
+    caption: string;
+    location: string;
+    date: string;
+    croppedImageFile?: File | null;
+  }) => {
+    let imageUrl: string | undefined;
+
+    // 1. If cropped image exists, upload to API
+    if (data.croppedImageFile) {
+      const uploadBody = new FormData();
+      uploadBody.append("file", data.croppedImageFile);
+      const uploadResponse = await fetch("/api/uploads", { method: "POST", body: uploadBody });
+      const uploadData = await uploadResponse.json();
+      if (!uploadResponse.ok) throw new Error(uploadData.message || "Image upload failed.");
+      imageUrl = uploadData.data.url;
+    }
+
+    // 2. Patch the relation
+    const response = await fetch(`/api/events/${eventId}/relations`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        relation: "gallery",
+        relationId: data.galleryId,
+        caption: data.caption,
+        location: data.location,
+        date: data.date,
+        ...(imageUrl && { imageUrl }),
+      }),
+    });
+
+    const resData = await response.json();
+    if (!response.ok) throw new Error(resData.message || "Failed to update gallery image.");
+
+    onChanged();
+  };
+
   const deleteRelation = async (kind: RelationKind, relationId: string) => {
-    if (!window.confirm("Remove this item from the event?")) return;
     const response = await fetch(`/api/events/${eventId}/relations`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -156,32 +153,17 @@ export default function EventRelationsPanel({
     if (!response.ok) {
       const data = await response.json();
       setError(data.message || "Unable to delete relation.");
-      return;
+      throw new Error(data.message);
     }
     onChanged();
   };
 
-  const cancelGalleryCrop = () => {
-    if (galleryCropSource) URL.revokeObjectURL(galleryCropSource);
-    setGalleryCropSource("");
-    setGalleryCropPixels(null);
-  };
-
-  const applyGalleryCrop = async () => {
-    if (!galleryCropSource || !galleryCropPixels) return;
-    try {
-      setGalleryCropFile(await createGalleryCrop(galleryCropSource, galleryCropPixels));
-      cancelGalleryCrop();
-    } catch (cropError) {
-      setError(cropError instanceof Error ? cropError.message : "Unable to crop the gallery image.");
-    }
-  };
-
-  const publicGalleries: PublicEventGallery[] = galleries.map((g) => ({
+  const publicGalleries = galleries.map((g) => ({
     galleryId: g.galleryId,
     imageUrl: g.imageUrl,
     caption: g.caption,
     location: g.location,
+    date: g.date ? String(g.date) : null,
   }));
 
   return (
@@ -231,10 +213,7 @@ export default function EventRelationsPanel({
           galleries={publicGalleries}
           canManage={canManage}
           onAddGallery={() => openEditor("gallery")}
-          onEditGallery={(item) => {
-            const galleryItem = galleries.find((g) => g.galleryId === item.galleryId);
-            if (galleryItem) openEditor("gallery", galleryItem);
-          }}
+          onSaveGallery={handleSaveGallery}
           onDeleteGallery={(galleryId) => deleteRelation("gallery", galleryId)}
         />
       </div>
@@ -248,20 +227,6 @@ export default function EventRelationsPanel({
           error={error}
           onClose={() => !busy && setEditor(null)}
           onSubmit={saveRelation}
-        />
-      )}
-
-      {galleryCropSource && (
-        <GalleryCropModal
-          imageSource={galleryCropSource}
-          crop={galleryCrop}
-          zoom={galleryZoom}
-          cropPixels={galleryCropPixels}
-          onCropChange={setGalleryCrop}
-          onZoomChange={setGalleryZoom}
-          onCropComplete={setGalleryCropPixels}
-          onCancel={cancelGalleryCrop}
-          onApply={applyGalleryCrop}
         />
       )}
 
