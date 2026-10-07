@@ -2,6 +2,7 @@
 
 import { motion, Variants } from "framer-motion";
 import Image from "next/image";
+import { Camera } from "lucide-react";
 
 export type EventHeaderData = {
   title: string;
@@ -13,6 +14,8 @@ export type EventHeaderData = {
   endDate?: string | Date | null;
   vanue?: string | null;
   committee: { type: string; year: number };
+  canManage?: boolean;
+  onEditImage?: () => void;
 };
 
 function formatEventDate(startDate?: string | Date | null, endDate?: string | Date | null) {
@@ -51,6 +54,8 @@ export default function EventHeader({
   endDate,
   vanue,
   committee,
+  canManage,
+  onEditImage,
 }: EventHeaderData) {
   const formattedDate = formatEventDate(startDate, endDate);
 
@@ -79,7 +84,7 @@ export default function EventHeader({
 
   return (
     <header className="relative isolate aspect-[2.2/1] min-h-[320px] w-full overflow-hidden bg-[#faf8f3] border-b border-[#d9d5cc] sm:min-h-[420px]">
-      {/* Background Banner - Full Clear & Sharp */}
+      {/* Background Banner */}
       {detailBannerUrl ? (
         <motion.div
           initial={{ scale: 1.03, opacity: 0 }}
@@ -101,10 +106,22 @@ export default function EventHeader({
         <div className="absolute inset-0 -z-20 bg-gradient-to-br from-[#faf8f3] to-[#ebd2ba]/40" />
       )}
 
-      {/* Subtle Bottom Vignette Gradient for Text Contrast */}
+      {/* Subtle Bottom Vignette Gradient */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
 
-      {/* Main Container */}
+      {/* Top Right: Image Edit Icon Button */}
+      {canManage && (
+        <button
+          type="button"
+          onClick={onEditImage}
+          className="absolute top-4 right-4 z-10 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1.5 text-[11px] font-semibold text-white backdrop-blur-md transition hover:bg-black/80 hover:scale-105"
+        >
+          <Camera size={14} />
+          <span>image edit icon</span>
+        </button>
+      )}
+
+      {/* Main Content Overlay */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -116,13 +133,11 @@ export default function EventHeader({
           variants={itemVariants}
           className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.2em] sm:text-sm drop-shadow-md"
         >
-          {/* Top Left: Type */}
           <div className="flex items-center gap-2 text-[#f3e5d8]">
             <span className="h-2 w-2 animate-pulse rounded-full bg-[#e2b887]" />
             <span>— {type}</span>
           </div>
 
-          {/* Top Right: Committee & Year */}
           <div className="font-mono text-right tracking-wider text-white">
             <div>{committee?.type}</div>
             <div className="text-xs text-[#dcd6cd]">{committee?.year}</div>
@@ -131,7 +146,6 @@ export default function EventHeader({
 
         {/* Bottom Section */}
         <div className="mt-auto pt-6">
-          {/* Title */}
           <motion.h1
             variants={itemVariants}
             className="font-serif text-2xl font-black tracking-tight text-white drop-shadow-lg sm:text-4xl md:text-5xl lg:text-6xl"
@@ -139,13 +153,11 @@ export default function EventHeader({
             {title}
           </motion.h1>
 
-          {/* Date & Venue Footer Bar */}
           <motion.div
             variants={itemVariants}
             className="mt-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-t border-white/30 pt-4 text-xs font-semibold text-gray-200 sm:text-sm drop-shadow-md"
           >
             <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
-              {/* Date Block */}
               {formattedDate ? (
                 <div>
                   <span className="text-gray-300">Date: </span>
@@ -160,7 +172,6 @@ export default function EventHeader({
                 )
               )}
 
-              {/* Venue Block */}
               {vanue && (
                 <div>
                   <span className="text-gray-300">Venue: </span>
