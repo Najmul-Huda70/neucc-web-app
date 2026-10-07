@@ -84,11 +84,11 @@ export default function Navbar() {
                 Events
               </Link>
             </li>
-            <li>
+            {/* <li>
               <Link href="/notice" className={getLinkClass("/notice")}>
                 Notice
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link href="/committee" className={getLinkClass("/committee")}>
                 Committees

@@ -1,23 +1,62 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
+import { z } from "zod";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 import { prisma } from "@/lib/prisma";
+
+// 1. Initialize Upstash Redis & Rate Limiter
+// Max 5 attempts per 60 seconds per IP address
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(5, "60 s"),
+  analytics: true,
+});
+
+// 2. Input Validation Schema
+const loginSchema = z.object({
+  userId: z.string().min(1, "User ID is required").transform((val) => val.trim()),
+  password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().optional(),
+});
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { userId, password, rememberMe } = body;
+    // 3. Rate Limiting Check (by IP address)
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "127.0.0.1";
+    const { success, limit, remaining, reset } = await ratelimit.limit(`login_rate_limit_${ip}`);
 
-    // ১. Validation Check
-    if (!userId || !password) {
+    if (!success) {
       return NextResponse.json(
-        { message: "User ID and Password are required" },
+        { message: "Too many login attempts. Please try again after a minute." },
+        { 
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": limit.toString(),
+            "X-RateLimit-Remaining": remaining.toString(),
+            "X-RateLimit-Reset": reset.toString(),
+          }
+        }
+      );
+    }
+
+    // 4. In-bound Data Validation
+    const body = await req.json();
+    const validation = loginSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { message: validation.error.issues[0].message },
         { status: 400 }
       );
     }
 
+    const { userId, password, rememberMe } = validation.data;
+
+    // 5. Database Query
     const user = await prisma.user.findUnique({
-      where: { userId: userId },
+      where: { userId },
     });
 
     if (!user) {
@@ -27,9 +66,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // ৩. Password Verify
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // 6. Account Status Check
+    if (user.status === "CLOSED") {
+      return NextResponse.json(
+        { message: "Your account is closed. You cannot login." },
+        { status: 403 }
+      );
+    }
 
+    // 7. Password Verification
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: "Invalid User ID or Password" },
@@ -37,22 +83,33 @@ export async function POST(req: Request) {
       );
     }
 
-    // ৪. Checkbox টিক দেওয়া থাকলে ৩০ দিন, অন্যথায় ১ দিন মেয়াদ নির্ধারণ
+    // 8. Secret Key Check & Expiration Config
+    const secretKey = process.env.JWT_SECRET;
+    if (!secretKey) {
+      console.error("CRITICAL: JWT_SECRET environment variable is missing.");
+      return NextResponse.json(
+        { message: "Internal server error" },
+        { status: 500 }
+      );
+    }
+
+    const secret = new TextEncoder().encode(secretKey);
     const jwtExpiresIn = rememberMe ? "30d" : "1d";
     const maxAgeSeconds = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24;
 
-    // JWT Token তৈরি
-    const secret = process.env.JWT_SECRET || "fallback_super_secret_key";
-    const token = jwt.sign(
-      {
-        userId: user.userId,
-        role: user.role,
-      },
-      secret,
-      { expiresIn: jwtExpiresIn }
-    );
+    // 9. Sign JWT Token using `jose`
+    const token = await new SignJWT({
+      userId: user.userId,
+      name: user.name,
+      role: user.role,
+      status: user.status,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime(jwtExpiresIn)
+      .sign(secret);
 
-    // ৫. Cookie সেট করে Success Response দেওয়া
+    // 10. Response & Set HttpOnly Cookie
     const response = NextResponse.json(
       {
         message: "Login successful",
@@ -65,7 +122,6 @@ export async function POST(req: Request) {
       { status: 200 }
     );
 
-    // HttpOnly Cookie-তে টোকেন সেভ করা
     response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -75,8 +131,9 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error: any) {
-    console.error("Login Error:", error);
+
+  } catch (error) {
+    console.error("Login Route Error:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }
