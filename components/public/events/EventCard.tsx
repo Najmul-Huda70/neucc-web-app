@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Check, Share2 } from "lucide-react";
+import { Calendar, CalendarDays, Check, MapPin, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,15 +12,46 @@ export type PublicEventCardData = {
   shortDescription: string;
   type: string;
   cardBannerUrl?: string | null;
+  startDate?: string | Date | null;
+  endDate?: string | Date | null;
+  vanue?: string | null;
   committee: { type: string; year: number };
 };
+
+// তারিখ ফরম্যাট করার হেল্পার ফাংশন
+function formatEventDate(startDate?: string | Date | null, endDate?: string | Date | null) {
+  if (!startDate) return null;
+
+  const start = new Date(startDate);
+  const startFormatted = start.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  if (!endDate) return startFormatted;
+
+  const end = new Date(endDate);
+  // যদি একই দিনে শুরু ও শেষ হয়
+  if (start.toDateString() === end.toDateString()) {
+    return startFormatted;
+  }
+
+  const endFormatted = end.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return `${startFormatted} - ${endFormatted}`;
+}
 
 export default function EventCard({ event }: { event: PublicEventCardData }) {
   const [copied, setCopied] = useState(false);
 
   // Copy URL handler
   const handleCopy = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Link-এ রিডাইরেক্ট হওয়া আটকানোর জন্য
+    e.preventDefault(); // Link-এ রিডাইরেক্ট হওয়া আটকানোর জন্য
     e.stopPropagation();
 
     const eventUrl = `${window.location.origin}/events/${event.slug}`;
@@ -28,11 +59,13 @@ export default function EventCard({ event }: { event: PublicEventCardData }) {
     try {
       await navigator.clipboard.writeText(eventUrl);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000); // ২ সেকেন্ড পর আবার রিসেট হবে
+      setTimeout(() => setCopied(false), 2000); // ২ সেকেন্ড পর রিসেট হবে
     } catch (err) {
       console.error("Failed to copy link:", err);
     }
   };
+
+  const formattedDate = formatEventDate(event.startDate, event.endDate);
 
   return (
     <Link 
@@ -67,6 +100,23 @@ export default function EventCard({ event }: { event: PublicEventCardData }) {
         <p className="mt-2 line-clamp-3 text-sm leading-6 text-(--text-secondary)">
           {event.shortDescription}
         </p>
+
+        {/* Date & Venue Section */}
+        <div className="mt-4 flex flex-col gap-1.5 text-xs text-(--text-secondary)">
+          {formattedDate && (
+            <div className="flex items-center gap-2">
+              <Calendar size={14} className="shrink-0 text-(--btn-primary-bg)" />
+              <span className="font-medium">{formattedDate}</span>
+            </div>
+          )}
+
+          {event.vanue && (
+            <div className="flex items-center gap-2">
+              <MapPin size={14} className="shrink-0 text-(--btn-primary-bg)" />
+              <span className="font-medium line-clamp-1">{event.vanue}</span>
+            </div>
+          )}
+        </div>
 
         {/* Bottom Metadata & Copy Share Link Button */}
         <div 
