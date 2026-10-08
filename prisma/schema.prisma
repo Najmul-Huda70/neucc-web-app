@@ -31,7 +31,13 @@ model User {
 
   @@map("users")
 }
-
+model OtpVerification {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
 model RefreshToken {
   id        String   @id @default(uuid())
   tokenHash String

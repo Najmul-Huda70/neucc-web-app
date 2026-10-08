@@ -376,3 +376,27 @@ export async function sendPasswordResetOtpEmail({
     attachments: [logoAttachment],
   });
 }
+
+export async function sendMembershipOtpEmail({
+  email,
+  otp,
+}: {
+  email: string;
+  otp: string;
+}) {
+  const mailOptions = {
+    from: `"Computer Club" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Email Verification Code - Membership Application",
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Membership Verification Code</h2>
+        <p>Use the following OTP to verify your email address for membership registration:</p>
+        <h1 style="color: #0d9488; letter-spacing: 4px;">${otp}</h1>
+        <p>This code will expire in 5 minutes.</p>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+}
