@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion, Variants } from "framer-motion";
 import Image from "next/image";
 import { Camera } from "lucide-react";
@@ -57,6 +58,7 @@ export default function EventHeader({
   canManage,
   onEditImage,
 }: EventHeaderData) {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const formattedDate = formatEventDate(startDate, endDate);
 
   const containerVariants: Variants = {
@@ -83,41 +85,47 @@ export default function EventHeader({
   };
 
   return (
-    <header className="relative isolate aspect-[2.2/1] min-h-[320px] w-full overflow-hidden bg-[#faf8f3] border-b border-[#d9d5cc] sm:min-h-[420px]">
+    <header className="relative isolate aspect-[2.2/1] min-h-[320px] w-full overflow-hidden bg-[#2d2926] border-b border-[#d9d5cc] sm:min-h-[420px]">
       {/* Background Banner */}
       {detailBannerUrl ? (
         <motion.div
-          initial={{ scale: 1.03, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.95 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isImageLoaded ? 0.95 : 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           className="absolute inset-0 -z-20 h-full w-full"
         >
           <Image
             src={detailBannerUrl}
             alt={title}
             fill
-            unoptimized
             priority
-            sizes="100vw"
+            unoptimized
+            sizes="(max-width: 1280px) 100vw, 1280px"
             className="object-cover"
+            onLoad={() => setIsImageLoaded(true)}
           />
         </motion.div>
       ) : (
-        <div className="absolute inset-0 -z-20 bg-gradient-to-br from-[#faf8f3] to-[#ebd2ba]/40" />
+        <div className="absolute inset-0 -z-20 bg-gradient-to-br from-[#1a1918] to-[#3a3530]" />
+      )}
+
+      {/* Placeholder de carregamento enquanto a imagem baixa */}
+      {detailBannerUrl && !isImageLoaded && (
+        <div className="absolute inset-0 -z-20 animate-pulse bg-[#2d2926]" />
       )}
 
       {/* Subtle Bottom Vignette Gradient */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
 
       {/* Top Right: Image Edit Icon Button */}
       {canManage && (
         <button
           type="button"
           onClick={onEditImage}
-          className="absolute top-4 right-4 z-10 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1.5 text-[11px] font-semibold text-white backdrop-blur-md transition hover:bg-black/80 hover:scale-105"
+          className="absolute top-4 right-4 z-10 flex items-center gap-1.5 rounded-md bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-black/80 hover:scale-105"
         >
           <Camera size={14} />
-          <span>image edit icon</span>
+          <span>Edit Banner</span>
         </button>
       )}
 

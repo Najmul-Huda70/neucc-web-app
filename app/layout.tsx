@@ -25,8 +25,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body>
         {/* Toast Container */}
-        <Toaster position="top-center" reverseOrder={false} />
-       {children}
+        <Toaster
+          position="bottom-right"
+          reverseOrder={false}
+        />
+        {children}
       </body>
     </html>
   );

@@ -5,24 +5,31 @@ import { UserBase } from "@/lib/types";
 import UsersTable from "@/components/dashboard/users/UsersTable";
 import CreateUserModal from "@/components/dashboard/users/CreateUserModal";
 import { UserSearchInput } from "@/components/dashboard/users/UserSearchFilterBar";
-import { Loader2, Plus, Users } from "lucide-react";
+import UsersTableSkeleton from "@/components/dashboard/users/UsersTableSkeleton";
+import ErrorState from "@/components/ui/ErrorState";
+import { Plus, Users } from "lucide-react";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserBase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await fetch("/api/users");
       const json = await res.json();
-      if (json.success && json.data) {
-        setUsers(json.data);
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Failed to load users list.");
       }
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
+
+      setUsers(json.data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to fetch users.");
     } finally {
       setLoading(false);
     }
@@ -48,7 +55,7 @@ export default function UsersPage() {
       {/* Top Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 dark:border-slate-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-(--text-primary)">
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-(--text-primary)">
             User Management
           </h1>
         </div>
@@ -72,11 +79,12 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Main Content / Table Area */}
+      {/* Main Content Area */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-(--text-secondary)">
-          <Loader2 className="w-8 h-8 animate-spin text-(--btn-primary-bg)" />
-          <p className="text-sm font-medium">Loading Users...</p>
+        <UsersTableSkeleton />
+      ) : error ? (
+        <div className="py-10">
+          <ErrorState message={error} onRetry={fetchUsers} />
         </div>
       ) : filteredUsers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-(--btn-secondary-border) rounded-2xl bg-(--card-bg) shadow-xs">

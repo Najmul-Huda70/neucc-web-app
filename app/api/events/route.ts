@@ -3,41 +3,80 @@ import { prisma } from "@/lib/prisma";
 import { generateUniqueSlug } from "@/lib/slugify";
 import { EventStatus, EventType } from "@/generated/prisma/enums";
 import { verifyRole } from "@/lib/auth";
+import { z } from "zod";
 
-const eventTypes = Object.values(EventType) as string[];
-const eventStatuses = Object.values(EventStatus) as string[];
+const eventTypes = Object.values(EventType) as [string, ...string[]];
+const eventStatuses = Object.values(EventStatus) as [string, ...string[]];
 
-function validateEventFields(body: Record<string, unknown>) {
-  const requiredFields = ["title", "shortDescription", "description", "committeeId", "type"];
-  const missingField = requiredFields.find(
-    (field) => typeof body[field] !== "string" || !(body[field] as string).trim()
-  );
+// Zod Schema for POST input validation
+const CreateEventSchema = z.object({
+  title: z.string().min(1, "Title is required").trim(),
+  shortDescription: z.string().min(1, "Short description is required").max(200, "Short description must be 200 characters or fewer").trim(),
+  description: z.string().min(1, "Description is required").trim(),
+  committeeId: z.string().min(1, "Committee ID is required"),
+  type: z.enum(eventTypes as [string, ...string[]]),
+  status: z.enum(eventStatuses as [string, ...string[]]).optional().default(EventStatus.DRAFT),
+  slug: z.string().optional(),
+  cardBannerUrl: z.string().url().nullable().optional(),
+  detailBannerUrl: z.string().url().nullable().optional(),
+});
 
-  if (missingField) return `${missingField} is required.`;
-  if (!eventTypes.includes(body.type as string)) return "type is invalid.";
-  if (body.status !== undefined && !eventStatuses.includes(body.status as string)) return "status is invalid.";
-  if ((body.shortDescription as string).length > 200) return "shortDescription must be 200 characters or fewer.";
-  return null;
-}
+// Explicit Public Select Matrix (Defensive Data Exposure)
+const publicEventSelect = {
+  eventId: true,
+  slug: true,
+  type: true,
+  title: true,
+  shortDescription: true,
+  description: true,
+  status: true,
+  cardBannerUrl: true,
+  detailBannerUrl: true,
+  createdAt: true,
+  committee: {
+    select: {
+      type: true,
+      year: true,
+    },
+  },
+};
+
 
 export async function POST(req: Request) {
+  
   const auth = await verifyRole(["ADMIN", "MODERATOR"]);
-  if (!auth.isAuthorized) return NextResponse.json({ success: false, message: auth.message }, { status: auth.status });
+
+  if (!auth.isAuthorized) {
+    return NextResponse.json({ success: false, message: auth.message }, { status: auth.status });
+  }
 
   try {
-    const body = await req.json();
-    if (!body || typeof body !== "object" || Array.isArray(body)) {
-      return NextResponse.json({ success: false, message: "Request body must be an object." }, { status: 400 });
+    const rawBody = await req.json().catch(() => null);
+    if (!rawBody) {
+      return NextResponse.json({ success: false, message: "Invalid JSON body." }, { status: 400 });
     }
 
-    const validationError = validateEventFields(body);
-    if (validationError) return NextResponse.json({ success: false, message: validationError }, { status: 400 });
+    const validation = CreateEventSchema.safeParse(rawBody);
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, message: validation.error.format() },
+        { status: 400 }
+      );
+    }
 
-    const committee = await prisma.committee.findUnique({ where: { committeeId: body.committeeId as string } });
-    if (!committee) return NextResponse.json({ success: false, message: "Committee not found." }, { status: 404 });
+    const body = validation.data;
+
+    const committee = await prisma.committee.findUnique({
+      where: { committeeId: body.committeeId },
+      select: { committeeId: true },
+    });
+
+    if (!committee) {
+      return NextResponse.json({ success: false, message: "Committee not found." }, { status: 404 });
+    }
 
     const slug = await generateUniqueSlug(
-      typeof body.slug === "string" && body.slug.trim() ? body.slug : body.title as string,
+      body.slug?.trim() || body.title,
       (candidate) => prisma.events.findUnique({ where: { slug: candidate }, select: { eventId: true } })
     );
 
@@ -45,14 +84,15 @@ export async function POST(req: Request) {
       data: {
         slug,
         type: body.type as EventType,
-        title: body.title as string,
-        shortDescription: body.shortDescription as string,
-        description: body.description as string,
-        committeeId: body.committeeId as string,
-        status: (body.status as EventStatus | undefined) ?? EventStatus.DRAFT,
-        cardBannerUrl: typeof body.cardBannerUrl === "string" ? body.cardBannerUrl : null,
-        detailBannerUrl: typeof body.detailBannerUrl === "string" ? body.detailBannerUrl : null,
+        title: body.title,
+        shortDescription: body.shortDescription,
+        description: body.description,
+        committeeId: body.committeeId,
+        status: body.status as EventStatus,
+        cardBannerUrl: body.cardBannerUrl || null,
+        detailBannerUrl: body.detailBannerUrl || null,
       },
+      select: publicEventSelect, // Strictly select allowed fields on creation response
     });
 
     return NextResponse.json({ success: true, data: event }, { status: 201 });
@@ -64,37 +104,54 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const auth = await verifyRole(["ADMIN", "MODERATOR", "MEMBER"]);
-    const searchParams = new URL(req.url).searchParams;
+    const auth = await verifyRole(["ADMIN", "MODERATOR"]);
+    const { searchParams } = new URL(req.url);
+
     const page = Math.max(Number.parseInt(searchParams.get("page") ?? "1", 10) || 1, 1);
     const pageSize = Math.min(Math.max(Number.parseInt(searchParams.get("pageSize") ?? "20", 10) || 20, 1), 100);
     const status = searchParams.get("status");
     const type = searchParams.get("type");
     const committeeId = searchParams.get("committeeId");
 
-    if (status && !eventStatuses.includes(status)) return NextResponse.json({ success: false, message: "status is invalid." }, { status: 400 });
-    if (type && !eventTypes.includes(type)) return NextResponse.json({ success: false, message: "type is invalid." }, { status: 400 });
+    if (status && !eventStatuses.includes(status)) {
+      return NextResponse.json({ success: false, message: "status is invalid." }, { status: 400 });
+    }
+    if (type && !eventTypes.includes(type)) {
+      return NextResponse.json({ success: false, message: "type is invalid." }, { status: 400 });
+    }
 
-    const publicStatus = auth.isAuthorized ? status : "PUBLISHED";
+    // Public users can strictly query PUBLISHED events
+    const filterStatus = auth.isAuthorized ? (status as EventStatus | null) : EventStatus.PUBLISHED;
+
     const where = {
-      ...(publicStatus ? { status: publicStatus as EventStatus } : {}),
+      ...(filterStatus ? { status: filterStatus } : {}),
       ...(type ? { type: type as EventType } : {}),
       ...(committeeId ? { committeeId } : {}),
     };
+
     const [events, total] = await prisma.$transaction([
       prisma.events.findMany({
         where,
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        include: {
-          committee: { select: { type: true, year: true } },
-        },
+        select: publicEventSelect, // Sanitized Select Fields
       }),
       prisma.events.count({ where }),
     ]);
 
-    return NextResponse.json({ success: true, data: { items: events, pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) } } });
+    return NextResponse.json({
+      success: true,
+      data: {
+        items: events,
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPages: Math.ceil(total / pageSize),
+        },
+      },
+    });
   } catch (error) {
     console.error("Get Events API Error:", error);
     return NextResponse.json({ success: false, message: "Failed to fetch events." }, { status: 500 });

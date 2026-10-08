@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import CommitteeFilters from "@/components/dashboard/committee/CommitteeFilters";
 import JoinBanner from "@/components/public/JoinBanner";
 import CreateCommitteeModal from "@/components/dashboard/committee/CreateCommitteeModal";
+import AddPostModal from "@/components/dashboard/committee/AddPostModal";
+import DeletePostModal from "@/components/dashboard/committee/DeletePostModal";
 import { ApiResponse, Committee } from "@/lib/types";
 import ExecutiveGrid from "@/components/dashboard/committee/ExecutiveGrid";
+import { Plus, Trash2 } from "lucide-react";
 
 export default function CommitteePage() {
   const [committees, setCommittees] = useState<Committee[]>([]);
@@ -13,6 +16,10 @@ export default function CommitteePage() {
   const [selectedType, setSelectedType] = useState<string>("EXECUTIVE");
   const [selectedyear, setSelectedyear] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  // Post Modals State
+  const [isAddPostOpen, setIsAddPostOpen] = useState<boolean>(false);
+  const [isDeletePostOpen, setIsDeletePostOpen] = useState<boolean>(false);
 
   const fetchCommittees = async () => {
     try {
@@ -28,7 +35,7 @@ export default function CommitteePage() {
       if (json.success && json.data) {
         setCommittees(json.data);
 
-        if (json.data.length > 0) {
+        if (json.data.length > 0 && !selectedyear) {
           const firstCommittee = json.data[0];
           const firstType = String(firstCommittee.type || "EXECUTIVE");
           const firstYear = String(firstCommittee.year ?? "");
@@ -127,17 +134,64 @@ export default function CommitteePage() {
           </p>
         </div>
       ) : (
-        <ExecutiveGrid
-          posts={activeCommittee.posts}
-          title={`${activeCommittee.type} Committee - ${selectedyear}`}
-        />
+        <div className="space-y-4">
+          {/* Header Bar with Action Buttons */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-(--border-color) pb-3">
+            <h2 className="text-lg font-bold text-(--btn-primary-bg) tracking-tight">
+              {activeCommittee.type} Committee - {selectedyear}
+            </h2>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsAddPostOpen(true)}
+                className="flex items-center gap-1.5 border border-emerald-600/40 text-emerald-600 hover:bg-emerald-50 text-xs font-semibold px-3.5 py-1.5 rounded-xl transition-all shadow-xs cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>Add Post</span>
+              </button>
+
+              <button
+                onClick={() => setIsDeletePostOpen(true)}
+                className="flex items-center gap-1.5 border border-red-500/40 text-red-500 hover:bg-red-50 text-xs font-semibold px-3.5 py-1.5 rounded-xl transition-all shadow-xs cursor-pointer"
+              >
+                <Trash2 size={14} />
+                <span>Delete Post</span>
+              </button>
+            </div>
+          </div>
+
+          <ExecutiveGrid posts={activeCommittee.posts} title="" />
+        </div>
       )}
 
+      {/* Create Committee Modal */}
       <CreateCommitteeModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={fetchCommittees}
       />
+
+      {/* Add Post Modal */}
+      {activeCommittee && (
+        <AddPostModal
+          isOpen={isAddPostOpen}
+          onClose={() => setIsAddPostOpen(false)}
+          committeeId={activeCommittee.committeeId}
+          committeeTitle={`${activeCommittee.type} ${selectedyear}`}
+          onSuccess={fetchCommittees}
+        />
+      )}
+
+      {/* Delete Post Modal */}
+      {activeCommittee && (
+        <DeletePostModal
+          isOpen={isDeletePostOpen}
+          onClose={() => setIsDeletePostOpen(false)}
+          committeeId={activeCommittee.committeeId}
+          committeeTitle={`${activeCommittee.type} ${selectedyear}`}
+          onSuccess={fetchCommittees}
+        />
+      )}
 
       <JoinBanner />
     </div>

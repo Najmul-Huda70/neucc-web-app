@@ -1,4 +1,3 @@
-// components/public/events/EditorialGallery.tsx
 "use client";
 
 import { ChevronLeft, ChevronRight, Download, Edit2, MapPin, Save, Trash2, X } from "lucide-react";
@@ -33,7 +32,6 @@ function imageTitle(image: SourceGalleryImage, index: number) {
   return image.caption || `Event view ${index + 1}`;
 }
 
-// Helper to convert cropped canvas pixel area into a File object
 function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File> {
   return new Promise((resolve, reject) => {
     const image = new window.Image();
@@ -85,6 +83,10 @@ export default function EditorialGallery({
   const [nextImageIndex, setNextImageIndex] = useState(6);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
+  // Smooth Modal Mount/Unmount Animation States
+  const [isModalMounted, setIsModalMounted] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
   // Edit State Management
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -105,7 +107,7 @@ export default function EditorialGallery({
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  // Handle Modal Open
+  // Smooth Modal Open
   const handleOpenModal = (index: number) => {
     const currentImg = images[index];
     if (currentImg) {
@@ -118,9 +120,17 @@ export default function EditorialGallery({
     setConfirmDeleteOpen(false);
     setDeleteError(null);
     setSelectedIndex(index);
+
+    // Mount and animate in
+    setIsModalMounted(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setIsModalVisible(true);
+      });
+    });
   };
 
-  // Prevent closing when unsaved changes exist
+  // Smooth Modal Close
   const handleCloseModal = () => {
     if (isDeleting) return;
     if (hasUnsavedChanges) {
@@ -128,17 +138,21 @@ export default function EditorialGallery({
         return;
       }
     }
-    setIsEditing(false);
-    setHasUnsavedChanges(false);
-    setConfirmDeleteOpen(false);
-    setSelectedIndex(null);
+
+    setIsModalVisible(false);
+    setTimeout(() => {
+      setIsModalMounted(false);
+      setIsEditing(false);
+      setHasUnsavedChanges(false);
+      setConfirmDeleteOpen(false);
+      setSelectedIndex(null);
+    }, 250); // Matches transition duration
   };
 
   useEffect(() => {
     if (selectedIndex === null) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      // While the delete confirmation is open, it owns the keyboard (Esc closes only that dialog)
       if (hasUnsavedChanges || confirmDeleteOpen) return;
       if (event.key === "Escape") handleCloseModal();
       if (event.key === "ArrowLeft")
@@ -153,7 +167,6 @@ export default function EditorialGallery({
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images.length, selectedIndex, hasUnsavedChanges, confirmDeleteOpen]);
 
   async function downloadImage(image: SourceGalleryImage, index: number) {
@@ -175,7 +188,7 @@ export default function EditorialGallery({
     }
   }
 
-  // Image auto-rotation
+  // Improved Auto-rotation transition logic
   useEffect(() => {
     if (images.length <= 6 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -187,23 +200,29 @@ export default function EditorialGallery({
         ).find((index) => !current.includes(index));
         if (replacement === undefined) return current;
 
-        setPreviousIndexes((previous) => {
-          const next = [...previous];
-          next[rotatingCard] = current[rotatingCard];
-          return next;
-        });
+        // Start Fade Out
         setFadingCards((fading) => {
           const next = [...fading];
           next[rotatingCard] = true;
           return next;
         });
-        window.setTimeout(() => {
+
+        // Change index mid-fade
+        setTimeout(() => {
+          setPreviousIndexes((previous) => {
+            const next = [...previous];
+            next[rotatingCard] = current[rotatingCard];
+            return next;
+          });
+
+          // Fade back in
           setFadingCards((fading) => {
             const next = [...fading];
             next[rotatingCard] = false;
             return next;
           });
-        }, 50);
+        }, 500);
+
         setNextImageIndex((replacement + 1) % images.length);
 
         const next = [...current];
@@ -216,7 +235,6 @@ export default function EditorialGallery({
     return () => window.clearInterval(interval);
   }, [images.length, nextImageIndex, rotatingCard]);
 
-  // Handle Save
   const handleSave = async () => {
     if (selectedIndex === null || !images[selectedIndex]) return;
     const currentImg = images[selectedIndex];
@@ -248,7 +266,6 @@ export default function EditorialGallery({
     }
   };
 
-  // Delete: the button only opens the confirmation dialog
   const openDeleteConfirm = () => {
     setDeleteError(null);
     setConfirmDeleteOpen(true);
@@ -266,7 +283,7 @@ export default function EditorialGallery({
       setConfirmDeleteOpen(false);
       setHasUnsavedChanges(false);
       setIsEditing(false);
-      setSelectedIndex(null);
+      handleCloseModal();
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : "Failed to delete item.");
     } finally {
@@ -291,7 +308,7 @@ export default function EditorialGallery({
           return (
             <article
               key={image.galleryId}
-              className="editorial-gallery-card group relative aspect-4/3 overflow-hidden rounded-xl bg-(--card-bg) border border-(--border-color) focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-(--btn-primary-bg)"
+              className="editorial-gallery-card group relative aspect-4/3 overflow-hidden rounded-xl bg-(--card-bg) border border-(--border-color) transition-all duration-300 hover:shadow-lg focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-(--btn-primary-bg)"
               style={{ "--gallery-delay": `${cardIndex * 80}ms` } as CSSProperties}
               tabIndex={0}
               role="button"
@@ -310,9 +327,9 @@ export default function EditorialGallery({
                 fill
                 unoptimized
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className={`absolute inset-0 object-cover transition-opacity duration-1000 ease-out ${
-                  isFading ? "opacity-100" : "opacity-0"
-                } group-hover:scale-105 group-focus-within:scale-105`}
+                className={`absolute inset-0 object-cover transition-all duration-700 ease-in-out ${
+                  isFading ? "opacity-100 scale-100" : "opacity-0 scale-105"
+                } group-hover:scale-105`}
               />
               <Image
                 src={currentImage.imageUrl}
@@ -320,13 +337,13 @@ export default function EditorialGallery({
                 fill
                 unoptimized
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className={`absolute inset-0 object-cover transition-opacity duration-1000 ease-out ${
-                  isFading ? "opacity-0" : "opacity-100"
-                } group-hover:scale-105 group-focus-within:scale-105`}
+                className={`absolute inset-0 object-cover transition-all duration-700 ease-in-out ${
+                  isFading ? "opacity-0 scale-95" : "opacity-100 scale-100"
+                } group-hover:scale-105`}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100" />
-              <div className="absolute inset-x-0 bottom-0 translate-y-4 p-5 text-white opacity-0 transition duration-500 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                <div className="mb-3 h-px w-0 bg-white/80 transition-all duration-700 group-hover:w-12 group-focus-within:w-12" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
+              <div className="absolute inset-x-0 bottom-0 translate-y-3 p-5 text-white opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                <div className="mb-3 h-px w-0 bg-white/80 transition-all duration-500 group-hover:w-12 group-focus-within:w-12" />
                 <h3 className="text-xl font-bold tracking-tight leading-tight">{title}</h3>
                 <p className="mt-2 flex items-center gap-1.5 text-xs font-medium tracking-wide text-white/80">
                   <MapPin size={13} aria-hidden="true" /> {currentImage.location || "Event gallery"}
@@ -337,22 +354,25 @@ export default function EditorialGallery({
         })}
       </div>
 
-      {/* EDITORIAL GALLERY MODAL */}
-      {selectedIndex !== null && currentModalImage && (
+      {/* EDITORIAL GALLERY MODAL WITH SMOOTH ANIMATION */}
+      {isModalMounted && currentModalImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-md sm:p-6"
+          className={`fixed inset-0 z-50 flex items-center justify-center p-3 backdrop-blur-md sm:p-6 transition-all duration-300 ease-out ${
+            isModalVisible ? "bg-black/80 opacity-100" : "bg-black/0 opacity-0 pointer-events-none"
+          }`}
           role="dialog"
           aria-modal="true"
           aria-label="Event image viewer"
           onClick={handleCloseModal}
         >
           <div
-            className="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-(--border-color) bg-(--card-bg) shadow-2xl sm:max-h-[calc(100vh-3rem)]"
+            className={`relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-(--border-color) bg-(--card-bg) shadow-2xl sm:max-h-[calc(100vh-3rem)] transition-all duration-300 ease-out ${
+              isModalVisible ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-4 opacity-0"
+            }`}
             onClick={(event) => event.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between gap-4 border-b border-(--border-color) px-4 py-3 sm:px-6 sm:py-4">
-              {/* Title & Venue Input / Text */}
               <div className="min-w-0 flex-1">
                 {isEditing ? (
                   <div className="space-y-1.5">
@@ -383,7 +403,7 @@ export default function EditorialGallery({
                 ) : (
                   <>
                     <h2 className="truncate text-sm font-bold text-(--text-primary) sm:text-base">
-                      {imageTitle(currentModalImage, selectedIndex)}
+                      {imageTitle(currentModalImage, selectedIndex ?? 0)}
                     </h2>
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-(--text-muted)">
                       <MapPin size={13} aria-hidden="true" /> {currentModalImage.location || "Event gallery"}
@@ -441,7 +461,7 @@ export default function EditorialGallery({
             </div>
 
             {/* Modal Body */}
-            <div className="relative flex min-h-[300px] flex-1 items-center justify-center bg-black p-3 sm:p-6">
+            <div className="relative flex min-h-[300px] flex-1 items-center justify-center bg-black p-3 sm:p-6 overflow-hidden">
               {isEditing ? (
                 <div className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-xl bg-black">
                   <Cropper
@@ -465,12 +485,13 @@ export default function EditorialGallery({
               ) : (
                 <>
                   <Image
+                    key={currentModalImage.galleryId}
                     src={currentModalImage.imageUrl}
-                    alt={imageTitle(currentModalImage, selectedIndex)}
+                    alt={imageTitle(currentModalImage, selectedIndex ?? 0)}
                     width={1600}
                     height={1000}
                     unoptimized
-                    className="max-h-[calc(100vh-14rem)] w-auto max-w-full object-contain"
+                    className="max-h-[calc(100vh-14rem)] w-auto max-w-full object-contain transition-all duration-300 ease-out animate-in fade-in zoom-in-95"
                     priority
                   />
 
@@ -479,17 +500,25 @@ export default function EditorialGallery({
                     <>
                       <button
                         type="button"
-                        onClick={() => setSelectedIndex((selectedIndex - 1 + images.length) % images.length)}
+                        onClick={() =>
+                          setSelectedIndex((current) =>
+                            current === null ? null : (current - 1 + images.length) % images.length
+                          )
+                        }
                         aria-label="Previous image"
-                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-2.5 text-white transition hover:bg-(--btn-primary-bg) sm:left-5"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-2.5 text-white transition-all hover:scale-110 hover:bg-(--btn-primary-bg) sm:left-5"
                       >
                         <ChevronLeft size={20} />
                       </button>
                       <button
                         type="button"
-                        onClick={() => setSelectedIndex((selectedIndex + 1) % images.length)}
+                        onClick={() =>
+                          setSelectedIndex((current) =>
+                            current === null ? null : (current + 1) % images.length
+                          )
+                        }
                         aria-label="Next image"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-2.5 text-white transition hover:bg-(--btn-primary-bg) sm:right-5"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-2.5 text-white transition-all hover:scale-110 hover:bg-(--btn-primary-bg) sm:right-5"
                       >
                         <ChevronRight size={20} />
                       </button>
@@ -503,10 +532,9 @@ export default function EditorialGallery({
             <div className="flex items-center justify-between gap-3 border-t border-(--border-color) px-4 py-3 sm:px-6">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-medium tracking-wide text-(--text-muted)">
-                  {selectedIndex + 1} / {images.length}
+                  {(selectedIndex ?? 0) + 1} / {images.length}
                 </span>
 
-                {/* Date Input / Label */}
                 {isEditing ? (
                   <div className="flex items-center gap-2 rounded-lg border border-(--border-color) bg-(--bg-app) px-3 py-1">
                     <span className="text-xs font-semibold text-(--text-secondary)">Date:</span>
@@ -527,11 +555,10 @@ export default function EditorialGallery({
                 ) : null}
               </div>
 
-              {/* Download Button */}
               {!isEditing && (
                 <button
                   type="button"
-                  onClick={() => downloadImage(currentModalImage, selectedIndex)}
+                  onClick={() => downloadImage(currentModalImage, selectedIndex ?? 0)}
                   className="inline-flex items-center gap-2 rounded-lg border border-(--border-color) bg-(--bg-app) px-3 py-2 text-xs font-bold text-(--text-primary) transition hover:bg-(--card-hover)"
                   title="Download image"
                 >
@@ -543,7 +570,7 @@ export default function EditorialGallery({
         </div>
       )}
 
-      {/* Delete confirmation (sits above the viewer) */}
+      {/* Delete confirmation */}
       <ConfirmDeleteModal
         open={confirmDeleteOpen && currentModalImage !== null}
         title="Delete this image?"

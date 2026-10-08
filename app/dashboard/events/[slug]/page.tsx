@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ExternalLink, Loader2, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 
 import EventFormModal from "@/components/dashboard/events/EventFormModal";
@@ -10,6 +9,7 @@ import EventRelationsPanel from "@/components/dashboard/events/EventRelationsPan
 import EventHeader from "@/components/events/EventHeader";
 import EventDescriptionSection from "@/components/dashboard/events/EventDescriptionSection";
 import EventAtAGlance from "@/components/dashboard/events/EventAtAGlance";
+import ErrorState from "@/components/ui/ErrorState";
 
 type EventDetail = {
   eventId: string;
@@ -66,8 +66,8 @@ export default function EventDetailsPage() {
   const [canManage, setCanManage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editingMode, setEditingMode] = useState<EditingMode | null>(null);
-  const [error, setError] = useState<string | null>(null); // load error (replaces page)
-  const [actionError, setActionError] = useState<string | null>(null); // action error (banner only)
+  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -147,23 +147,11 @@ export default function EventDetailsPage() {
 
   if (error || !event) {
     return (
-      <div className="mx-auto w-full max-w-5xl space-y-4 py-8">
-        <button
-          type="button"
-          onClick={() => router.push("/dashboard/events")}
-          className="flex items-center gap-2 text-sm font-semibold text-(--text-secondary) transition hover:text-(--text-primary)"
-        >
-          <ArrowLeft size={16} /> Back to event management
-        </button>
-        <div
-          role="alert"
-          className="flex flex-col gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-medium text-red-700 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <span>{error || "Event not found."}</span>
-          <button type="button" onClick={loadEvent} className="self-start font-bold underline sm:self-auto">
-            Try again
-          </button>
-        </div>
+      <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-8">
+        <ErrorState
+          message={error || "Event not found."}
+          onRetry={loadEvent}
+        />
       </div>
     );
   }
@@ -184,8 +172,6 @@ export default function EventDetailsPage() {
         </button>
 
         <div className="flex flex-wrap items-center gap-2">
-         
-
           {canManage && (
             <button
               type="button"
