@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Mail, Save, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface GeneralDetailsFormProps {
   initialName: string;
@@ -23,7 +23,6 @@ export default function GeneralDetailsForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    onError("");
 
     try {
       const formData = new FormData();
@@ -49,50 +48,61 @@ export default function GeneralDetailsForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-      <h2 className="text-sm sm:text-base font-semibold text-slate-900 border-b border-slate-100 pb-2.5">
-        General Details
-      </h2>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1.5">Full Name</label>
-          <div className="relative">
-            <User className="w-4 h-4 absolute left-3 top-3 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50/50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 focus:outline-none transition"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1.5">Email Address</label>
-          <div className="relative">
-            <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400 pointer-events-none" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50/50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 focus:outline-none transition"
-            />
-          </div>
-        </div>
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      <div className="space-y-1">
+        <h3 className="text-base font-semibold text-slate-900">Personal information</h3>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          Update the details associated with your administrator account.
+        </p>
       </div>
 
-      <div className="flex justify-end pt-2">
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2 rounded-xl text-xs sm:text-sm font-medium transition disabled:opacity-50 cursor-pointer shadow-xs"
-        >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {saving ? "Saving..." : "Update Details"}
-        </button>
+      <div className="md:col-span-2 space-y-5">
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            Full Name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 focus:outline-none transition"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            Email Address
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 focus:outline-none transition"
+          />
+        </div>
+
+        <div className="flex items-center justify-end gap-3 pt-4">
+          <button
+            type="button"
+            onClick={() => {
+              setName(initialName);
+              setEmail(initialEmail);
+            }}
+            className="px-4 py-2 text-xs sm:text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+          >
+            Discard changes
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white rounded-xl transition disabled:opacity-50 cursor-pointer shadow-xs"
+          >
+            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            Save changes
+          </button>
+        </div>
       </div>
     </form>
   );

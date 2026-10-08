@@ -79,6 +79,7 @@ export default function EventCard({ event }: { event: PublicEventCardData }) {
             alt="" 
             fill 
             unoptimized 
+            loading="eager"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" 
             className="object-cover" 
           />

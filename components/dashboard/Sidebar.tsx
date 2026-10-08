@@ -57,7 +57,6 @@ export default function Sidebar({
   const userName = user?.name || "User";
   const userEmail = user?.email || "";
   const userImage = user?.image || null;
-  console.log("Sidebar Rendered with user:", { userName, userEmail, userImage, userRole });
 
   return (
     <>

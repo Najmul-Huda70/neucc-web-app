@@ -12,6 +12,7 @@ import EventGallerySection, { PublicEventGallery } from "@/components/dashboard/
 import EventSponsorsSection, { PublicEventSponsor } from "@/components/dashboard/events/EventSponsorsSection";
 import EventDescriptionSection from "@/components/dashboard/events/EventDescriptionSection";
 import EventAtAGlance from "@/components/dashboard/events/EventAtAGlance";
+import EventDetailsSkeleton from "@/components/public/events/EventDetailsSkeleton";
 
 type PublicEventDetail = {
   title: string;
@@ -89,9 +90,7 @@ export default function PublicEventDetailsPage({
 
   if (loading)
     return (
-      <div className="flex items-center justify-center gap-3 py-24 text-sm text-(--text-secondary)">
-        <Loader2 className="animate-spin" /> Loading event...
-      </div>
+      <EventDetailsSkeleton/>
     );
 
   if (error || !event)

@@ -4,7 +4,7 @@ import { Loader2, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import EventCard, { type PublicEventCardData } from "@/components/public/events/EventCard";
-
+import EventSkeleton from "@/components/public/events/EventSkeleton";
 type EventRecord = PublicEventCardData;
 
 const eventGroups = [
@@ -101,10 +101,7 @@ export default function PublicEventsPage() {
         {error && <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700">{error}</div>}
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-24 text-sm text-(--text-secondary)">
-            <Loader2 className="h-8 w-8 animate-spin text-(--btn-primary-bg)" />
-            Loading events...
-          </div>
+          <EventSkeleton />
         ) : displayedEvents.length === 0 ? (
           <div className="rounded-2xl border border-dashed bg-(--card-bg) px-6 py-20 text-center" style={{ borderColor: "var(--btn-secondary-border)" }}>
             <h2 className="font-bold">No events found</h2>
