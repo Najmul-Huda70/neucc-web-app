@@ -1,8 +1,10 @@
 // components/dashboard/events/SponsorCard.tsx
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Edit3, ExternalLink, Mail, Phone, Trash2, User } from "lucide-react";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 
 export type SponsorRelation = {
   id: string;
@@ -24,10 +26,33 @@ type SponsorCardProps = {
   item: SponsorRelation;
   canManage: boolean;
   onEdit: (item: SponsorRelation) => void;
-  onDelete: (id: string) => void;
+  /** May be async. If it throws, the error message is shown inside the confirmation modal. */
+  onDelete: (id: string) => void | Promise<void>;
 };
 
 export default function SponsorCard({ item, canManage, onEdit, onDelete }: SponsorCardProps) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const openConfirm = () => {
+    setDeleteError(null);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      setDeleting(true);
+      setDeleteError(null);
+      await onDelete(item.id);
+      setConfirmOpen(false);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Unable to remove sponsor.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div
       className="relative flex flex-col justify-between rounded-2xl border bg-(--stat-card-bg) p-5 shadow-xs transition hover:shadow-md"
@@ -48,9 +73,10 @@ export default function SponsorCard({ item, canManage, onEdit, onDelete }: Spons
           </button>
           <button
             type="button"
-            onClick={() => onDelete(item.id)}
+            onClick={openConfirm}
             title="Delete Sponsor"
             aria-label="Delete Sponsor"
+            aria-haspopup="dialog"
             className="rounded-lg border border-red-500/30 bg-red-500/10 p-1.5 text-red-600 shadow-2xs transition hover:bg-red-500/20"
           >
             <Trash2 size={14} />
@@ -129,6 +155,22 @@ export default function SponsorCard({ item, canManage, onEdit, onDelete }: Spons
           </span>
         </p>
       </div>
+
+      <ConfirmDeleteModal
+        open={confirmOpen}
+        title="Remove this sponsor?"
+        description={
+          <>
+            <span className="font-semibold text-(--text-primary)">“{item.sponsor.name}”</span> will be removed from
+            this event. This action cannot be undone.
+          </>
+        }
+        confirmLabel="Remove sponsor"
+        loading={deleting}
+        error={deleteError}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   );
 }
