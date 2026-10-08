@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ImagePlus, Loader2, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import EventFormModal from "@/components/dashboard/events/EventFormModal";
@@ -48,25 +49,14 @@ function formatEventDate(startDate?: string | Date | null, endDate?: string | Da
   const start = new Date(startDate);
   if (isNaN(start.getTime())) return "N/A";
 
-  const startFormatted = start.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" };
+  const startFormatted = start.toLocaleDateString("en-US", opts);
 
   if (!endDate) return startFormatted;
   const end = new Date(endDate);
-  if (isNaN(end.getTime()) || start.toDateString() === end.toDateString()) {
-    return startFormatted;
-  }
+  if (isNaN(end.getTime()) || start.toDateString() === end.toDateString()) return startFormatted;
 
-  const endFormatted = end.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  return `${startFormatted} - ${endFormatted}`;
+  return `${startFormatted} - ${end.toLocaleDateString("en-US", opts)}`;
 }
 
 export default function EventDetailsPage() {
@@ -76,20 +66,24 @@ export default function EventDetailsPage() {
   const [canManage, setCanManage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editingMode, setEditingMode] = useState<EditingMode | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null); // load error (replaces page)
+  const [actionError, setActionError] = useState<string | null>(null); // action error (banner only)
+  const [deleting, setDeleting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const loadEvent = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const [eventResponse, profileResponse] = await Promise.all([
         fetch(`/api/events/${params.slug}`),
         fetch("/api/profile"),
       ]);
       const eventData = await eventResponse.json();
-      const profileData = await profileResponse.json();
+      const profileData = await profileResponse.json().catch(() => null);
       if (!eventResponse.ok) throw new Error(eventData.message || "Unable to load event.");
       setEvent(eventData.data);
-      setCanManage(["ADMIN", "MODERATOR"].includes(profileData.user?.role));
+      setCanManage(["ADMIN", "MODERATOR"].includes(profileData?.user?.role));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Unable to load event.");
     } finally {
@@ -102,18 +96,47 @@ export default function EventDetailsPage() {
     return () => window.clearTimeout(request);
   }, [loadEvent]);
 
-  const deleteEvent = async () => {
-    if (!event || !window.confirm(`Delete “${event.title}”?`)) return;
-    const response = await fetch(`/api/events/${event.eventId}`, { method: "DELETE" });
-    if (!response.ok) {
-      const data = await response.json();
-      setError(data.message || "Unable to delete event.");
-      return;
-    }
-    router.push("/dashboard/events");
+  const openDeleteConfirm = () => {
+    setActionError(null);
+    setConfirmOpen(true);
   };
 
-  if (loading) {
+  const closeDeleteConfirm = useCallback(() => {
+    if (!deleting) setConfirmOpen(false);
+  }, [deleting]);
+
+  useEffect(() => {
+    if (!confirmOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeDeleteConfirm();
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [confirmOpen, closeDeleteConfirm]);
+
+  const deleteEvent = async () => {
+    if (!event || deleting) return;
+    try {
+      setDeleting(true);
+      setActionError(null);
+      const response = await fetch(`/api/events/${event.eventId}`, { method: "DELETE" });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || "Unable to delete event.");
+      }
+      router.push("/dashboard/events");
+    } catch (deleteError) {
+      setActionError(deleteError instanceof Error ? deleteError.message : "Unable to delete event.");
+      setDeleting(false);
+    }
+  };
+
+  if (loading && !event) {
     return (
       <div className="flex items-center justify-center gap-3 py-24 text-sm font-semibold text-(--text-secondary)">
         <Loader2 className="animate-spin text-(--btn-primary-bg)" size={18} />
@@ -124,15 +147,22 @@ export default function EventDetailsPage() {
 
   if (error || !event) {
     return (
-      <div className="mx-auto max-w-5xl space-y-4 px-4 py-8">
+      <div className="mx-auto w-full max-w-5xl space-y-4 py-8">
         <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-xs font-bold text-(--text-secondary) hover:text-(--text-primary)"
+          type="button"
+          onClick={() => router.push("/dashboard/events")}
+          className="flex items-center gap-2 text-sm font-semibold text-(--text-secondary) transition hover:text-(--text-primary)"
         >
-          <ArrowLeft size={15} /> Back to events
+          <ArrowLeft size={16} /> Back to event management
         </button>
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-medium text-red-700">
-          {error || "Event not found."}
+        <div
+          role="alert"
+          className="flex flex-col gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-medium text-red-700 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <span>{error || "Event not found."}</span>
+          <button type="button" onClick={loadEvent} className="self-start font-bold underline sm:self-auto">
+            Try again
+          </button>
         </div>
       </div>
     );
@@ -141,37 +171,48 @@ export default function EventDetailsPage() {
   const formattedDate = formatEventDate(event.startDate, event.endDate);
 
   return (
-    <div className="mx-auto w-full space-y-6 text-(--text-primary)">
-      {/* Top Controls Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="mx-auto w-full max-w-7xl space-y-6 text-(--text-primary) sm:space-y-8">
+      {/* Top bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <button
+          type="button"
           onClick={() => router.push("/dashboard/events")}
-          className="flex items-center gap-2 text-xs font-bold text-(--text-secondary) transition hover:text-(--text-primary)"
+          className="flex items-center gap-2 text-sm font-semibold text-(--text-secondary) transition hover:text-(--text-primary)"
         >
           <ArrowLeft size={16} />
-          <span>back to event management</span>
+          <span>Back to event management</span>
         </button>
 
         <div className="flex flex-wrap items-center gap-2">
+         
+
           {canManage && (
             <button
-              onClick={deleteEvent}
               type="button"
+              onClick={openDeleteConfirm}
+              aria-haspopup="dialog"
               className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-500/20"
-              title="Delete Event"
             >
               <Trash2 size={14} />
+              <span>Delete</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Main Container Card */}
-      <section>
-        {/* Reused EventHeader Component */}
+      {actionError && !confirmOpen && (
+        <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-medium text-red-700">
+          {actionError}
+        </div>
+      )}
+
+      {/* Event overview card */}
+      <section className="overflow-hidden rounded-2xl bg-(--card-bg)">
         <EventHeader
           title={event.title}
+          shortDescription={event.shortDescription}
           type={event.type}
+          status={event.status}
           detailBannerUrl={event.detailBannerUrl}
           startDate={event.startDate}
           endDate={event.endDate}
@@ -181,31 +222,33 @@ export default function EventDetailsPage() {
           onEditImage={() => setEditingMode("images")}
         />
 
-        {/* Content Body Grid */}
-        <div className="p-6 sm:p-8 lg:p-10">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            {/* Left Column: Reused EventDescriptionSection */}
-            <EventDescriptionSection
-              description={event.description}
-              canManage={canManage}
-              onEditDescription={() => setEditingMode("description")}
-            />
+        <div className="px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12">
+            {/* Mobile: key info first; desktop: sidebar on the right */}
+            <div className="order-1 lg:order-2">
+              <EventAtAGlance
+                type={event.type}
+                committee={event.committee}
+                status={event.status}
+                formattedDate={formattedDate}
+                venue={event.vanue}
+                canManage={canManage}
+                onEditDetails={() => setEditingMode("details")}
+              />
+            </div>
 
-            {/* Right Column: Reused EventAtAGlance */}
-            <EventAtAGlance
-              type={event.type}
-              committee={event.committee}
-              status={event.status}
-              formattedDate={formattedDate}
-              venue={event.vanue}
-              canManage={canManage}
-              onEditDetails={() => setEditingMode("details")}
-            />
+            <div className="order-2 min-w-0 lg:order-1">
+              <EventDescriptionSection
+                description={event.description}
+                canManage={canManage}
+                onEditDescription={() => setEditingMode("description")}
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Relations Section (Sponsors & Galleries with Manage Controls) */}
+      {/* Sponsors & galleries management */}
       <EventRelationsPanel
         eventId={event.eventId}
         eventSponsors={event.eventSponsors}
@@ -214,7 +257,64 @@ export default function EventDetailsPage() {
         onChanged={loadEvent}
       />
 
-      {/* Edit Modal */}
+      {confirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center"
+          onClick={closeDeleteConfirm}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-event-title"
+            aria-describedby="delete-event-desc"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md rounded-2xl bg-(--card-bg) p-6 shadow-2xl sm:p-7"
+          >
+            <div className="flex items-start gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-600">
+                <Trash2 size={20} />
+              </span>
+              <div className="min-w-0">
+                <h2 id="delete-event-title" className="text-lg font-bold text-(--text-primary)">
+                  Delete this event?
+                </h2>
+                <p id="delete-event-desc" className="mt-1.5 text-sm leading-6 text-(--text-secondary)">
+                  <span className="font-semibold text-(--text-primary) break-words">“{event.title}”</span>{" "}
+                  will be permanently deleted along with its sponsors and gallery. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            {actionError && (
+              <div role="alert" className="mt-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-700">
+                {actionError}
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+              <button
+                type="button"
+                autoFocus
+                onClick={closeDeleteConfirm}
+                disabled={deleting}
+                className="rounded-lg px-4 py-2.5 text-sm font-semibold text-(--text-secondary) transition hover:bg-(--card-hover) hover:text-(--text-primary) disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={deleteEvent}
+                disabled={deleting}
+                className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-70"
+              >
+                {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                <span>{deleting ? "Deleting…" : "Delete event"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <EventFormModal
         key={`${editingMode}-${event.eventId}`}
         isOpen={editingMode !== null}

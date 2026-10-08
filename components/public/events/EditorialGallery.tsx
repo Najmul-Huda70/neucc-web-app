@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 
 export type SourceGalleryImage = {
   galleryId: string;
@@ -89,6 +90,11 @@ export default function EditorialGallery({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Delete confirmation state
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   // Editable Form Values
   const [editCaption, setEditCaption] = useState("");
   const [editLocation, setEditLocation] = useState("");
@@ -109,11 +115,14 @@ export default function EditorialGallery({
     }
     setIsEditing(false);
     setHasUnsavedChanges(false);
+    setConfirmDeleteOpen(false);
+    setDeleteError(null);
     setSelectedIndex(index);
   };
 
   // Prevent closing when unsaved changes exist
   const handleCloseModal = () => {
+    if (isDeleting) return;
     if (hasUnsavedChanges) {
       if (!window.confirm("You have unsaved changes! Please save your changes before closing.")) {
         return;
@@ -121,6 +130,7 @@ export default function EditorialGallery({
     }
     setIsEditing(false);
     setHasUnsavedChanges(false);
+    setConfirmDeleteOpen(false);
     setSelectedIndex(null);
   };
 
@@ -128,7 +138,8 @@ export default function EditorialGallery({
     if (selectedIndex === null) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (hasUnsavedChanges) return; // Disable keyboard navigation while editing with unsaved changes
+      // While the delete confirmation is open, it owns the keyboard (Esc closes only that dialog)
+      if (hasUnsavedChanges || confirmDeleteOpen) return;
       if (event.key === "Escape") handleCloseModal();
       if (event.key === "ArrowLeft")
         setSelectedIndex((current) => (current === null ? null : (current - 1 + images.length) % images.length));
@@ -142,7 +153,8 @@ export default function EditorialGallery({
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [images.length, selectedIndex, hasUnsavedChanges]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images.length, selectedIndex, hasUnsavedChanges, confirmDeleteOpen]);
 
   async function downloadImage(image: SourceGalleryImage, index: number) {
     const filename = `${imageTitle(image, index).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "event-image"}.jpg`;
@@ -236,20 +248,29 @@ export default function EditorialGallery({
     }
   };
 
-  // Handle Delete
-  const handleDelete = async () => {
+  // Delete: the button only opens the confirmation dialog
+  const openDeleteConfirm = () => {
+    setDeleteError(null);
+    setConfirmDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
     if (selectedIndex === null || !images[selectedIndex]) return;
-    if (!window.confirm("Are you sure you want to delete this gallery item?")) return;
 
     try {
+      setIsDeleting(true);
+      setDeleteError(null);
       if (onDeleteImage) {
         await onDeleteImage(images[selectedIndex].galleryId);
       }
+      setConfirmDeleteOpen(false);
       setHasUnsavedChanges(false);
       setIsEditing(false);
       setSelectedIndex(null);
     } catch (err) {
-      alert("Failed to delete item.");
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete item.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -270,7 +291,7 @@ export default function EditorialGallery({
           return (
             <article
               key={image.galleryId}
-              className="editorial-gallery-card group relative aspect-4/3 overflow-hidden rounded-xl bg-[#ded8cd] opacity-0 shadow-[0_10px_30px_rgba(53,43,30,0.08)] focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-[#8e6b45]"
+              className="editorial-gallery-card group relative aspect-4/3 overflow-hidden rounded-xl bg-(--card-bg) border border-(--border-color) focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-(--btn-primary-bg)"
               style={{ "--gallery-delay": `${cardIndex * 80}ms` } as CSSProperties}
               tabIndex={0}
               role="button"
@@ -303,10 +324,10 @@ export default function EditorialGallery({
                   isFading ? "opacity-0" : "opacity-100"
                 } group-hover:scale-105 group-focus-within:scale-105`}
               />
-              <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100" />
               <div className="absolute inset-x-0 bottom-0 translate-y-4 p-5 text-white opacity-0 transition duration-500 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
                 <div className="mb-3 h-px w-0 bg-white/80 transition-all duration-700 group-hover:w-12 group-focus-within:w-12" />
-                <h3 className="font-serif text-2xl leading-tight">{title}</h3>
+                <h3 className="text-xl font-bold tracking-tight leading-tight">{title}</h3>
                 <p className="mt-2 flex items-center gap-1.5 text-xs font-medium tracking-wide text-white/80">
                   <MapPin size={13} aria-hidden="true" /> {currentImage.location || "Event gallery"}
                 </p>
@@ -319,18 +340,18 @@ export default function EditorialGallery({
       {/* EDITORIAL GALLERY MODAL */}
       {selectedIndex !== null && currentModalImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 backdrop-blur-md sm:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-md sm:p-6"
           role="dialog"
           aria-modal="true"
           aria-label="Event image viewer"
           onClick={handleCloseModal}
         >
           <div
-            className="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-emerald-900/40 bg-[#0d1110] shadow-2xl sm:max-h-[calc(100vh-3rem)]"
+            className="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-(--border-color) bg-(--card-bg) shadow-2xl sm:max-h-[calc(100vh-3rem)]"
             onClick={(event) => event.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex items-center justify-between gap-4 border-b border-(--border-color) px-4 py-3 sm:px-6 sm:py-4">
               {/* Title & Venue Input / Text */}
               <div className="min-w-0 flex-1">
                 {isEditing ? (
@@ -343,10 +364,10 @@ export default function EditorialGallery({
                         setHasUnsavedChanges(true);
                       }}
                       placeholder="Title / Caption..."
-                      className="w-full rounded-md border border-emerald-500/50 bg-black/60 px-2.5 py-1 text-sm font-bold text-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-md border border-(--border-color) bg-(--bg-app) px-2.5 py-1 text-sm font-bold text-(--text-primary) focus:outline-none focus:ring-2 focus:ring-(--btn-primary-bg)"
                     />
-                    <div className="flex items-center gap-1 text-xs text-white/70">
-                      <MapPin size={12} className="text-emerald-400 shrink-0" />
+                    <div className="flex items-center gap-1 text-xs text-(--text-muted)">
+                      <MapPin size={12} className="text-(--accent) shrink-0" />
                       <input
                         type="text"
                         value={editLocation}
@@ -355,23 +376,23 @@ export default function EditorialGallery({
                           setHasUnsavedChanges(true);
                         }}
                         placeholder="Venue / Location..."
-                        className="w-full rounded-md border border-white/20 bg-black/60 px-2 py-0.5 text-xs text-white/90 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                        className="w-full rounded-md border border-(--border-color) bg-(--bg-app) px-2 py-0.5 text-xs text-(--text-primary) focus:outline-none focus:ring-2 focus:ring-(--btn-primary-bg)"
                       />
                     </div>
                   </div>
                 ) : (
                   <>
-                    <h2 className="truncate text-sm font-bold text-white sm:text-base">
+                    <h2 className="truncate text-sm font-bold text-(--text-primary) sm:text-base">
                       {imageTitle(currentModalImage, selectedIndex)}
                     </h2>
-                    <p className="mt-1 flex items-center gap-1.5 text-xs text-white/55">
+                    <p className="mt-1 flex items-center gap-1.5 text-xs text-(--text-muted)">
                       <MapPin size={13} aria-hidden="true" /> {currentModalImage.location || "Event gallery"}
                     </p>
                   </>
                 )}
               </div>
 
-              {/* Action Buttons: Edit, Save, Delete & Close */}
+              {/* Action Buttons */}
               <div className="flex items-center gap-2 shrink-0">
                 {canManage && (
                   <>
@@ -379,7 +400,7 @@ export default function EditorialGallery({
                       <button
                         type="button"
                         onClick={() => setIsEditing(true)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-950/30 px-3 py-1.5 text-xs font-semibold text-emerald-400 transition hover:bg-emerald-800/40"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-color) bg-(--bg-app) px-3 py-1.5 text-xs font-semibold text-(--text-primary) transition hover:bg-(--card-hover)"
                       >
                         <Edit2 size={13} />
                         <span>Edit</span>
@@ -389,7 +410,7 @@ export default function EditorialGallery({
                         type="button"
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400 bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-(--btn-primary-bg) px-3.5 py-1.5 text-xs font-bold text-(--btn-primary-text) transition hover:opacity-90 disabled:opacity-50"
                       >
                         <Save size={13} />
                         <span>{isSaving ? "Saving..." : "Save"}</span>
@@ -398,8 +419,9 @@ export default function EditorialGallery({
 
                     <button
                       type="button"
-                      onClick={handleDelete}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-950/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-800/40"
+                      onClick={openDeleteConfirm}
+                      aria-haspopup="dialog"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-500 transition hover:bg-red-500/20"
                     >
                       <Trash2 size={13} />
                       <span>Delete</span>
@@ -411,15 +433,15 @@ export default function EditorialGallery({
                   type="button"
                   onClick={handleCloseModal}
                   aria-label="Close image viewer"
-                  className="shrink-0 rounded-lg p-2 text-white/65 transition hover:bg-white/10 hover:text-white"
+                  className="shrink-0 rounded-lg p-2 text-(--text-muted) transition hover:bg-(--card-hover) hover:text-(--text-primary)"
                 >
                   <X size={18} />
                 </button>
               </div>
             </div>
 
-            {/* Modal Body: Image View / Crop Area */}
-            <div className="relative flex min-h-[300px] flex-1 items-center justify-center bg-[#080b0a] p-3 sm:p-6">
+            {/* Modal Body */}
+            <div className="relative flex min-h-[300px] flex-1 items-center justify-center bg-black p-3 sm:p-6">
               {isEditing ? (
                 <div className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-xl bg-black">
                   <Cropper
@@ -459,7 +481,7 @@ export default function EditorialGallery({
                         type="button"
                         onClick={() => setSelectedIndex((selectedIndex - 1 + images.length) % images.length)}
                         aria-label="Previous image"
-                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/45 p-2.5 text-white transition hover:bg-[#288c83] sm:left-5"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-2.5 text-white transition hover:bg-(--btn-primary-bg) sm:left-5"
                       >
                         <ChevronLeft size={20} />
                       </button>
@@ -467,7 +489,7 @@ export default function EditorialGallery({
                         type="button"
                         onClick={() => setSelectedIndex((selectedIndex + 1) % images.length)}
                         aria-label="Next image"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/45 p-2.5 text-white transition hover:bg-[#288c83] sm:right-5"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-2.5 text-white transition hover:bg-(--btn-primary-bg) sm:right-5"
                       >
                         <ChevronRight size={20} />
                       </button>
@@ -477,17 +499,17 @@ export default function EditorialGallery({
               )}
             </div>
 
-            {/* Modal Footer: Date Input & Download */}
-            <div className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 sm:px-6">
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between gap-3 border-t border-(--border-color) px-4 py-3 sm:px-6">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-medium tracking-wide text-white/50">
+                <span className="text-xs font-medium tracking-wide text-(--text-muted)">
                   {selectedIndex + 1} / {images.length}
                 </span>
 
                 {/* Date Input / Label */}
                 {isEditing ? (
-                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-black/50 px-3 py-1">
-                    <span className="text-xs font-semibold text-emerald-400">Date:</span>
+                  <div className="flex items-center gap-2 rounded-lg border border-(--border-color) bg-(--bg-app) px-3 py-1">
+                    <span className="text-xs font-semibold text-(--text-secondary)">Date:</span>
                     <input
                       type="date"
                       value={editDate}
@@ -495,11 +517,11 @@ export default function EditorialGallery({
                         setEditDate(e.target.value);
                         setHasUnsavedChanges(true);
                       }}
-                      className="bg-transparent text-xs text-white focus:outline-hidden"
+                      className="bg-transparent text-xs text-(--text-primary) focus:outline-none"
                     />
                   </div>
                 ) : currentModalImage.date ? (
-                  <span className="rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/70">
+                  <span className="rounded-md border border-(--border-color) bg-(--bg-app) px-2.5 py-1 text-xs text-(--text-muted)">
                     Date: {new Date(currentModalImage.date).toLocaleDateString()}
                   </span>
                 ) : null}
@@ -510,7 +532,7 @@ export default function EditorialGallery({
                 <button
                   type="button"
                   onClick={() => downloadImage(currentModalImage, selectedIndex)}
-                  className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-bold text-white transition hover:bg-[#288c83]"
+                  className="inline-flex items-center gap-2 rounded-lg border border-(--border-color) bg-(--bg-app) px-3 py-2 text-xs font-bold text-(--text-primary) transition hover:bg-(--card-hover)"
                   title="Download image"
                 >
                   <Download size={15} /> Download
@@ -520,6 +542,31 @@ export default function EditorialGallery({
           </div>
         </div>
       )}
+
+      {/* Delete confirmation (sits above the viewer) */}
+      <ConfirmDeleteModal
+        open={confirmDeleteOpen && currentModalImage !== null}
+        title="Delete this image?"
+        description={
+          <>
+            {currentModalImage?.caption ? (
+              <>
+                <span className="font-semibold text-(--text-primary)">“{currentModalImage.caption}”</span> will be
+                permanently removed from the gallery.
+              </>
+            ) : (
+              "This image will be permanently removed from the gallery."
+            )}{" "}
+            This action cannot be undone.
+          </>
+        }
+        confirmLabel="Delete image"
+        loading={isDeleting}
+        error={deleteError}
+        lockScroll={false}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </section>
   );
 }

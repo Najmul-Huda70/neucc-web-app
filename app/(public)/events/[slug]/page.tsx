@@ -1,10 +1,8 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, type ReactNode } from "react";
 
 import EventHeader from "@/components/events/EventHeader";
 import EventCard, { type PublicEventCardData } from "@/components/public/events/EventCard";
@@ -35,31 +33,38 @@ type PublicEventDetailsPageProps = {
   onEditModeChange?: (mode: "images" | "description" | "details" | "sponsors" | "gallery") => void;
 };
 
-// Date formatting utility function
 function formatEventDate(startDate?: string | Date | null, endDate?: string | Date | null) {
   if (!startDate) return "N/A";
   const start = new Date(startDate);
   if (isNaN(start.getTime())) return "N/A";
 
-  const startFormatted = start.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" };
+  const startFormatted = start.toLocaleDateString("en-US", opts);
 
   if (!endDate) return startFormatted;
   const end = new Date(endDate);
-  if (isNaN(end.getTime()) || start.toDateString() === end.toDateString()) {
-    return startFormatted;
-  }
+  if (isNaN(end.getTime()) || start.toDateString() === end.toDateString()) return startFormatted;
 
-  const endFormatted = end.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return `${startFormatted} - ${end.toLocaleDateString("en-US", opts)}`;
+}
 
-  return `${startFormatted} - ${endFormatted}`;
+/**
+ * Shared page container: every section uses the SAME horizontal padding & max width,
+ * so left/right edges align perfectly from header content to footer.
+ */
+function Container({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>
+  );
+}
+
+/** Consistent vertical rhythm between sections. */
+function Section({ children, divider = true }: { children: ReactNode; divider?: boolean }) {
+  return (
+    <section className={`py-10 sm:py-14 ${divider ? "border-t border-(--border-color)" : ""}`}>
+      {children}
+    </section>
+  );
 }
 
 export default function PublicEventDetailsPage({
@@ -88,58 +93,51 @@ export default function PublicEventDetailsPage({
     loadEvent();
   }, [slug]);
 
-  if (loading)
-    return (
-      <EventDetailsSkeleton/>
-    );
+  if (loading) return <EventDetailsSkeleton />;
 
   if (error || !event)
     return (
-      <div className="mx-auto max-w-5xl px-4 py-16">
-        <p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-700">
+      <Container className="py-16">
+        <p
+          role="alert"
+          className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-(--text-important)"
+        >
           {error || "Event not found."}
         </p>
-      </div>
+      </Container>
     );
 
   const formattedDate = formatEventDate(event.startDate, event.endDate);
+  const hasSponsors = event.eventSponsors.length > 0 || canManage;
+  const hasGallery = event.galleries.length > 0 || canManage;
+  const related = event.relatedEvents.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#f3f1eb] text-[#202522]">
-      <motion.article
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
-        className="overflow-hidden bg-[#fffdfa]"
-      >
-        {/* 1. Header Component */}
-        <EventHeader
-          title={event.title}
-          shortDescription={event.shortDescription}
-          type={event.type}
-          status={event.status}
-          detailBannerUrl={event.detailBannerUrl}
-          committee={event.committee}
-          startDate={event.startDate}
-          endDate={event.endDate}
-          vanue={event.vanue}
-          canManage={canManage}
-          onEditImage={() => onEditModeChange?.("images")}
-        />
+    <main className="min-h-screen bg-(--bg-app) text-(--text-primary)">
+      {/* 1. Hero / Header */}
+      <EventHeader
+        title={event.title}
+        shortDescription={event.shortDescription}
+        type={event.type}
+        status={event.status}
+        detailBannerUrl={event.detailBannerUrl}
+        committee={event.committee}
+        startDate={event.startDate}
+        endDate={event.endDate}
+        vanue={event.vanue}
+        canManage={canManage}
+        onEditImage={() => onEditModeChange?.("images")}
+      />
 
-        <div className="mx-auto w-full max-w-360 px-5 py-10 sm:px-10 sm:py-14 lg:px-16">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-20">
-            {/* 2. Description Component */}
-            <EventDescriptionSection
-              description={event.description}
-              canManage={canManage}
-              onEditDescription={() => onEditModeChange?.("description")}
-            />
-
-            {/* 3. At a Glance Component */}
+      {/* 2. Main content: description + sticky sidebar */}
+      <Container className="py-10 sm:py-14">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-16">
+          {/* Mobile: key info first, Desktop: sidebar on the right */}
+          <div className="order-1 lg:order-2">
             <EventAtAGlance
               type={event.type}
               committee={event.committee}
+              status={event.status}
               formattedDate={formattedDate}
               venue={event.vanue}
               canManage={canManage}
@@ -147,61 +145,66 @@ export default function PublicEventDetailsPage({
             />
           </div>
 
-          {/* 4. Sponsors Component */}
-          <EventSponsorsSection
-            sponsors={event.eventSponsors}
-            canManage={canManage}
-            onEditSponsors={() => onEditModeChange?.("sponsors")}
-          />
-
-          {/* 5. Gallery Component */}
-          <EventGallerySection
-            galleries={event.galleries}
-            canManage={canManage}
-          />
+          <div className="order-2 min-w-0 lg:order-1">
+            <EventDescriptionSection
+              description={event.description}
+              canManage={canManage}
+              onEditDescription={() => onEditModeChange?.("description")}
+            />
+          </div>
         </div>
-      </motion.article>
+      </Container>
 
-      {/* Related Events Section */}
-      {event.relatedEvents.length > 0 && (
-        <motion.section
-          initial={{ opacity: 0, y: -15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.5 }}
-          className="mx-auto mt-8 w-full max-w-1440px px-5 pb-16 sm:px-10 lg:px-16"
-        >
-          <div className="mb-5 flex items-end justify-between gap-4 border-b border-[#d9d5cc] pb-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9b744e]">
-                Keep exploring
-              </p>
-              <h2 className="mt-1 text-xl font-black tracking-tight sm:text-2xl">
+      {/* 3. Gallery */}
+      {hasGallery && (
+        <Section>
+          <Container>
+            <EventGallerySection
+              galleries={event.galleries}
+              canManage={canManage}
+              onAddGallery={() => onEditModeChange?.("gallery")}
+            />
+          </Container>
+        </Section>
+      )}
+
+      {/* 4. Sponsors */}
+      {hasSponsors && (
+        <Section>
+          <Container>
+            <EventSponsorsSection
+              sponsors={event.eventSponsors}
+              canManage={canManage}
+              onEditSponsors={() => onEditModeChange?.("sponsors")}
+            />
+          </Container>
+        </Section>
+      )}
+
+      {/* 5. Related events */}
+      {related.length > 0 && (
+        <section className="border-t border-(--border-color) bg-(--card-bg) py-10 sm:py-14">
+          <Container>
+            <div className="mb-6 flex items-center justify-between gap-4 sm:mb-8">
+              <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
                 More {event.type.toLowerCase()} events
               </h2>
-            </div>
-            <Link
-              href={`/events?type=${event.type}`}
-              className="hidden text-xs font-bold text-(--text-secondary) hover:text-(--btn-primary-bg) sm:block"
-            >
-              View all <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {event.relatedEvents.slice(0, 3).map((related, index) => (
-              <motion.div
-                key={related.eventId}
-                initial={{ opacity: 0, y: -10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.35, delay: index * 0.08 }}
+              <Link
+                href={`/events?type=${event.type}`}
+                className="shrink-0 text-sm font-semibold text-(--text-secondary) transition hover:text-(--btn-primary-bg)"
               >
-                <EventCard event={related} />
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
+                View all <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+              {related.map((item) => (
+                <EventCard key={item.eventId} event={item} />
+              ))}
+            </div>
+          </Container>
+        </section>
       )}
-    </div>
+    </main>
   );
 }

@@ -12,6 +12,15 @@ type EventAtAGlanceProps = {
   onEditDetails?: () => void;
 };
 
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1 py-4 first:pt-0 last:pb-0">
+      <dt className="text-xs font-medium text-(--text-muted)">{label}</dt>
+      <dd className="text-sm font-semibold text-(--text-primary)">{children}</dd>
+    </div>
+  );
+}
+
 export default function EventAtAGlance({
   type,
   committee,
@@ -22,74 +31,34 @@ export default function EventAtAGlance({
   onEditDetails,
 }: EventAtAGlanceProps) {
   return (
-    <aside className="self-start border-t border-[#d9d5cc] pt-6 lg:sticky lg:top-8 lg:border-t-0 lg:border-l lg:pl-7">
-      <div className="flex items-center justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9b744e]">
-          At a glance
-        </p>
+    <aside className="self-start rounded-2xl border border-(--border-color) bg-(--card-bg) p-5 sm:p-6 lg:sticky lg:top-24">
+      <div className="mb-5 flex items-center justify-between gap-3 border-b border-(--border-color) pb-4">
+        <h2 className="text-base font-bold tracking-tight text-(--text-primary)">At a glance</h2>
 
         {canManage && (
           <button
             type="button"
             onClick={onEditDetails}
-            className="flex items-center gap-1 text-[11px] font-bold text-[#7a817b] transition hover:text-[#202522]"
+            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-bold text-(--text-muted) transition hover:bg-(--card-hover) hover:text-(--text-primary)"
           >
             <Edit2 size={13} />
-            <span>Edit Info</span>
+            <span>Edit info</span>
           </button>
         )}
       </div>
 
-      <dl className="mt-5 divide-y divide-[#e4e0d7] border-y border-[#e4e0d7]">
-        <div className="py-4">
-          <dt className="text-[11px] uppercase tracking-[0.14em] text-[#7a817b]">
-            Event type
-          </dt>
-          <dd className="mt-1 text-sm font-bold">{type}</dd>
-        </div>
+      <dl className="divide-y divide-(--border-color)">
+        <Row label="Event type">{type}</Row>
 
-        <div className="py-4">
-          <dt className="text-[11px] uppercase tracking-[0.14em] text-[#7a817b]">
-            Committee
-          </dt>
-          <dd className="mt-1 text-sm font-bold">
-            {committee?.type}
-            <span className="font-normal text-[#7a817b]">
-              {" "}
-              · {committee?.year}
-            </span>
-          </dd>
-        </div>
+        <Row label="Committee">
+          {committee?.type}
+          <span className="font-normal text-(--text-muted)"> · {committee?.year}</span>
+        </Row>
 
-        {status && (
-          <div className="py-4">
-            <dt className="text-[11px] uppercase tracking-[0.14em] text-[#7a817b]">
-              Status
-            </dt>
-            <dd className="mt-1 inline-flex items-center gap-2 text-sm font-bold">
-              <span className="h-2 w-2 rounded-full bg-[#288c83]" />
-              {status}
-            </dd>
-          </div>
-        )}
+     
 
-        {formattedDate && (
-          <div className="py-4">
-            <dt className="text-[11px] uppercase tracking-[0.14em] text-[#7a817b]">
-              Date
-            </dt>
-            <dd className="mt-1 text-sm font-bold">{formattedDate}</dd>
-          </div>
-        )}
-
-        {venue && (
-          <div className="py-4">
-            <dt className="text-[11px] uppercase tracking-[0.14em] text-[#7a817b]">
-              Venue
-            </dt>
-            <dd className="mt-1 text-sm font-bold">{venue}</dd>
-          </div>
-        )}
+        {formattedDate && <Row label="Date">{formattedDate}</Row>}
+        {venue && <Row label="Venue">{venue}</Row>}
       </dl>
     </aside>
   );
