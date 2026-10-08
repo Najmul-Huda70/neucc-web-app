@@ -37,7 +37,6 @@ export default function UserRowItem({
   onDeleteClick,
 }: UserRowItemProps) {
   const postTitles = getPostTitles(user);
-
   if (viewMode === "desktop") {
     return (
       <motion.tr
@@ -50,9 +49,11 @@ export default function UserRowItem({
       >
         <td className="p-3 font-medium">
           {user.name}
-          {postTitles && (
+          {postTitles ? (
             <div className="text-[10px] font-normal text-(--text-secondary)">{postTitles}</div>
-          )}
+          ) : user.session ? (
+            <div className="text-[10px] font-normal text-(--text-secondary)">Session: {user.session}</div>
+          ) : null}
         </td>
         <td className="p-3 text-(--text-secondary)">{user.email}</td>
         <td className="p-3">

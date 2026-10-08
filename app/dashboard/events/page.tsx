@@ -1,12 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EventCard, { type PublicEventCardData } from "@/components/public/events/EventCard";
 import EventFormModal from "@/components/dashboard/events/EventFormModal";
 import EventSkeleton from "@/components/dashboard/events/EventSkeleton";
-type EventRecord = PublicEventCardData & { eventId: string; slug: string; status: string; committeeId: string; description: string };
+import ErrorState from "@/components/ui/ErrorState";
+
+type EventRecord = PublicEventCardData & {
+  eventId: string;
+  slug: string;
+  status: string;
+  committeeId: string;
+  description: string;
+};
 
 const eventGroups = [
   { value: "WORKSHOP", label: "Workshop", types: ["WORKSHOP"] },
@@ -48,9 +56,13 @@ export default function EventsPage() {
 
   useEffect(() => {
     const request = window.setTimeout(async () => {
-      const response = await fetch("/api/profile");
-      const data = await response.json();
-      setCanManage(["ADMIN", "MODERATOR"].includes(data.user?.role));
+      try {
+        const response = await fetch("/api/profile");
+        const data = await response.json();
+        setCanManage(["ADMIN", "MODERATOR"].includes(data.user?.role));
+      } catch (profileError) {
+        console.error("Failed to fetch user profile:", profileError);
+      }
     }, 0);
     return () => window.clearTimeout(request);
   }, []);
@@ -65,52 +77,120 @@ export default function EventsPage() {
   }, [events, searchQuery, selectedType]);
 
   const groupedEvents = useMemo(
-    () => eventGroups
-      .map((group) => ({ ...group, events: displayedEvents.filter((event) => group.types.includes(event.type)) }))
-      .filter((group) => group.events.length > 0),
+    () =>
+      eventGroups
+        .map((group) => ({ ...group, events: displayedEvents.filter((event) => group.types.includes(event.type)) }))
+        .filter((group) => group.events.length > 0),
     [displayedEvents]
   );
 
   return (
-   <div className="min-h-[calc(100vh-8rem)] bg-(--bg-app) px-4 sm:px-6 pt-6 pb-6 text-(--text-primary)">
-  <div className="mx-auto w-full max-w-7xl">
-    <header className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h1 className="text-2xl font-black tracking-tight sm:text-3xl leading-none">
-          Event management
-        </h1>
-      </div>
-      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-        <label className="group relative w-full sm:w-56 lg:w-72">
-          <span className="sr-only">Search events</span>
-          <Search size={15} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--text-secondary)" />
-          <input
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search events"
-            className="w-full rounded-md border bg-(--card-bg) py-2.5 pl-10 pr-4 text-xs outline-none focus:border-(--btn-primary-bg)"
-            style={{ borderColor: "var(--btn-secondary-border)" }}
-          />
-        </label>
-        {canManage && (
-          <button
-            onClick={() => setModalOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-xl bg-(--btn-primary-bg) px-4 py-2.5 text-xs font-bold text-(--btn-primary-text)"
-          >
-            <Plus size={16} /> New event
-          </button>
-        )}
-      </div>
-    </header>
+    <div className="min-h-[calc(100vh-8rem)] bg-(--bg-app) px-4 pt-6 pb-6 text-(--text-primary) sm:px-6">
+      <div className="mx-auto w-full max-w-7xl">
+        <header className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-black leading-none tracking-tight sm:text-3xl">
+              Event management
+            </h1>
+          </div>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <label className="group relative w-full sm:w-56 lg:w-72">
+              <span className="sr-only">Search events</span>
+              <Search size={15} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-(--text-secondary)" />
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search events"
+                className="w-full rounded-md border bg-(--card-bg) py-2.5 pl-10 pr-4 text-xs outline-none focus:border-(--btn-primary-bg)"
+                style={{ borderColor: "var(--btn-secondary-border)" }}
+              />
+            </label>
+            {canManage && (
+              <button
+                onClick={() => setModalOpen(true)}
+                className="flex items-center justify-center gap-2 rounded-xl bg-(--btn-primary-bg) px-4 py-2.5 text-xs font-bold text-(--btn-primary-text)"
+              >
+                <Plus size={16} /> New event
+              </button>
+            )}
+          </div>
+        </header>
 
         <div className="mb-8 flex flex-wrap gap-2">
-          <button type="button" onClick={() => setSelectedType("ALL")} className={`rounded-md border px-5 py-2 text-xs font-semibold transition ${selectedType === "ALL" ? "bg-(--btn-primary-bg) text-(--btn-primary-text)" : "bg-(--card-bg) hover:border-(--btn-primary-bg)"}`} style={{ borderColor: "var(--btn-secondary-border)" }}>All</button>
-          {eventGroups.map((group) => <button key={group.value} type="button" onClick={() => setSelectedType(group.value)} className={`rounded-md border px-5 py-2 text-xs font-semibold capitalize transition ${selectedType === group.value ? "bg-(--btn-primary-bg) text-(--btn-primary-text)" : "bg-(--card-bg) hover:border-(--btn-primary-bg)"}`} style={{ borderColor: "var(--btn-secondary-border)" }}>{group.label}</button>)}
+          <button
+            type="button"
+            onClick={() => setSelectedType("ALL")}
+            className={`rounded-md border px-5 py-2 text-xs font-semibold transition ${
+              selectedType === "ALL"
+                ? "bg-(--btn-primary-bg) text-(--btn-primary-text)"
+                : "bg-(--card-bg) hover:border-(--btn-primary-bg)"
+            }`}
+            style={{ borderColor: "var(--btn-secondary-border)" }}
+          >
+            All
+          </button>
+          {eventGroups.map((group) => (
+            <button
+              key={group.value}
+              type="button"
+              onClick={() => setSelectedType(group.value)}
+              className={`rounded-md border px-5 py-2 text-xs font-semibold capitalize transition ${
+                selectedType === group.value
+                  ? "bg-(--btn-primary-bg) text-(--btn-primary-text)"
+                  : "bg-(--card-bg) hover:border-(--btn-primary-bg)"
+              }`}
+              style={{ borderColor: "var(--btn-secondary-border)" }}
+            >
+              {group.label}
+            </button>
+          ))}
         </div>
 
-        {error && <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700">{error}</div>}
-        {loading ? <EventSkeleton />: displayedEvents.length === 0 ? <div className="rounded-2xl border border-dashed bg-(--card-bg) px-6 py-20 text-center" style={{ borderColor: "var(--btn-secondary-border)" }}><h2 className="font-bold">No events found</h2><p className="mt-2 text-sm text-(--text-secondary)">Try a different search.</p></div> : <div className="space-y-10">{groupedEvents.map((group) => <section key={group.value}><h2 className="mb-4 text-sm font-semibold text-(--text-secondary)">{group.label} ({group.events.length})</h2><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{group.events.map((event) => <div key={event.eventId} className="relative cursor-pointer" onClick={() => router.push(`/dashboard/events/${event.slug}`)}><EventCard event={event} /><span className="pointer-events-none absolute right-4 top-4 rounded-full bg-(--card-bg)/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm">{event.status}</span></div>)}</div></section>)}</div>}
-        <EventFormModal key={modalOpen ? "new-open" : "new-closed"} isOpen={modalOpen} onClose={() => setModalOpen(false)} onSaved={fetchEvents} />
+        {/* Dynamic State Rendering */}
+        {loading ? (
+          <EventSkeleton />
+        ) : error ? (
+          <ErrorState message={error} onRetry={fetchEvents} />
+        ) : displayedEvents.length === 0 ? (
+          <div
+            className="rounded-2xl border border-dashed bg-(--card-bg) px-6 py-20 text-center"
+            style={{ borderColor: "var(--btn-secondary-border)" }}
+          >
+            <h2 className="font-bold">No events found</h2>
+            <p className="mt-2 text-sm text-(--text-secondary)">Try a different search.</p>
+          </div>
+        ) : (
+          <div className="space-y-10">
+            {groupedEvents.map((group) => (
+              <section key={group.value}>
+                <h2 className="mb-4 text-sm font-semibold text-(--text-secondary)">
+                  {group.label} ({group.events.length})
+                </h2>
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {group.events.map((event) => (
+                    <div
+                      key={event.eventId}
+                      className="relative cursor-pointer"
+                      onClick={() => router.push(`/dashboard/events/${event.slug}`)}
+                    >
+                      <EventCard event={event} />
+                      <span className="pointer-events-none absolute right-4 top-4 rounded-full bg-(--card-bg)/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                        {event.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        <EventFormModal
+          key={modalOpen ? "new-open" : "new-closed"}
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onSaved={fetchEvents}
+        />
       </div>
     </div>
   );

@@ -106,7 +106,7 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
       setBusyId(null);
     }
   };
-
+console.log(users);
   const displayedUsers = useMemo(() => {
     let list = [...users];
     if (roleFilter.length > 0) {
@@ -152,7 +152,6 @@ export default function UsersTable({ users, onChanged }: UsersTableProps) {
       </div>
     );
   }
-
   return (
     <>
       {/* Desktop / Tablet Layout */}

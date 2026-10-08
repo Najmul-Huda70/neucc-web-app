@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import EventHeader from "@/components/events/EventHeader";
 import EventCard, { type PublicEventCardData } from "@/components/public/events/EventCard";
@@ -11,6 +11,7 @@ import EventSponsorsSection, { PublicEventSponsor } from "@/components/dashboard
 import EventDescriptionSection from "@/components/dashboard/events/EventDescriptionSection";
 import EventAtAGlance from "@/components/dashboard/events/EventAtAGlance";
 import EventDetailsSkeleton from "@/components/public/events/EventDetailsSkeleton";
+import ErrorState from "@/components/ui/ErrorState";
 
 type PublicEventDetail = {
   title: string;
@@ -76,36 +77,37 @@ export default function PublicEventDetailsPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadEvent = async () => {
-      try {
-        const response = await fetch(`/api/events/${slug}`);
-        const data = await response.json();
-        if (!response.ok || data.data?.status !== "PUBLISHED") throw new Error("Event not found.");
-        setEvent(data.data);
-      } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : "Unable to load event.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEvent();
+  const loadEvent = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/events/${slug}`);
+      const data = await response.json();
+      if (!response.ok || data.data?.status !== "PUBLISHED") throw new Error("Event not found.");
+      setEvent(data.data);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Unable to load event.");
+    } finally {
+      setLoading(false);
+    }
   }, [slug]);
+
+  useEffect(() => {
+    loadEvent();
+  }, [loadEvent]);
 
   if (loading) return <EventDetailsSkeleton />;
 
-  if (error || !event)
+  if (error || !event) {
     return (
-      <Container className="py-16">
-        <p
-          role="alert"
-          className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-(--text-important)"
-        >
-          {error || "Event not found."}
-        </p>
-      </Container>
+      <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-(--bg-app) px-4 py-10">
+        <ErrorState
+          message={error || "Event not found."}
+          onRetry={loadEvent}
+        />
+      </main>
     );
+  }
 
   const formattedDate = formatEventDate(event.startDate, event.endDate);
   const hasSponsors = event.eventSponsors.length > 0 || canManage;

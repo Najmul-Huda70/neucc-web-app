@@ -19,7 +19,7 @@ model User {
   image    String?
   role     Role    @default(MEMBER)
   status   Status  @default(ACTIVE)
-
+  session String? // for single-session login, store the session ID here
   // Forgot Password OTP Fields (store the OTP hashed, never plain text)
   resetOtp          String?
   resetOtpExpiresAt DateTime?

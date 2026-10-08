@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Loader2, Shield, UserCheck, User } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Shield, UserCheck, User } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import GeneralDetailsForm from "@/components/dashboard/profile/GeneralDetailsForm";
 import SecurityForm from "@/components/dashboard/profile/SecurityForm";
-import { Role } from "@/lib/types";
 import ProfilePhotoTab from "@/components/dashboard/profile/ProfilePhotoTab";
+import ErrorState from "@/components/ui/ErrorState";
+import ProfileSkeleton from "@/components/dashboard/profile/ProfileSkeleton";
+import { Role } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
 interface UserPostRelation {
@@ -65,28 +67,32 @@ const getRoleBadge = (role?: string) => {
 export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("photo");
   const router = useRouter();
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
+      setLoading(true);
+      setError(null);
       const res = await fetch("/api/profile");
       const data = await res.json();
       if (res.ok) {
         setProfile(data.user);
       } else {
-        toast.error(data.error || "Failed to load profile details.");
+        throw new Error(data.error || "Failed to load profile details.");
       }
     } catch (err) {
-      console.error("Fetch profile error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Unable to load profile details.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleUpdateSuccess = (message: string) => {
     toast.success(message);
@@ -114,45 +120,47 @@ export default function ProfilePage() {
       {/* Toast Provider */}
       <Toaster position="top-right" reverseOrder={false} />
 
-      {/* 1. Always Visible Header Title */}
+      {/* Always Fixed Header Title */}
       <h1 className="text-2xl font-black tracking-tight sm:text-3xl leading-none text-slate-900 px-1">
         Profile Settings
       </h1>
 
-      {/* 2. Loading State matching Event Management UI */}
+      {/* Dynamic Content Switching */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center min-h-[350px] space-y-3">
-          <Loader2 className="w-7 h-7 animate-spin text-teal-600" />
-          <p className="text-sm font-medium text-teal-700/80">
-            Loading profile...
-          </p>
+        <ProfileSkeleton />
+      ) : error || !profile ? (
+        <div className="flex min-h-[350px] items-center justify-center rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs">
+          <ErrorState
+            message={error || "Profile not found."}
+            onRetry={fetchProfile}
+          />
         </div>
       ) : (
-        /* 3. Outer Card Wrapper (Rendered when loaded) */
+        /* Outer Profile Card Wrapper */
         <div className="w-full bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
-          {/* Header Profile Summary Banner */}
+          {/* Top Profile Summary Header */}
           <div className="p-4 sm:p-6 border-b border-slate-100 bg-slate-50/40 flex flex-col sm:flex-row items-center sm:items-center justify-between gap-4 text-center sm:text-left">
             <div className="flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
-              <div className="w-14 h-14 sm:w-12 sm:h-12 rounded-xl bg-teal-700 text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-xs">
-                {profile?.image ? (
+              <div className="w-14 h-14 sm:w-12 sm:h-12 rounded-xl bg-teal-700 text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
+                {profile.image ? (
                   <img
                     src={profile.image}
                     alt={profile.name}
                     className="w-full h-full object-cover rounded-xl"
                   />
                 ) : (
-                  getInitials(profile?.name)
+                  getInitials(profile.name)
                 )}
               </div>
 
               <div className="space-y-0.5">
                 <div className="flex items-center justify-center sm:justify-start gap-2">
                   <h2 className="text-base sm:text-lg font-semibold text-slate-900 leading-snug">
-                    {profile?.name}
+                    {profile.name}
                   </h2>
                 </div>
                 <p className="text-xs text-slate-500">
-                  {profile?.user_posts?.[0]?.post?.postTitle ? (
+                  {profile.user_posts?.[0]?.post?.postTitle ? (
                     <>
                       {profile.user_posts[0].post.postTitle} •&nbsp;The&nbsp;
                       {profile.user_posts[0].post.committee?.type &&
@@ -166,14 +174,14 @@ export default function ProfilePage() {
                       {profile.user_posts[0].post.committee?.year}
                     </>
                   ) : (
-                    <>{profile?.email}</>
+                    <>{profile.email}</>
                   )}
                 </p>
               </div>
             </div>
 
             {(() => {
-              const badge = getRoleBadge(profile?.role);
+              const badge = getRoleBadge(profile.role);
               return (
                 <div
                   className={`inline-flex items-center gap-1.5 border px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 ${badge.style}`}
@@ -224,11 +232,11 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Tab Body Content */}
+          {/* Active Tab View */}
           <div className="w-full p-4 sm:p-8">
             {activeTab === "photo" && (
               <ProfilePhotoTab
-                currentImage={profile?.image}
+                currentImage={profile.image}
                 onUpdateSuccess={() =>
                   handleUpdateSuccess("Profile photo updated successfully!")
                 }
@@ -236,7 +244,7 @@ export default function ProfilePage() {
               />
             )}
 
-            {activeTab === "general" && profile && (
+            {activeTab === "general" && (
               <GeneralDetailsForm
                 initialName={profile.name}
                 initialEmail={profile.email}

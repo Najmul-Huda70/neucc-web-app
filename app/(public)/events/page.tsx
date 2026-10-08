@@ -1,10 +1,11 @@
 "use client";
 
 import { Loader2, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import EventCard, { type PublicEventCardData } from "@/components/public/events/EventCard";
 import EventSkeleton from "@/components/public/events/EventSkeleton";
+import ErrorState from "@/components/ui/ErrorState"; // Error Component Import
 
 type EventRecord = PublicEventCardData;
 
@@ -23,22 +24,24 @@ export default function PublicEventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadEvents = async () => {
-      try {
-        const response = await fetch("/api/events?status=PUBLISHED&page=1&pageSize=100");
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Unable to load events.");
-        setEvents(data.data?.items ?? []);
-      } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : "Unable to load events.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEvents();
+  const loadEvents = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/events?status=PUBLISHED&page=1&pageSize=100");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Unable to load events.");
+      setEvents(data.data?.items ?? []);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Unable to load events.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
   const displayedEvents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -81,7 +84,7 @@ export default function PublicEventsPage() {
           <button
             type="button"
             onClick={() => setSelectedType("ALL")}
-            className={`rounded-md border border-(--border-color) px-5 py-2 text-xs font-semibold transition-all ${
+            className={`rounded-md border border-(--border-color) px-5 py-2 text-xs cursor-pointer font-semibold transition-all ${
               selectedType === "ALL" 
                 ? "bg-(--btn-primary-bg) text-(--btn-primary-text)" 
                 : "bg-(--card-bg) text-(--text-primary) hover:bg-(--card-hover) hover:border-(--btn-primary-bg)"
@@ -94,7 +97,7 @@ export default function PublicEventsPage() {
               key={group.value}
               type="button"
               onClick={() => setSelectedType(group.value)}
-              className={`rounded-md border border-(--border-color) px-5 py-2 text-xs font-semibold capitalize transition-all ${
+              className={`rounded-md border border-(--border-color) px-5 py-2 text-xs cursor-pointer font-semibold capitalize transition-all ${
                 selectedType === group.value 
                   ? "bg-(--btn-primary-bg) text-(--btn-primary-text)" 
                   : "bg-(--card-bg) text-(--text-primary) hover:bg-(--card-hover) hover:border-(--btn-primary-bg)"
@@ -105,14 +108,19 @@ export default function PublicEventsPage() {
           ))}
         </div>
 
-        {error && <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-(--text-important)">{error}</div>}
-
+        {/* Dynamic Rendering: Loading -> Error -> Empty -> Events */}
         {loading ? (
           <EventSkeleton />
+        ) : error ? (
+          <ErrorState message={error} onRetry={loadEvents} />
         ) : displayedEvents.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-(--border-color) bg-(--card-bg) px-6 py-20 text-center">
             <h2 className="font-bold">No events found</h2>
-            <p className="mt-2 text-sm text-(--text-muted)">{searchQuery || selectedType !== "ALL" ? "Try a different search or event type." : "Published events will appear here soon."}</p>
+            <p className="mt-2 text-sm text-(--text-muted)">
+              {searchQuery || selectedType !== "ALL"
+                ? "Try a different search or event type."
+                : "Published events will appear here soon."}
+            </p>
           </div>
         ) : (
           <div className="space-y-12">

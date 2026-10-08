@@ -25,6 +25,7 @@ export interface AuthUser extends WithStatus {
   email: string;
   image?: string | null;
   role: Role | string;
+  session?: string | null;
 }
 
 export interface UserBase extends AuthUser, Timestamps {}

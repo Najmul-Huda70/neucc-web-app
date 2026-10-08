@@ -18,6 +18,7 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
+        session: true,
         status: true,
         user_posts: {
           select: {
