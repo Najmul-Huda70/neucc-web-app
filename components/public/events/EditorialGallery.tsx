@@ -1,11 +1,14 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Download, Edit2, MapPin, Save, Trash2, X } from "lucide-react";
-import Image from "next/image";
-import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
-import Cropper, { type Area } from "react-easy-crop";
+import type { Area } from "react-easy-crop";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
+import GalleryGridItem from "@/components/gallery/GalleryGridItem";
+import EditorialGalleryModal from "@/components/gallery/EditorialGalleryModal";
+import GalleryModalHeader from "@/components/gallery/GalleryModalHeader";
+import GalleryModalBody from "@/components/gallery/GalleryModalBody";
+import GalleryModalFooter from "@/components/gallery/GalleryModalFooter";
+
 
 export type SourceGalleryImage = {
   galleryId: string;
@@ -13,6 +16,8 @@ export type SourceGalleryImage = {
   caption?: string | null;
   location?: string | null;
   date?: string | null;
+  isPublic?: boolean;
+  isHero?: boolean;
 };
 
 type EditorialGalleryProps = {
@@ -23,6 +28,8 @@ type EditorialGalleryProps = {
     caption: string;
     location: string;
     date: string;
+    isPublic: boolean;
+    isHero: boolean;
     croppedImageFile?: File | null;
   }) => Promise<void>;
   onDeleteImage?: (galleryId: string) => Promise<void>;
@@ -83,37 +90,35 @@ export default function EditorialGallery({
   const [nextImageIndex, setNextImageIndex] = useState(6);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  // Smooth Modal Mount/Unmount Animation States
   const [isModalMounted, setIsModalMounted] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Edit State Management
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Delete confirmation state
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  // Editable Form Values
   const [editCaption, setEditCaption] = useState("");
   const [editLocation, setEditLocation] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [editIsPublic, setEditIsPublic] = useState(true);
+  const [editIsHero, setEditIsHero] = useState(false);
 
-  // Crop State
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  // Smooth Modal Open
   const handleOpenModal = (index: number) => {
     const currentImg = images[index];
     if (currentImg) {
       setEditCaption(currentImg.caption || "");
       setEditLocation(currentImg.location || "");
       setEditDate(currentImg.date ? new Date(currentImg.date).toISOString().slice(0, 10) : "");
+      setEditIsPublic(currentImg.isPublic !== false);
+      setEditIsHero(currentImg.isHero === true);
     }
     setIsEditing(false);
     setHasUnsavedChanges(false);
@@ -121,7 +126,6 @@ export default function EditorialGallery({
     setDeleteError(null);
     setSelectedIndex(index);
 
-    // Mount and animate in
     setIsModalMounted(true);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -130,7 +134,6 @@ export default function EditorialGallery({
     });
   };
 
-  // Smooth Modal Close
   const handleCloseModal = () => {
     if (isDeleting) return;
     if (hasUnsavedChanges) {
@@ -146,7 +149,7 @@ export default function EditorialGallery({
       setHasUnsavedChanges(false);
       setConfirmDeleteOpen(false);
       setSelectedIndex(null);
-    }, 250); // Matches transition duration
+    }, 250);
   };
 
   useEffect(() => {
@@ -188,7 +191,6 @@ export default function EditorialGallery({
     }
   }
 
-  // Improved Auto-rotation transition logic
   useEffect(() => {
     if (images.length <= 6 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -200,14 +202,12 @@ export default function EditorialGallery({
         ).find((index) => !current.includes(index));
         if (replacement === undefined) return current;
 
-        // Start Fade Out
         setFadingCards((fading) => {
           const next = [...fading];
           next[rotatingCard] = true;
           return next;
         });
 
-        // Change index mid-fade
         setTimeout(() => {
           setPreviousIndexes((previous) => {
             const next = [...previous];
@@ -215,7 +215,6 @@ export default function EditorialGallery({
             return next;
           });
 
-          // Fade back in
           setFadingCards((fading) => {
             const next = [...fading];
             next[rotatingCard] = false;
@@ -246,13 +245,14 @@ export default function EditorialGallery({
       if (croppedAreaPixels) {
         croppedFile = await getCroppedImg(currentImg.imageUrl, croppedAreaPixels);
       }
-
       if (onSaveImage) {
         await onSaveImage({
           galleryId: currentImg.galleryId,
           caption: editCaption,
           location: editLocation,
           date: editDate,
+          isPublic: editIsPublic,
+          isHero: editIsHero,
           croppedImageFile: croppedFile,
         });
       }
@@ -264,11 +264,6 @@ export default function EditorialGallery({
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const openDeleteConfirm = () => {
-    setDeleteError(null);
-    setConfirmDeleteOpen(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -297,7 +292,7 @@ export default function EditorialGallery({
 
   return (
     <section aria-labelledby="event-gallery-title" className="editorial-gallery">
-      {/* Grid Display */}
+      {/* 1. Grid Segment */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {visibleImages.map((image, cardIndex) => {
           const currentImage = images[visibleIndexes[cardIndex]] || image;
@@ -306,271 +301,107 @@ export default function EditorialGallery({
           const title = imageTitle(currentImage, cardIndex);
 
           return (
-            <article
+            <GalleryGridItem
               key={image.galleryId}
-              className="editorial-gallery-card group relative aspect-4/3 overflow-hidden rounded-xl bg-(--card-bg) border border-(--border-color) transition-all duration-300 hover:shadow-lg focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-(--btn-primary-bg)"
-              style={{ "--gallery-delay": `${cardIndex * 80}ms` } as CSSProperties}
-              tabIndex={0}
-              role="button"
-              aria-label={`${title}, ${currentImage.location || "Event gallery"}`}
+              image={currentImage}
+              previousImage={previousImage}
+              isFading={isFading}
+              cardIndex={cardIndex}
+              title={title}
+              canManage={canManage} // <-- pass canManage prop
               onClick={() => handleOpenModal(visibleIndexes[cardIndex])}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  handleOpenModal(visibleIndexes[cardIndex]);
-                }
-              }}
-            >
-              <Image
-                src={previousImage.imageUrl}
-                alt=""
-                fill
-                unoptimized
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className={`absolute inset-0 object-cover transition-all duration-700 ease-in-out ${
-                  isFading ? "opacity-100 scale-100" : "opacity-0 scale-105"
-                } group-hover:scale-105`}
-              />
-              <Image
-                src={currentImage.imageUrl}
-                alt={title}
-                fill
-                unoptimized
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className={`absolute inset-0 object-cover transition-all duration-700 ease-in-out ${
-                  isFading ? "opacity-0 scale-95" : "opacity-100 scale-100"
-                } group-hover:scale-105`}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
-              <div className="absolute inset-x-0 bottom-0 translate-y-3 p-5 text-white opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                <div className="mb-3 h-px w-0 bg-white/80 transition-all duration-500 group-hover:w-12 group-focus-within:w-12" />
-                <h3 className="text-xl font-bold tracking-tight leading-tight">{title}</h3>
-                <p className="mt-2 flex items-center gap-1.5 text-xs font-medium tracking-wide text-white/80">
-                  <MapPin size={13} aria-hidden="true" /> {currentImage.location || "Event gallery"}
-                </p>
-              </div>
-            </article>
+            />
           );
         })}
       </div>
 
-      {/* EDITORIAL GALLERY MODAL WITH SMOOTH ANIMATION */}
-      {isModalMounted && currentModalImage && (
-        <div
-          className={`fixed inset-0 z-50 flex items-center justify-center p-3 backdrop-blur-md sm:p-6 transition-all duration-300 ease-out ${
-            isModalVisible ? "bg-black/80 opacity-100" : "bg-black/0 opacity-0 pointer-events-none"
-          }`}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Event image viewer"
-          onClick={handleCloseModal}
+      {/* 2. Modal Segment */}
+      {currentModalImage && (
+        <EditorialGalleryModal
+          isModalMounted={isModalMounted}
+          isModalVisible={isModalVisible}
+          onCloseModal={handleCloseModal}
         >
-          <div
-            className={`relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-(--border-color) bg-(--card-bg) shadow-2xl sm:max-h-[calc(100vh-3rem)] transition-all duration-300 ease-out ${
-              isModalVisible ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-4 opacity-0"
-            }`}
-            onClick={(event) => event.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between gap-4 border-b border-(--border-color) px-4 py-3 sm:px-6 sm:py-4">
-              <div className="min-w-0 flex-1">
-                {isEditing ? (
-                  <div className="space-y-1.5">
-                    <input
-                      type="text"
-                      value={editCaption}
-                      onChange={(e) => {
-                        setEditCaption(e.target.value);
-                        setHasUnsavedChanges(true);
-                      }}
-                      placeholder="Title / Caption..."
-                      className="w-full rounded-md border border-(--border-color) bg-(--bg-app) px-2.5 py-1 text-sm font-bold text-(--text-primary) focus:outline-none focus:ring-2 focus:ring-(--btn-primary-bg)"
-                    />
-                    <div className="flex items-center gap-1 text-xs text-(--text-muted)">
-                      <MapPin size={12} className="text-(--accent) shrink-0" />
-                      <input
-                        type="text"
-                        value={editLocation}
-                        onChange={(e) => {
-                          setEditLocation(e.target.value);
-                          setHasUnsavedChanges(true);
-                        }}
-                        placeholder="Venue / Location..."
-                        className="w-full rounded-md border border-(--border-color) bg-(--bg-app) px-2 py-0.5 text-xs text-(--text-primary) focus:outline-none focus:ring-2 focus:ring-(--btn-primary-bg)"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <h2 className="truncate text-sm font-bold text-(--text-primary) sm:text-base">
-                      {imageTitle(currentModalImage, selectedIndex ?? 0)}
-                    </h2>
-                    <p className="mt-1 flex items-center gap-1.5 text-xs text-(--text-muted)">
-                      <MapPin size={13} aria-hidden="true" /> {currentModalImage.location || "Event gallery"}
-                    </p>
-                  </>
-                )}
-              </div>
+          <GalleryModalHeader
+            currentImage={currentModalImage}
+            title={imageTitle(currentModalImage, selectedIndex ?? 0)}
+            isEditing={isEditing}
+            canManage={canManage}
+            isSaving={isSaving}
+            editCaption={editCaption}
+            editLocation={editLocation}
+            onCaptionChange={(val) => {
+              setEditCaption(val);
+              setHasUnsavedChanges(true);
+            }}
+            onLocationChange={(val) => {
+              setEditLocation(val);
+              setHasUnsavedChanges(true);
+            }}
+            onEditClick={() => setIsEditing(true)}
+            onSaveClick={handleSave}
+            onDeleteClick={() => {
+              setDeleteError(null);
+              setConfirmDeleteOpen(true);
+            }}
+            onCloseClick={handleCloseModal}
+          />
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 shrink-0">
-                {canManage && (
-                  <>
-                    {!isEditing ? (
-                      <button
-                        type="button"
-                        onClick={() => setIsEditing(true)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-color) bg-(--bg-app) px-3 py-1.5 text-xs font-semibold text-(--text-primary) transition hover:bg-(--card-hover)"
-                      >
-                        <Edit2 size={13} />
-                        <span>Edit</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-(--btn-primary-bg) px-3.5 py-1.5 text-xs font-bold text-(--btn-primary-text) transition hover:opacity-90 disabled:opacity-50"
-                      >
-                        <Save size={13} />
-                        <span>{isSaving ? "Saving..." : "Save"}</span>
-                      </button>
-                    )}
+          <GalleryModalBody
+            currentImage={currentModalImage}
+            title={imageTitle(currentModalImage, selectedIndex ?? 0)}
+            isEditing={isEditing}
+            hasUnsavedChanges={hasUnsavedChanges}
+            totalImages={images.length}
+            crop={crop}
+            zoom={zoom}
+            onCropChange={(newCrop) => {
+              setCrop(newCrop);
+              setHasUnsavedChanges(true);
+            }}
+            onZoomChange={(newZoom) => {
+              setZoom(newZoom);
+              setHasUnsavedChanges(true);
+            }}
+            onCropComplete={(_, pixels) => setCroppedAreaPixels(pixels)}
+            onPrev={() =>
+              setSelectedIndex((current) =>
+                current === null ? null : (current - 1 + images.length) % images.length
+              )
+            }
+            onNext={() =>
+              setSelectedIndex((current) =>
+                current === null ? null : (current + 1) % images.length
+              )
+            }
+          />
 
-                    <button
-                      type="button"
-                      onClick={openDeleteConfirm}
-                      aria-haspopup="dialog"
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-500 transition hover:bg-red-500/20"
-                    >
-                      <Trash2 size={13} />
-                      <span>Delete</span>
-                    </button>
-                  </>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  aria-label="Close image viewer"
-                  className="shrink-0 rounded-lg p-2 text-(--text-muted) transition hover:bg-(--card-hover) hover:text-(--text-primary)"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="relative flex min-h-[300px] flex-1 items-center justify-center bg-black p-3 sm:p-6 overflow-hidden">
-              {isEditing ? (
-                <div className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-xl bg-black">
-                  <Cropper
-                    image={currentModalImage.imageUrl}
-                    crop={crop}
-                    zoom={zoom}
-                    aspect={16 / 9}
-                    onCropChange={(newCrop) => {
-                      setCrop(newCrop);
-                      setHasUnsavedChanges(true);
-                    }}
-                    onZoomChange={(newZoom) => {
-                      setZoom(newZoom);
-                      setHasUnsavedChanges(true);
-                    }}
-                    onCropComplete={(_, pixels) => setCroppedAreaPixels(pixels)}
-                    showGrid
-                    objectFit="contain"
-                  />
-                </div>
-              ) : (
-                <>
-                  <Image
-                    key={currentModalImage.galleryId}
-                    src={currentModalImage.imageUrl}
-                    alt={imageTitle(currentModalImage, selectedIndex ?? 0)}
-                    width={1600}
-                    height={1000}
-                    unoptimized
-                    className="max-h-[calc(100vh-14rem)] w-auto max-w-full object-contain transition-all duration-300 ease-out animate-in fade-in zoom-in-95"
-                    priority
-                  />
-
-                  {/* Nav Arrows */}
-                  {images.length > 1 && !hasUnsavedChanges && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedIndex((current) =>
-                            current === null ? null : (current - 1 + images.length) % images.length
-                          )
-                        }
-                        aria-label="Previous image"
-                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-2.5 text-white transition-all hover:scale-110 hover:bg-(--btn-primary-bg) sm:left-5"
-                      >
-                        <ChevronLeft size={20} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedIndex((current) =>
-                            current === null ? null : (current + 1) % images.length
-                          )
-                        }
-                        aria-label="Next image"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/50 p-2.5 text-white transition-all hover:scale-110 hover:bg-(--btn-primary-bg) sm:right-5"
-                      >
-                        <ChevronRight size={20} />
-                      </button>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-between gap-3 border-t border-(--border-color) px-4 py-3 sm:px-6">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium tracking-wide text-(--text-muted)">
-                  {(selectedIndex ?? 0) + 1} / {images.length}
-                </span>
-
-                {isEditing ? (
-                  <div className="flex items-center gap-2 rounded-lg border border-(--border-color) bg-(--bg-app) px-3 py-1">
-                    <span className="text-xs font-semibold text-(--text-secondary)">Date:</span>
-                    <input
-                      type="date"
-                      value={editDate}
-                      onChange={(e) => {
-                        setEditDate(e.target.value);
-                        setHasUnsavedChanges(true);
-                      }}
-                      className="bg-transparent text-xs text-(--text-primary) focus:outline-none"
-                    />
-                  </div>
-                ) : currentModalImage.date ? (
-                  <span className="rounded-md border border-(--border-color) bg-(--bg-app) px-2.5 py-1 text-xs text-(--text-muted)">
-                    Date: {new Date(currentModalImage.date).toLocaleDateString()}
-                  </span>
-                ) : null}
-              </div>
-
-              {!isEditing && (
-                <button
-                  type="button"
-                  onClick={() => downloadImage(currentModalImage, selectedIndex ?? 0)}
-                  className="inline-flex items-center gap-2 rounded-lg border border-(--border-color) bg-(--bg-app) px-3 py-2 text-xs font-bold text-(--text-primary) transition hover:bg-(--card-hover)"
-                  title="Download image"
-                >
-                  <Download size={15} /> Download
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+          <GalleryModalFooter
+            currentImage={currentModalImage}
+            currentIndex={selectedIndex ?? 0}
+            totalImages={images.length}
+            isEditing={isEditing}
+            editDate={editDate}
+            editIsPublic={editIsPublic}
+            editIsHero={editIsHero}
+            onDateChange={(val) => {
+              setEditDate(val);
+              setHasUnsavedChanges(true);
+            }}
+            onIsPublicChange={(val) => {
+              setEditIsPublic(val);
+              setHasUnsavedChanges(true);
+            }}
+            onIsHeroChange={(val) => {
+              setEditIsHero(val);
+              setHasUnsavedChanges(true);
+            }}
+            onDownload={() => downloadImage(currentModalImage, selectedIndex ?? 0)}
+          />
+        </EditorialGalleryModal>
       )}
 
-      {/* Delete confirmation */}
+      {/* Delete Confirmation Modal */}
       <ConfirmDeleteModal
         open={confirmDeleteOpen && currentModalImage !== null}
         title="Delete this image?"
@@ -578,8 +409,10 @@ export default function EditorialGallery({
           <>
             {currentModalImage?.caption ? (
               <>
-                <span className="font-semibold text-(--text-primary)">“{currentModalImage.caption}”</span> will be
-                permanently removed from the gallery.
+                <span className="font-semibold text-(--text-primary)">
+                  “{currentModalImage.caption}”
+                </span>{" "}
+                will be permanently removed from the gallery.
               </>
             ) : (
               "This image will be permanently removed from the gallery."

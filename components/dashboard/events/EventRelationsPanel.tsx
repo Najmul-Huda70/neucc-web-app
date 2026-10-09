@@ -1,4 +1,3 @@
-// components/dashboard/events/EventRelationsPanel.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -72,6 +71,7 @@ export default function EventRelationsPanel({
 
       if (editor.kind === "gallery") {
         payload.isPublic = form.get("isPublic") === "on";
+        payload.isHero = form.get("isHero") === "on"; // <-- 1. Modal submit e isHero pass kora hoyeche
         const image = form.get("image");
         if (image instanceof File && image.size > 0) {
           const uploadBody = new FormData();
@@ -104,12 +104,14 @@ export default function EventRelationsPanel({
     }
   };
 
-  // Direct Modal Save Action for EditorialGallery (Title, Venue, Date & Cropped Image)
+  // Direct Modal Save Action for EditorialGallery (Title, Venue, Date, Public, Hero & Cropped Image)
   const handleSaveGallery = async (data: {
-    galleryId: string;
+    galleryId?: string;
     caption: string;
     location: string;
     date: string;
+    isPublic?: boolean;  // <-- 2. Receive isPublic
+    isHero?: boolean;    // <-- 2. Receive isHero
     croppedImageFile?: File | null;
   }) => {
     let imageUrl: string | undefined;
@@ -124,9 +126,9 @@ export default function EventRelationsPanel({
       imageUrl = uploadData.data.url;
     }
 
-    // 2. Patch the relation
+    // 2. Patch or Post the relation with isPublic and isHero
     const response = await fetch(`/api/events/${eventId}/relations`, {
-      method: "PATCH",
+      method: data.galleryId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         relation: "gallery",
@@ -134,6 +136,8 @@ export default function EventRelationsPanel({
         caption: data.caption,
         location: data.location,
         date: data.date,
+        isPublic: data.isPublic, // <-- Pass to API Payload
+        isHero: data.isHero,     // <-- Pass to API Payload
         ...(imageUrl && { imageUrl }),
       }),
     });
@@ -158,12 +162,15 @@ export default function EventRelationsPanel({
     onChanged();
   };
 
+  // 3. Mapping-e isPublic & isHero include kora hocche jate EditorialGallery component e thikmoto value jay
   const publicGalleries = galleries.map((g) => ({
     galleryId: g.galleryId,
     imageUrl: g.imageUrl,
     caption: g.caption,
     location: g.location,
     date: g.date ? String(g.date) : null,
+    isPublic: g.isPublic, // <-- Pass to EditorialGallery
+    isHero: g.isHero,     // <-- Pass to EditorialGallery
   }));
 
   return (
