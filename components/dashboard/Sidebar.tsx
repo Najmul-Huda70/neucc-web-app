@@ -38,6 +38,11 @@ export default function Sidebar({
       roles: ["ADMIN", "MODERATOR"],
     },
     {
+      label: "Gallery Management",
+      href: "/dashboard/gallery",
+      roles: ["ADMIN", "MODERATOR"],
+    },
+    {
       label: "Profile Settings",
       href: "/dashboard/profile",
       roles: ["ADMIN", "MODERATOR", "MEMBER"],

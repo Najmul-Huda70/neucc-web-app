@@ -39,6 +39,7 @@ type EventDetail = {
     location?: string | null;
     date?: string | null;
     isPublic: boolean;
+    isHero: boolean; // <-- এই লাইনটি যোগ করুন
   }>;
 };
 
