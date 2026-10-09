@@ -5,7 +5,6 @@ import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 
 import EventFormModal from "@/components/dashboard/events/EventFormModal";
-import EventRelationsPanel from "@/components/dashboard/events/EventRelationsPanel";
 import EventHeader from "@/components/events/EventHeader";
 import EventDescriptionSection from "@/components/dashboard/events/EventDescriptionSection";
 import EventAtAGlance from "@/components/dashboard/events/EventAtAGlance";
@@ -235,14 +234,7 @@ export default function EventDetailsPage() {
         </div>
       </section>
 
-      {/* Sponsors & galleries management */}
-      <EventRelationsPanel
-        eventId={event.eventId}
-        eventSponsors={event.eventSponsors}
-        galleries={event.galleries}
-        canManage={canManage}
-        onChanged={loadEvent}
-      />
+     
 
       {confirmOpen && (
         <div
