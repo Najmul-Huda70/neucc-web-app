@@ -6,12 +6,12 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import EventHeader from "@/components/events/EventHeader";
 import EventCard, { type PublicEventCardData } from "@/components/public/events/EventCard";
-import EventGallerySection, { PublicEventGallery } from "@/components/dashboard/events/EventGallerySection";
-import EventSponsorsSection, { PublicEventSponsor } from "@/components/dashboard/events/EventSponsorsSection";
+import EventSponsorsSection, { type PublicEventSponsor } from "@/components/dashboard/events/EventSponsorsSection";
 import EventDescriptionSection from "@/components/dashboard/events/EventDescriptionSection";
 import EventAtAGlance from "@/components/dashboard/events/EventAtAGlance";
 import EventDetailsSkeleton from "@/components/public/events/EventDetailsSkeleton";
 import ErrorState from "@/components/ui/ErrorState";
+import EventGallerySection, { PublicEventGallery } from "@/components/public/events/EventGallerySection";
 
 type PublicEventDetail = {
   title: string;
@@ -49,17 +49,12 @@ function formatEventDate(startDate?: string | Date | null, endDate?: string | Da
   return `${startFormatted} - ${end.toLocaleDateString("en-US", opts)}`;
 }
 
-/**
- * Shared page container: every section uses the SAME horizontal padding & max width,
- * so left/right edges align perfectly from header content to footer.
- */
 function Container({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>
   );
 }
 
-/** Consistent vertical rhythm between sections. */
 function Section({ children, divider = true }: { children: ReactNode; divider?: boolean }) {
   return (
     <section className={`py-10 sm:py-14 ${divider ? "border-t border-(--border-color)" : ""}`}>
@@ -112,11 +107,11 @@ export default function PublicEventDetailsPage({
   const formattedDate = formatEventDate(event.startDate, event.endDate);
   const hasSponsors = event.eventSponsors.length > 0 || canManage;
   const hasGallery = event.galleries.length > 0 || canManage;
-  const related = event.relatedEvents.slice(0, 3);
+  const related = event.relatedEvents?.slice(0, 3) || [];
 
   return (
     <main className="min-h-screen bg-(--bg-app) text-(--text-primary)">
-      {/* 1. Hero / Header */}
+      {/* 1. Banner & Header */}
       <EventHeader
         title={event.title}
         shortDescription={event.shortDescription}
@@ -131,10 +126,9 @@ export default function PublicEventDetailsPage({
         onEditImage={() => onEditModeChange?.("images")}
       />
 
-      {/* 2. Main content: description + sticky sidebar */}
+      {/* 2. Main Content & At a Glance */}
       <Container className="py-10 sm:py-14">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-16">
-          {/* Mobile: key info first, Desktop: sidebar on the right */}
           <div className="order-1 lg:order-2">
             <EventAtAGlance
               type={event.type}
@@ -157,7 +151,7 @@ export default function PublicEventDetailsPage({
         </div>
       </Container>
 
-      {/* 3. Gallery */}
+      {/* 3. Updated Event Gallery Section */}
       {hasGallery && (
         <Section>
           <Container>
@@ -170,7 +164,7 @@ export default function PublicEventDetailsPage({
         </Section>
       )}
 
-      {/* 4. Sponsors */}
+      {/* 4. Event Sponsors Section */}
       {hasSponsors && (
         <Section>
           <Container>
@@ -183,7 +177,7 @@ export default function PublicEventDetailsPage({
         </Section>
       )}
 
-      {/* 5. Related events */}
+      {/* 5. Related Events */}
       {related.length > 0 && (
         <section className="border-t border-(--border-color) bg-(--card-bg) py-10 sm:py-14">
           <Container>
