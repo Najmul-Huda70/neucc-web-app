@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Search, Loader2, Image as ImageIcon } from "lucide-react";
-import GalleryGridItem from "@/components/gallery/GalleryGridItem";
+import Image from "next/image";
+import Link from "next/link";
+import { Search, Loader2, Image as ImageIcon, MapPin, Calendar, X, ExternalLink } from "lucide-react";
 
 export type SourceGalleryImage = {
   galleryId: string;
@@ -12,13 +13,14 @@ export type SourceGalleryImage = {
   date?: string | null;
   isHero: boolean;
   isPublic: boolean;
+  eventId?: string | null;
   event?: {
     title: string;
     slug: string;
   } | null;
 };
 
-export default function GalleryPage() {
+export default function PublicGalleryPage() {
   const [images, setImages] = useState<SourceGalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,10 +45,10 @@ export default function GalleryPage() {
     fetchGallery();
   }, []);
 
-  // Search filter logic
+  // Search Filter Logic
   const filteredImages = useMemo(() => {
-    if (!searchQuery.trim()) return images;
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return images;
 
     return images.filter((img) => {
       const captionMatch = img.caption?.toLowerCase().includes(query);
@@ -59,12 +61,16 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-[calc(100vh-8rem)] bg-(--bg-app) px-4 py-10 text-(--text-primary) sm:px-6 lg:py-14">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl space-y-8">
         
-        {/* Header with Matching Search Box Structure */}
-        <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Gallery</h1>
-          <label className="group relative w-full sm:w-56 lg:w-72">
+        {/* Header Area */}
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-6">
+          <div>
+            <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Gallery</h1>
+          </div>
+
+          {/* Search Input */}
+          <label className="group relative w-full sm:w-64 lg:w-72">
             <span className="sr-only">Search gallery</span>
             <Search
               size={15}
@@ -73,7 +79,7 @@ export default function GalleryPage() {
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search gallery..."
+              placeholder="Search by caption, event, location..."
               className="w-full rounded-md border border-(--border-color) bg-(--card-bg) py-2.5 pl-10 pr-4 text-xs placeholder:text-(--text-muted) outline-none transition focus:border-(--btn-primary-bg) focus:ring-4 focus:ring-(--btn-primary-bg)/10"
             />
           </label>
@@ -83,39 +89,137 @@ export default function GalleryPage() {
         {loading ? (
           <div className="flex h-72 items-center justify-center text-xs font-semibold text-(--text-muted)">
             <Loader2 className="animate-spin text-(--btn-primary-bg) mr-2" size={18} />
-            Loading gallery...
+            Loading gallery photos...
           </div>
         ) : filteredImages.length === 0 ? (
           /* Empty State */
           <div className="rounded-2xl border border-dashed border-(--border-color) bg-(--card-bg) px-6 py-20 text-center">
             <ImageIcon size={36} className="mx-auto text-(--text-muted) mb-3" />
-            <h2 className="font-bold">No images found</h2>
-            <p className="mt-2 text-xs text-(--text-muted)">
-              {searchQuery ? "Try a different search query." : "Published gallery photos will appear here soon."}
+            <h2 className="font-bold text-sm">No images found</h2>
+            <p className="mt-1 text-xs text-(--text-muted)">
+              {searchQuery ? "Try searching with a different keyword." : "Gallery photos will appear here soon."}
             </p>
           </div>
         ) : (
-          /* 3-Column Grid Cards Layout */
+          /* Inline Gallery Grid Cards Layout (4:3 Aspect Ratio) */
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredImages.map((img, index) => {
-              const cardTitle = img.caption || img.event?.title || "Gallery Item";
+            {filteredImages.map((img) => {
+              const cardTitle = img.caption || img.event?.title || "Club Photo";
 
               return (
-                <GalleryGridItem
+                <div
                   key={img.galleryId}
-                  image={img}
-                  previousImage={img}
-                  isFading={false}
-                  cardIndex={index}
-                  title={cardTitle}
-                  canManage={false}
                   onClick={() => setSelectedImage(img)}
-                />
+                  className="group relative flex flex-col overflow-hidden rounded-xl border border-(--border-color) bg-(--card-bg) shadow-sm transition hover:-translate-y-1 hover:shadow-md cursor-pointer"
+                >
+                  {/* Image Container with Fixed 4:3 Ratio */}
+                  <div className="relative aspect-4/3 w-full overflow-hidden bg-black/10">
+                    <Image
+                      src={img.imageUrl}
+                      alt={cardTitle}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      unoptimized
+                    />
+
+                    {/* Event Tag Overlay */}
+                    {img.event && (
+                      <span className="absolute top-2.5 left-2.5 rounded-md bg-black/60 backdrop-blur-md px-2 py-1 text-[10px] font-semibold text-white">
+                        {img.event.title}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Card Info Details */}
+                  <div className="flex flex-1 flex-col justify-between p-3.5 space-y-2">
+                    <h3 className="line-clamp-2 text-xs font-bold text-(--text-primary) group-hover:text-(--btn-primary-bg) transition">
+                      {cardTitle}
+                    </h3>
+
+                    <div className="flex flex-wrap items-center justify-between text-[11px] text-(--text-muted) pt-1 border-t border-(--border-color)/50">
+                      {img.location ? (
+                        <span className="flex items-center gap-1">
+                          <MapPin size={12} className="text-amber-500 shrink-0" />
+                          <span className="truncate max-w-[120px]">{img.location}</span>
+                        </span>
+                      ) : (
+                        <span />
+                      )}
+
+                      {img.date && (
+                        <span className="flex items-center gap-1 font-mono">
+                          <Calendar size={12} className="shrink-0" />
+                          {new Date(img.date).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {/* Lightbox Preview Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="relative w-full max-w-4xl overflow-hidden rounded-2xl bg-(--card-bg) border border-(--border-color) shadow-2xl">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/80 transition cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Image Preview */}
+            <div className="relative aspect-16/10 w-full max-h-[70vh] bg-black">
+              <Image
+                src={selectedImage.imageUrl}
+                alt={selectedImage.caption || selectedImage.event?.title || "Gallery photo"}
+                fill
+                className="object-contain"
+                unoptimized
+              />
+            </div>
+
+            {/* Footer Metadata */}
+            <div className="p-5 text-sm space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h3 className="font-bold text-base">
+                  {selectedImage.caption || selectedImage.event?.title || "Gallery Photo"}
+                </h3>
+
+                {selectedImage.event && (
+                  <Link
+                    href={`/events/${selectedImage.event.slug}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-(--btn-primary-bg) hover:underline"
+                  >
+                    <span>View Associated Event</span>
+                    <ExternalLink size={13} />
+                  </Link>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4 text-xs text-(--text-muted) pt-1">
+                {selectedImage.location && (
+                  <span className="flex items-center gap-1">
+                    <MapPin size={13} className="text-amber-500" /> {selectedImage.location}
+                  </span>
+                )}
+                {selectedImage.date && (
+                  <span className="flex items-center gap-1">
+                    <Calendar size={13} /> {new Date(selectedImage.date).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
