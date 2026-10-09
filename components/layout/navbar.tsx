@@ -44,20 +44,18 @@ export default function Navbar() {
   // Helper function for desktop link styles
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
-    return `px-4 py-2.5 rounded-md inline-block font-semibold transition-colors ${
-      isActive
+    return `px-4 py-2.5 rounded-md inline-block font-semibold transition-colors ${isActive
         ? "bg-(--btn-primary-bg) text-(--btn-primary-text) shadow-sm"
         : "text-(--text-primary) hover:text-(--btn-primary-bg) hover:bg-(--stat-card-bg)"
-    }`;
+      }`;
   };
 
   const getMobileLinkClass = (path: string) => {
     const isActive = pathname === path;
-    return `block px-3 py-2 rounded-md transition-colors ${
-      isActive
+    return `block px-3 py-2 rounded-md transition-colors ${isActive
         ? "bg-(--btn-primary-bg) text-(--btn-primary-text) font-bold"
         : "hover:bg-(--stat-card-bg)"
-    }`;
+      }`;
   };
 
   const isCommitteeActive = pathname.startsWith("/committee");
@@ -84,11 +82,16 @@ export default function Navbar() {
                 Events
               </Link>
             </li>
-            {/* <li>
+            <li>
               <Link href="/notice" className={getLinkClass("/notice")}>
                 Notice
               </Link>
-            </li> */}
+            </li>
+            <li>
+              <Link href="/gallery" className={getLinkClass("/gallery")}>
+                Gallery
+              </Link>
+            </li>
             <li>
               <Link href="/committee" className={getLinkClass("/committee")}>
                 Committees
@@ -145,6 +148,15 @@ export default function Navbar() {
                 Notice
               </Link>
             </li>
+            <li>
+              <Link
+                href="/gallery"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={getMobileLinkClass("/gallery")}
+              >
+                Gallery
+              </Link>
+            </li>
 
             {/* Mobile Accordion for Committees */}
             <li>
@@ -152,18 +164,16 @@ export default function Navbar() {
                 onClick={() =>
                   setIsMobileCommitteeOpen(!isMobileCommitteeOpen)
                 }
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-left transition-colors ${
-                  isCommitteeActive
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-left transition-colors ${isCommitteeActive
                     ? "bg-(--btn-primary-bg) text-(--btn-primary-text) font-bold"
                     : "hover:bg-(--stat-card-bg)"
-                }`}
+                  }`}
               >
                 Committees
                 <ChevronDown
                   size={16}
-                  className={`transition-transform duration-200 ${
-                    isMobileCommitteeOpen ? "rotate-180" : ""
-                  }`}
+                  className={`transition-transform duration-200 ${isMobileCommitteeOpen ? "rotate-180" : ""
+                    }`}
                 />
               </button>
               {isMobileCommitteeOpen && (
@@ -172,11 +182,10 @@ export default function Navbar() {
                     <Link
                       href="/committee/executive"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`block px-3 py-1.5 text-xs rounded-md ${
-                        pathname === "/committee/executive"
+                      className={`block px-3 py-1.5 text-xs rounded-md ${pathname === "/committee/executive"
                           ? "font-bold text-(--btn-primary-bg)"
                           : "text-(--text-secondary) hover:text-(--text-primary)"
-                      }`}
+                        }`}
                     >
                       Executive Committee
                     </Link>
@@ -185,11 +194,10 @@ export default function Navbar() {
                     <Link
                       href="/committee/election"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`block px-3 py-1.5 text-xs rounded-md ${
-                        pathname === "/committee/election"
+                      className={`block px-3 py-1.5 text-xs rounded-md ${pathname === "/committee/election"
                           ? "font-bold text-(--btn-primary-bg)"
                           : "text-(--text-secondary) hover:text-(--text-primary)"
-                      }`}
+                        }`}
                     >
                       Election Committee
                     </Link>
