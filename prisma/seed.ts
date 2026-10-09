@@ -15,12 +15,11 @@ function buildEvents(committeeId: string) {
     Array.from({ length: 3 }, (_, eventIndex) => {
       const sequence = typeIndex * 3 + eventIndex + 1;
 
-      // প্রতিটি ইভেন্টের জন্য স্টার্ট ও অ্যান্ড ডেট তৈরি (প্রতিটি ইভেন্ট ৭ দিন পর পর)
       const startDate = new Date(baseDate);
       startDate.setDate(baseDate.getDate() + (sequence - 1) * 7);
 
       const endDate = new Date(startDate);
-      endDate.setHours(startDate.getHours() + 4); // ৪ ঘণ্টার ইভেন্ট
+      endDate.setHours(startDate.getHours() + 4);
 
       return {
         slug: `${type.toLowerCase()}-${sequence}`,
@@ -30,11 +29,11 @@ function buildEvents(committeeId: string) {
         title: `${type.charAt(0)}${type.slice(1).toLowerCase()} Event ${eventIndex + 1}`,
         startDate,
         endDate,
-        vanue: "NEU Campus Auditorium, Building A", // Schema এর স্পেলিং অনুযায়ী vanue রাখা হয়েছে
+        vanue: "NEU Campus Auditorium, Building A",
         shortDescription: `Join our ${type.toLowerCase()} event organized by the NEU Computer Club.`,
         description: `# ${type.charAt(0)}${type.slice(1).toLowerCase()} Event ${eventIndex + 1}: Masterclass & Interactive Session
 
-Welcome to the **NEU Computer Club** official *${type.toLowerCase()}* event! This session is designed to give students hands-on technical skills and deep architectural knowledge.
+- Welcome to the **NEU Computer Club** official *${type.toLowerCase()}* event! This session is designed to give students hands-on technical skills and deep architectural knowledge.
 
 ---
 
@@ -44,9 +43,9 @@ Welcome to the **NEU Computer Club** official *${type.toLowerCase()}* event! Thi
 
 Here is a quick summary of what we will cover during this session:
 
-* **In-Depth Concepts:** Modern software development and technology principles.
-* **Interactive Code Labs:** Hands-on exercises guided by industry mentors.
-* **Q&A & Career Guidance:** Direct networking with club executives and guest speakers.
+- **In-Depth Concepts:** Modern software development and technology principles.
+- **Interactive Code Labs:** Hands-on exercises guided by industry mentors.
+- **Q&A & Career Guidance:** Direct networking with club executives and guest speakers.
 
 ---
 
@@ -125,19 +124,19 @@ async function main() {
 
       const adminUser = existingUser
         ? await tx.user.update({
-          where: { userId: existingUser.userId },
-          data: { name: adminName, role: Role.ADMIN, status: Status.ACTIVE },
-        })
+            where: { userId: existingUser.userId },
+            data: { name: adminName, role: Role.ADMIN, status: Status.ACTIVE },
+          })
         : await tx.user.create({
-          data: {
-            userId: adminUserId,
-            name: adminName,
-            email: adminEmail,
-            password: hashedPassword,
-            role: Role.ADMIN,
-            status: Status.ACTIVE,
-          },
-        });
+            data: {
+              userId: adminUserId,
+              name: adminName,
+              email: adminEmail,
+              password: hashedPassword,
+              role: Role.ADMIN,
+              status: Status.ACTIVE,
+            },
+          });
 
       createdAdmin = !existingUser;
 
@@ -147,16 +146,16 @@ async function main() {
 
       const post = existingPost
         ? await tx.post.update({
-          where: { postId: existingPost.postId },
-          data: { status: Status.ACTIVE },
-        })
+            where: { postId: existingPost.postId },
+            data: { status: Status.ACTIVE },
+          })
         : await tx.post.create({
-          data: {
-            postTitle: "Advisors",
-            committeeId: committee.committeeId,
-            status: Status.ACTIVE,
-          },
-        });
+            data: {
+              postTitle: "Advisors",
+              committeeId: committee.committeeId,
+              status: Status.ACTIVE,
+            },
+          });
 
       await tx.userPost.upsert({
         where: { postId_userId: { postId: post.postId, userId: adminUser.userId } },

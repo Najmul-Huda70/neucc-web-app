@@ -141,9 +141,6 @@ model Sponsor {
   name          String
   logoUrl       String?
   website       String?
-  contactPerson String?
-  email         String?
-  phone         String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   eventSponsors EventSponsor[]
@@ -158,6 +155,9 @@ model EventSponsor {
   sponsorId    String
   sponsor      Sponsor      @relation(fields: [sponsorId], references: [sponsorId], onDelete: Cascade)
   tier         SponsorTier?
+  contactPerson String?
+  email         String?
+  phone         String?
   displayOrder Int          @default(0)
   isPublic     Boolean      @default(false) // show only after the sponsor is confirmed
   comment      String? // internal note about the sponsor for this event

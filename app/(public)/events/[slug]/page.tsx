@@ -1,50 +1,51 @@
-"use client";
-
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
 import EventHeader from "@/components/events/EventHeader";
-import EventCard, { type PublicEventCardData } from "@/components/public/events/EventCard";
-import EventSponsorsSection, { type PublicEventSponsor } from "@/components/dashboard/events/EventSponsorsSection";
+import EventCard from "@/components/public/events/EventCard";
+import EventSponsorsSection from "@/components/dashboard/events/EventSponsorsSection";
 import EventDescriptionSection from "@/components/dashboard/events/EventDescriptionSection";
 import EventAtAGlance from "@/components/dashboard/events/EventAtAGlance";
-import EventDetailsSkeleton from "@/components/public/events/EventDetailsSkeleton";
-import ErrorState from "@/components/ui/ErrorState";
-import EventGallerySection, { PublicEventGallery } from "@/components/public/events/EventGallerySection";
+import EventGallerySection from "@/components/public/events/EventGallerySection";
+import { getPublicEventBySlug } from "@/lib/services/events";
 
-type PublicEventDetail = {
-  title: string;
-  shortDescription: string;
-  description: string;
-  type: string;
-  status: string;
-  detailBannerUrl?: string | null;
-  startDate?: string | Date | null;
-  endDate?: string | Date | null;
-  vanue?: string | null;
-  committee: { type: string; year: number };
-  eventSponsors: PublicEventSponsor[];
-  galleries: PublicEventGallery[];
-  relatedEvents: PublicEventCardData[];
+type Props = {
+  params: Promise<{ slug: string }>;
 };
 
-type PublicEventDetailsPageProps = {
-  canManage?: boolean;
-  onEditModeChange?: (mode: "images" | "description" | "details" | "sponsors" | "gallery") => void;
-};
+// Dynamic SEO Metadata Generation
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const event = await getPublicEventBySlug(slug);
+
+  if (!event) {
+    return { title: "Event Not Found | NEU Computer Club" };
+  }
+
+  return {
+    title: `${event.title} | NEU Computer Club`,
+    description: event.shortDescription,
+    openGraph: {
+      title: event.title,
+      description: event.shortDescription,
+      images: event.detailBannerUrl ? [event.detailBannerUrl] : [],
+    },
+  };
+}
 
 function formatEventDate(startDate?: string | Date | null, endDate?: string | Date | null) {
   if (!startDate) return "N/A";
   const start = new Date(startDate);
-  if (isNaN(start.getTime())) return "N/A";
+  if (Number.isNaN(start.getTime())) return "N/A";
 
   const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" };
   const startFormatted = start.toLocaleDateString("en-US", opts);
 
   if (!endDate) return startFormatted;
   const end = new Date(endDate);
-  if (isNaN(end.getTime()) || start.toDateString() === end.toDateString()) return startFormatted;
+  if (Number.isNaN(end.getTime()) || start.toDateString() === end.toDateString()) return startFormatted;
 
   return `${startFormatted} - ${end.toLocaleDateString("en-US", opts)}`;
 }
@@ -63,50 +64,19 @@ function Section({ children, divider = true }: { children: ReactNode; divider?: 
   );
 }
 
-export default function PublicEventDetailsPage({
-  canManage = false,
-  onEditModeChange,
-}: PublicEventDetailsPageProps) {
-  const { slug } = useParams<{ slug: string }>();
-  const [event, setEvent] = useState<PublicEventDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function PublicEventDetailsPage({ params }: Props) {
+  const { slug } = await params;
 
-  const loadEvent = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`/api/events/${slug}`);
-      const data = await response.json();
-      if (!response.ok || data.data?.status !== "PUBLISHED") throw new Error("Event not found.");
-      setEvent(data.data);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load event.");
-    } finally {
-      setLoading(false);
-    }
-  }, [slug]);
+  // Direct DB Fetch via Service Layer on Server Component
+  const event = await getPublicEventBySlug(slug);
 
-  useEffect(() => {
-    loadEvent();
-  }, [loadEvent]);
-
-  if (loading) return <EventDetailsSkeleton />;
-
-  if (error || !event) {
-    return (
-      <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-(--bg-app) px-4 py-10">
-        <ErrorState
-          message={error || "Event not found."}
-          onRetry={loadEvent}
-        />
-      </main>
-    );
+  if (!event) {
+    notFound(); // Triggers Next.js 404 page automatically
   }
 
   const formattedDate = formatEventDate(event.startDate, event.endDate);
-  const hasSponsors = event.eventSponsors.length > 0 || canManage;
-  const hasGallery = event.galleries.length > 0 || canManage;
+  const hasSponsors = event.eventSponsors.length > 0;
+  const hasGallery = event.galleries.length > 0;
   const related = event.relatedEvents?.slice(0, 3) || [];
 
   return (
@@ -122,8 +92,7 @@ export default function PublicEventDetailsPage({
         startDate={event.startDate}
         endDate={event.endDate}
         vanue={event.vanue}
-        canManage={canManage}
-        onEditImage={() => onEditModeChange?.("images")}
+        canManage={false}
       />
 
       {/* 2. Main Content & At a Glance */}
@@ -136,29 +105,26 @@ export default function PublicEventDetailsPage({
               status={event.status}
               formattedDate={formattedDate}
               venue={event.vanue}
-              canManage={canManage}
-              onEditDetails={() => onEditModeChange?.("details")}
+              canManage={false}
             />
           </div>
 
           <div className="order-2 min-w-0 lg:order-1">
             <EventDescriptionSection
               description={event.description}
-              canManage={canManage}
-              onEditDescription={() => onEditModeChange?.("description")}
+              canManage={false}
             />
           </div>
         </div>
       </Container>
 
-      {/* 3. Updated Event Gallery Section */}
+      {/* 3. Event Gallery Section */}
       {hasGallery && (
         <Section>
           <Container>
             <EventGallerySection
               galleries={event.galleries}
-              canManage={canManage}
-              onAddGallery={() => onEditModeChange?.("gallery")}
+              canManage={false}
             />
           </Container>
         </Section>
@@ -170,8 +136,7 @@ export default function PublicEventDetailsPage({
           <Container>
             <EventSponsorsSection
               sponsors={event.eventSponsors}
-              canManage={canManage}
-              onEditSponsors={() => onEditModeChange?.("sponsors")}
+              canManage={false}
             />
           </Container>
         </Section>
