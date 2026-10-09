@@ -33,7 +33,9 @@ interface RoleChangeEmailOptions {
 interface StatusChangeEmailOptions {
   email: string;
   name: string;
-  status: "ACTIVE" | "DEACTIVATED" | "CLOSED";
+  userId?: string;
+  status: string;
+  password?: string;
 }
 interface AccountDeletedEmailOptions {
   email: string;
@@ -253,12 +255,17 @@ export async function sendRoleChangeNotification({
 /**
  * Notifies a user when their account status changes (ACTIVE, DEACTIVATED, CLOSED)
  */
-export async function sendStatusChangeNotification({ email, name, status }: StatusChangeEmailOptions) {
+export async function sendStatusChangeNotification({
+  email,
+  name,
+  userId,
+  status,
+  password,
+}: StatusChangeEmailOptions) {
   const isDeactivated = status === "DEACTIVATED";
   const isClosed = status === "CLOSED";
   const isActive = status === "ACTIVE";
 
-  // Status অনুযায়ী Dynamic Content সেট করা
   let title = "Account Status Updated";
   let titleColor = "#0f172a";
   let bgColor = "#f8fafc";
@@ -272,7 +279,7 @@ export async function sendStatusChangeNotification({ email, name, status }: Stat
     bgColor = "#f0fdf4";
     borderColor = "#22c55e";
     textColor = "#166534";
-    statusMessage = "Your account has been <strong>ACTIVATED</strong> by an administrator. You can now log in and access your dashboard normally.";
+    statusMessage = "Your account has been <strong>ACTIVATED</strong> by an administrator. You can now log in using the credentials below:";
   } else if (isDeactivated) {
     title = "Account Deactivated";
     titleColor = "#b45309";
@@ -289,6 +296,18 @@ export async function sendStatusChangeNotification({ email, name, status }: Stat
     statusMessage = "Your account has been permanently <strong>CLOSED</strong> by an administrator. Access to the club system for this account has been revoked.";
   }
 
+  // যদি অ্যাকাউন্ট ACTIVE হয় এবং পাসওয়ার্ড প্রোভাইড করা থাকে
+  const credentialsBox = isActive && password ? `
+    <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin-top: 16px;">
+      <h4 style="margin: 0 0 10px 0; color: #0f172a; font-size: 14px;">Your Login Credentials:</h4>
+      <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>User ID:</strong> ${userId}</p>
+      <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Password:</strong> <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace;">${password}</code></p>
+      <p style="margin-top: 10px; margin-bottom: 0; font-size: 12px; color: #e11d48;">
+        * Please change your password after logging in for the first time.
+      </p>
+    </div>
+  ` : "";
+
   const content = `
     <h3 style="color: ${titleColor}; margin-top: 0; font-size: 18px;">
       ${title}
@@ -298,6 +317,7 @@ export async function sendStatusChangeNotification({ email, name, status }: Stat
       <p style="margin: 0; font-size: 14px; color: ${textColor}; line-height: 1.6;">
         ${statusMessage}
       </p>
+      ${credentialsBox}
     </div>
     <p style="font-size: 12px; color: #94a3b8; margin-top: 24px;">
       If you have questions regarding this account status update, please contact the current executive committee.

@@ -56,7 +56,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ eventId
     if (relation === "gallery") {
       if (typeof body.imageUrl !== "string" || !body.imageUrl.trim()) return NextResponse.json({ success: false, message: "Gallery image is required." }, { status: 400 });
       if (invalidDate(body.date)) return NextResponse.json({ success: false, message: "Gallery date must be valid." }, { status: 400 });
-      const result = await prisma.gallery.create({ data: { eventId, imageUrl: body.imageUrl as string, caption: typeof body.caption === "string" ? body.caption : null, location: typeof body.location === "string" ? body.location : null, date: optionalDate(body.date), isPublic: body.isPublic !== false } });
+      
+      const result = await prisma.gallery.create({
+        data: {
+          eventId,
+          imageUrl: body.imageUrl as string,
+          caption: typeof body.caption === "string" ? body.caption : null,
+          location: typeof body.location === "string" ? body.location : null,
+          date: optionalDate(body.date),
+          isPublic: body.isPublic !== false,
+          isHero: body.isHero === true, // <-- isHero support added
+        },
+      });
       return NextResponse.json({ success: true, data: result }, { status: 201 });
     }
 
@@ -74,9 +85,35 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ eventI
   try {
     const { eventId } = await params;
     const body = (await req.json()) as RelationBody;
-    const relationId = typeof body.relationId === "string" ? body.relationId : "";
-    if (!relationId) return NextResponse.json({ success: false, message: "relationId is required." }, { status: 400 });
+    const relationId = typeof body.relationId === "string" ? body.relationId.trim() : "";
 
+    // IF RELATION ID IS MISSING -> UPSERT / CREATE NEW RECORD AUTOMATICALLY
+    if (!relationId) {
+      if (body.relation === "gallery") {
+        if (typeof body.imageUrl !== "string" || !body.imageUrl.trim()) {
+          return NextResponse.json({ success: false, message: "Gallery image is required." }, { status: 400 });
+        }
+        if (invalidDate(body.date)) {
+          return NextResponse.json({ success: false, message: "Gallery date must be valid." }, { status: 400 });
+        }
+        const result = await prisma.gallery.create({
+          data: {
+            eventId,
+            imageUrl: body.imageUrl as string,
+            caption: typeof body.caption === "string" ? body.caption : null,
+            location: typeof body.location === "string" ? body.location : null,
+            date: optionalDate(body.date),
+            isPublic: body.isPublic !== false,
+            isHero: body.isHero === true, // <-- isHero support added
+          },
+        });
+        return NextResponse.json({ success: true, data: result }, { status: 201 });
+      }
+
+      return NextResponse.json({ success: false, message: "relationId is required." }, { status: 400 });
+    }
+
+    // UPDATE EXISTING RECORDS
     if (body.relation === "sponsor") {
       const eventSponsor = await prisma.eventSponsor.findFirst({ where: { id: relationId, eventId }, select: { sponsorId: true } });
       if (!eventSponsor) return NextResponse.json({ success: false, message: "Event sponsor not found." }, { status: 404 });
@@ -101,7 +138,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ eventI
       const existing = await prisma.gallery.findFirst({ where: { galleryId: relationId, eventId } });
       if (!existing) return NextResponse.json({ success: false, message: "Gallery item not found." }, { status: 404 });
       if (body.date !== undefined && invalidDate(body.date)) return NextResponse.json({ success: false, message: "Gallery date must be valid." }, { status: 400 });
-      const result = await prisma.gallery.update({ where: { galleryId: relationId }, data: { ...(typeof body.imageUrl === "string" ? { imageUrl: body.imageUrl } : {}), ...(body.caption !== undefined ? { caption: body.caption as string || null } : {}), ...(body.location !== undefined ? { location: body.location as string || null } : {}), ...(body.date !== undefined ? { date: optionalDate(body.date) } : {}), ...(body.isPublic !== undefined ? { isPublic: body.isPublic === true } : {}) } });
+      
+      const result = await prisma.gallery.update({
+        where: { galleryId: relationId },
+        data: {
+          ...(typeof body.imageUrl === "string" ? { imageUrl: body.imageUrl } : {}),
+          ...(body.caption !== undefined ? { caption: body.caption as string || null } : {}),
+          ...(body.location !== undefined ? { location: body.location as string || null } : {}),
+          ...(body.date !== undefined ? { date: optionalDate(body.date) } : {}),
+          ...(body.isPublic !== undefined ? { isPublic: body.isPublic === true } : {}),
+          ...(body.isHero !== undefined ? { isHero: body.isHero === true } : {}), // <-- isHero update added
+        },
+      });
       return NextResponse.json({ success: true, data: result });
     }
 

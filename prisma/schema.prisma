@@ -180,6 +180,7 @@ model Gallery {
   caption   String?
   location  String?
   date      DateTime?
+  isHero    Boolean   @default(false) // hero image for the event
   isPublic  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { randomUUID } from "crypto";
+import { randomUUID, randomBytes } from "crypto";
+import bcrypt from "bcryptjs"; // অথবা আপনার প্রজেক্টে ব্যবহৃত হ্যাশিং লাইব্রেরি
 import { prisma } from "@/lib/prisma";
 import { verifyRole } from "@/lib/auth";
 import { sendRoleChangeNotification, sendStatusChangeNotification } from "@/lib/mailer";
 import { Status } from "@/lib/types";
 
-const ADMIN_MOD_ROLES = ["ADMIN", "MODERATOR"];
+const ADMIN_MOD_ROLES = ["ADMIN"];
 
 export async function PATCH(req: Request) {
   // 1. Authorization Check
@@ -17,7 +18,6 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json();
-    console.log(body);
     const {
       userId,
       role,
@@ -44,11 +44,13 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ success: false, message: "You cannot demote your own account." }, { status: 400 });
     }
 
-    // 3. Find Target User with active user posts
+    // 3. Find Target User
     const targetUser = await prisma.user.findUnique({
       where: { userId },
       select: {
-        userId: true, role: true,status:true,
+        userId: true, 
+        role: true,
+        status: true,
         user_posts: {
           where: {
             status: Status.ACTIVE,
@@ -92,20 +94,27 @@ export async function PATCH(req: Request) {
     }
 
     let assignedPostTitle: string | undefined;
-    
-  
-     // 4. Clean & Readable Transaction Logic
+    let generatedPassword: string | undefined;
+    let hashedPassword: string | undefined;
+
+    // যদি স্ট্যাটাস পরিবর্তন করে ACTIVE করা হয় এবং আগের স্ট্যাটাস DEACTIVATED ছিল
+    const isBeingActivated = status === Status.ACTIVE && targetUser.status !== Status.ACTIVE;
+
+    if (isBeingActivated) {
+      // ৮ অক্ষরের র‍্যান্ডম সিকিউর পাসওয়ার্ড তৈরি (যেমন: aB3xK9pL)
+      generatedPassword = randomBytes(4).toString("hex");
+      hashedPassword = await bcrypt.hash(generatedPassword, 10);
+    }
+
+    // 4. Clean & Readable Transaction Logic
     const updated = await prisma.$transaction(async (tx) => {
 
-      // ========================================================
       // CASE 1: Promoted from MEMBER to MODERATOR / ADMIN
-      // ========================================================
       if (isPromotingToLeadership && !hasActivePost) {
         let targetPostId = existingPostId;
         let targetCommitteeId = committeeId;
 
         if (postMode === "new") {
-          // Create new post in Post table
           const newPost = await tx.post.create({
             data: {
               postId: randomUUID(),
@@ -126,7 +135,6 @@ export async function PATCH(req: Request) {
           }
         }
 
-        // Insert relation in UserPost table
         if (targetPostId) {
           await tx.userPost.create({
             data: {
@@ -139,11 +147,8 @@ export async function PATCH(req: Request) {
         }
       }
 
-      // ========================================================
       // CASE 2: Demoted from MODERATOR / ADMIN to MEMBER
-      // ========================================================
       if (isDemotingToMember) {
-        // Mark active posts as Removed for this user
         await tx.userPost.deleteMany({
           where: {
             userId,
@@ -153,17 +158,13 @@ export async function PATCH(req: Request) {
         });
       }
 
-      // ========================================================
-      // CASE 3: Role Change between MODERATOR <-> ADMIN
-      // (No post modification needed, handled automatically below)
-      // ========================================================
-
-      // Update User Record (Role and/or Status)
+      // Update User Record (Role, Status & Password if activated)
       return tx.user.update({
         where: { userId },
         data: {
           ...(role && { role }),
           ...(status && { status }),
+          ...(hashedPassword && { password: hashedPassword }), // অ্যাকাউন্ট একটিভ করলে নতুন পাসওয়ার্ড হ্যাশ সেভ হবে
         },
         select: {
           userId: true,
@@ -191,7 +192,9 @@ export async function PATCH(req: Request) {
         await sendStatusChangeNotification({
           email: updated.email,
           name: updated.name,
+          userId: updated.userId, // User ID পাস করা হলো
           status,
+          password: generatedPassword, // পাসওয়ার্ড একটিভ হলে জেনারেট হওয়া প্লেন পাসওয়ার্ড পাঠানো হবে
         });
       }
     } catch (mailErr) {

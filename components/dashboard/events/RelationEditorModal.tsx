@@ -12,6 +12,7 @@ export type GalleryRelation = {
   location?: string | null;
   date?: string | null;
   isPublic: boolean;
+  isHero: boolean;
 };
 
 export type SponsorOption = {

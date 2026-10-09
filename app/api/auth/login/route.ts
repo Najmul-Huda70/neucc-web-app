@@ -73,6 +73,13 @@ export async function POST(req: Request) {
         { status: 403 }
       );
     }
+     if (user.status === "DEACTIVATED") {
+      return NextResponse.json(
+        { message: "Your account is deactivated. You cannot login." },
+        { status: 403 }
+      );
+    }
+
 
     // 7. Password Verification
     const isPasswordValid = await bcrypt.compare(password, user.password);
