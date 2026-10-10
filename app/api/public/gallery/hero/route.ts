@@ -1,15 +1,17 @@
+// app/api/public/gallery/hero/route.ts
 import { NextResponse } from "next/server";
 import { getHeroGalleryImages } from "@/lib/services/gallery";
 
 export async function GET() {
-  const result = await getHeroGalleryImages();
+  try {
+    const images = await getHeroGalleryImages();
 
-  if (!result.success) {
+    return NextResponse.json({ success: true, data: images }, { status: 200 });
+  } catch (error) {
+    console.error("Error in hero gallery API:", error);
     return NextResponse.json(
-      { success: false, message: result.message },
+      { success: false, message: "Failed to fetch hero images." },
       { status: 500 }
     );
   }
-
-  return NextResponse.json({ success: true, data: result.data });
 }

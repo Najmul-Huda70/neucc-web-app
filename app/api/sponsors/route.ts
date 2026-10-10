@@ -9,7 +9,12 @@ export async function GET() {
   try {
     const sponsors = await prisma.sponsor.findMany({
       orderBy: { name: "asc" },
-      select: { sponsorId: true, name: true, logoUrl: true, website: true, contactPerson: true, email: true, phone: true },
+      select: { 
+        sponsorId: true, 
+        name: true, 
+        logoUrl: true, 
+        website: true 
+      },
     });
     return NextResponse.json({ success: true, data: sponsors });
   } catch (error) {
