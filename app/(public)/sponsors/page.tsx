@@ -1,8 +1,41 @@
+import type { Metadata } from "next";
 import ContactSponsorship from "@/components/public/sponsors/ContactSponsorship";
 import SponsorsHero from "@/components/public/sponsors/SponsorsHero";
+import SponsorshipTiers from "@/components/public/sponsors/SponsorshipTiers";
 import WhySponsorUs from "@/components/public/sponsors/Whypartnersection";
 import { prisma } from "@/lib/prisma";
 import { buildTieredSponsors } from "@/lib/sponsor-tier";
+
+// 🌐 Dynamic SEO Metadata
+export const metadata: Metadata = {
+  title: "Sponsor Us | NEU Computer Club",
+  description:
+    "Partner with North East University Bangladesh CSE Dept. Computer Club. Empower workshops, hackathons, and contests while engaging with top tech talent.",
+  keywords: [
+    "NEU Computer Club",
+    "Sponsorship",
+    "North East University Bangladesh",
+    "CSE Department",
+    "Sponsor Tech Events",
+    "Hackathon Sponsors Bangladesh",
+    "Sponsorship Tiers",
+  ],
+  openGraph: {
+    title: "Sponsor Us | NEU Computer Club",
+    description:
+      "Partner with North East University Bangladesh CSE Dept. Computer Club to sponsor workshops, contests, and tech events that empower future software engineers.",
+    url: "https://neu.ac.bd/sponsors", // আপনার প্রজেক্টের সঠিক ডোমেইন দিন
+    siteName: "NEU Computer Club",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sponsor Us | NEU Computer Club",
+    description:
+      "Partner with NEU CSE Dept. Computer Club to empower the next generation of software engineers.",
+  },
+};
 
 // Not stored in the DB, so edit this number by hand.
 const STUDENTS_REACHED = "5000+";
@@ -58,25 +91,25 @@ export default async function PublicSponsorsPage() {
 
   return (
     <main className="min-h-screen bg-(--bg-app) text-(--text-primary)">
-      {/* Simple hero section */}
+      {/* Hero section */}
       <SponsorsHero eventTypes={eventTypes} sponsors={sponsors.slice(0, 20)} />
 
-      {/* Normal sections: they simply follow the hero in the page flow */}
-      <div>
-        <div className="mx-auto max-w-7xl space-y-24 px-6 py-16">
-          
-          {/* Why Sponsor Us Section */}
-          <section id="why-sponsor-us">
-            <WhySponsorUs />
-            <ContactSponsorship />
-          </section>
+      {/* Main Page Content Flow */}
+      <div className="mx-auto max-w-7xl space-y-24 px-6 py-16">
+        {/* Why Partner / Sponsor Us */}
+        <section id="why-sponsor-us" className="scroll-mt-24">
+          <WhySponsorUs />
+        </section>
 
-          {/* Become a Sponsor Form / Lead Gen Section */}
-          <section id="become-sponsor" className="scroll-mt-20">
-            {/* Become a Sponsor Form / Content */}
-          </section>
+        {/* Sponsorship Tiers Section */}
+        <section id="become-sponsor" className="scroll-mt-24">
+          <SponsorshipTiers />
+        </section>
 
-        </div>
+        {/* Direct Contact Section */}
+        <section id="contact-us" className="scroll-mt-24">
+          <ContactSponsorship />
+        </section>
       </div>
     </main>
   );

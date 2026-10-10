@@ -13,7 +13,6 @@ type SponsorsHeroProps = {
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-// One orchestrated load sequence: heading words -> subtitle -> buttons -> sponsors.
 const contentVariants: Variants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
@@ -56,12 +55,21 @@ export default function SponsorsHero({ eventTypes, sponsors }: SponsorsHeroProps
   const eventTypeText = formatEventTypes(eventTypes);
   const uniqueList = uniqueSponsors(sponsors);
 
+  // Smooth scroll handler for anchor links
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <motion.section
       aria-labelledby="sponsors-hero-title"
       initial={reduceMotion ? "show" : "hidden"}
       animate="show"
-      className="flex min-h-[78dvh] flex-col px-6  p-4 sm:px-10"
+      className="flex min-h-[78dvh] flex-col px-6 p-4 sm:px-10"
     >
       <motion.div
         variants={contentVariants}
@@ -99,7 +107,8 @@ export default function SponsorsHero({ eventTypes, sponsors }: SponsorsHeroProps
           <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
             <Link
               href="#become-sponsor"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-teal-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+              onClick={(e) => handleScroll(e, "become-sponsor")}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-teal-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 cursor-pointer"
             >
               <Handshake className="size-4" aria-hidden />
               Become a Sponsor
