@@ -43,6 +43,11 @@ export default function Sidebar({
       roles: ["ADMIN", "MODERATOR"],
     },
     {
+      label: "Sponsors Management",
+      href: "/dashboard/sponsors",
+      roles: ["ADMIN", "MODERATOR"],
+    },
+    {
       label: "Profile Settings",
       href: "/dashboard/profile",
       roles: ["ADMIN", "MODERATOR", "MEMBER"],
