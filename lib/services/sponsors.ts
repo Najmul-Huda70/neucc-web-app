@@ -1,4 +1,3 @@
-// lib/services/sponsors.ts
 import { prisma } from "@/lib/prisma";
 
 export const publicSponsorSelect = {
@@ -6,21 +5,19 @@ export const publicSponsorSelect = {
   name: true,
   logoUrl: true,
   website: true,
+  _count: {
+    select: { eventSponsors: true },
+  },
 };
 
-// Common Get Sponsors Function with optional admin fields
-export async function getSponsors(includeAdminFields: boolean = false) {
+// Common Get Sponsors Function
+export async function getSponsors() {
   try {
     const sponsors = await prisma.sponsor.findMany({
       orderBy: { name: "asc" },
       select: {
         ...publicSponsorSelect,
-        ...(includeAdminFields && {
-          createdAt: true,
-          _count: {
-            select: { eventSponsors: true },
-          },
-        }),
+        createdAt: true,
       },
     });
 
@@ -31,14 +28,13 @@ export async function getSponsors(includeAdminFields: boolean = false) {
   }
 }
 
-// Wrapper for Public usage
+// Public & Admin-er jonyo common alias wrapper
 export async function getPublicSponsors() {
-  return await getSponsors(false);
+  return await getSponsors();
 }
 
-// Wrapper for Admin usage
 export async function getAdminSponsors() {
-  return await getSponsors(true);
+  return await getSponsors();
 }
 
 // sponsorId er details ebong eventSponsors gulo fetch korar function

@@ -188,7 +188,18 @@ model Gallery {
   @@index([eventId])
   @@map("galleries")
 }
+model Message {
+  messageId String   @id @default(uuid())
+  role    messageRole
+  name      String
+  designation String
+  photoUrl String?
+  displayOrder Int   
+  message   String   @db.Text
+  createdAt DateTime @default(now())
 
+  @@map("messages")
+}
 // ─────────────────────────────────────────────
 // Enums
 // ─────────────────────────────────────────────
@@ -198,7 +209,10 @@ enum Role {
   MODERATOR
   MEMBER
 }
-
+enum messageRole {
+  CHAIRMAN
+  ADVISOR
+}
 enum Status {
   ACTIVE
   DEACTIVATED // temporarily inactive, can be re-activated
