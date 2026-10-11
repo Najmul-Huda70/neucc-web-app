@@ -48,6 +48,11 @@ export default function Sidebar({
       roles: ["ADMIN", "MODERATOR"],
     },
     {
+      label: "Messages",
+      href: "/dashboard/messages",
+      roles: ["ADMIN"],
+    },
+    {
       label: "Profile Settings",
       href: "/dashboard/profile",
       roles: ["ADMIN", "MODERATOR", "MEMBER"],

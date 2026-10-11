@@ -392,3 +392,5 @@ button,
 .animate-marquee:hover {
   animation-play-state: paused; /* মাউস হভার করলে এনিমেশন পজ হয়ে যাবে */
 }
+
+
