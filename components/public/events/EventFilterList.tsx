@@ -3,7 +3,7 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import EventCard, { type PublicEventCardData } from "@/components/public/events/EventCard";
+import { EventCard, PublicEventCardData } from "@/components/ui/card";
 
 type EventRecord = PublicEventCardData;
 
@@ -128,7 +128,7 @@ export default function EventFilterList({ initialEvents }: EventFilterListProps)
                       delay: (index % 3) * 0.05,
                     }}
                   >
-                    <EventCard event={event} />
+                    <EventCard event={event as PublicEventCardData} />
                   </motion.div>
                 ))}
               </div>
