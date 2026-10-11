@@ -1,18 +1,8 @@
-import MessageCard from "@/components/dashboard/messages/MessageCard";
-
-interface Message {
-  messageId: string;
-  role: "CHAIRMAN" | "ADVISOR";
-  name: string;
-  designation: string;
-  photoUrl: string | null;
-  displayOrder: number;
-  message: string;
-  createdAt: string | Date;
-}
+import React from "react";
+import { MessageCard, MessageItem } from "@/components/ui/card";
 
 interface LeadershipMessagesProps {
-  messages: Message[];
+  messages: MessageItem[];
 }
 
 export default function LeadershipMessages({ messages }: LeadershipMessagesProps) {
@@ -25,16 +15,16 @@ export default function LeadershipMessages({ messages }: LeadershipMessagesProps
     .sort((a, b) => a.displayOrder - b.displayOrder);
 
   return (
-    <section className="py-16 sm:py-24 bg-gray-50/50">
+    <section className="py-16 sm:py-24 bg-(--bg-app)">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         {/* Section 1: Chairperson Message */}
         {chairmanMessage && (
           <div className="space-y-8">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-(--text-primary) tracking-tight">
                 Messages from Our Chairperson
               </h2>
-              <p className="text-xs sm:text-sm md:text-base text-gray-500 font-medium">
+              <p className="text-xs sm:text-sm md:text-base text-(--text-muted) font-medium">
                 A message from the Chairperson of the Department of CSE
               </p>
             </div>
@@ -51,10 +41,10 @@ export default function LeadershipMessages({ messages }: LeadershipMessagesProps
         {advisorMessages.length > 0 && (
           <div className="space-y-8">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-(--text-primary) tracking-tight">
                 Messages from Our Advisors
               </h2>
-              <p className="text-xs sm:text-sm md:text-base text-gray-500 font-medium">
+              <p className="text-xs sm:text-sm md:text-base text-(--text-muted) font-medium">
                 Guidance and remarks from our esteemed faculty advisors
               </p>
             </div>

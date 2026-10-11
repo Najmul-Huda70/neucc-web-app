@@ -4,12 +4,12 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import EventHeader from "@/components/events/EventHeader";
-import EventCard from "@/components/public/events/EventCard";
 import EventSponsorsSection from "@/components/dashboard/events/EventSponsorsSection";
 import EventDescriptionSection from "@/components/dashboard/events/EventDescriptionSection";
 import EventAtAGlance from "@/components/dashboard/events/EventAtAGlance";
 import EventGallerySection from "@/components/public/events/EventGallerySection";
 import { getPublicEventBySlug } from "@/lib/services/events";
+import { EventCard } from "@/components/ui/card";
 
 type Props = {
   params: Promise<{ slug: string }>;

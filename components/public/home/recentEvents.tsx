@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import EventCard, { PublicEventCardData } from "@/components/public/events/EventCard";
+import { EventCard, PublicEventCardData } from "@/components/ui/card";
 
 interface RecentEventsProps {
   events: PublicEventCardData[];
@@ -28,7 +28,7 @@ export default function RecentEvents({ events }: RecentEventsProps) {
         {/* Events Grid: Responsive (1 col mobile, 2 cols tablet, 3 cols desktop) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {latestEvents.map((event) => (
-            <EventCard key={event.eventId} event={event} />
+            <EventCard key={event.eventId} event={event as PublicEventCardData} />
           ))}
         </div>
 

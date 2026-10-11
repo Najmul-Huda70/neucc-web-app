@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import Card from "@/components/ui/card/Card";
 
 export interface GalleryImage {
   galleryId: string;
@@ -35,7 +36,7 @@ export default function GallerySection({ images }: GallerySectionProps) {
   const row2Images = row2.length > 0 ? [...row2, ...row2, ...row2] : [];
 
   return (
-    <section className="py-16 sm:py-24 bg-(--bg-app) overflow-hidden">
+    <section className="py-6 sm:py-10 bg-(--bg-app) overflow-hidden">
       <div className="space-y-12">
         {/* Header */}
         <div className="text-center space-y-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,9 +70,10 @@ export default function GallerySection({ images }: GallerySectionProps) {
               {row1Images.map((img, idx) => {
                 const cardTitle = img.caption || img.event?.title || "NEUCC Gallery Image";
                 return (
-                  <div
+                  <Card
                     key={`row1-${img.galleryId}-${idx}`}
-                    className="group relative aspect-4/3 h-48 sm:h-56 shrink-0 overflow-hidden rounded-xl border border-(--border-color) bg-black/10 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                    padding="none"
+                    className="group relative aspect-4/3 h-48 sm:h-56 shrink-0 overflow-hidden bg-(--bg-subtle) hover:-translate-y-1 transition duration-300"
                   >
                     <Image
                       src={img.imageUrl}
@@ -80,7 +82,7 @@ export default function GallerySection({ images }: GallerySectionProps) {
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
-                  </div>
+                  </Card>
                 );
               })}
             </motion.div>
@@ -103,9 +105,10 @@ export default function GallerySection({ images }: GallerySectionProps) {
                 {row2Images.map((img, idx) => {
                   const cardTitle = img.caption || img.event?.title || "NEUCC Gallery Image";
                   return (
-                    <div
+                    <Card
                       key={`row2-${img.galleryId}-${idx}`}
-                      className="group relative aspect-4/3 h-48 sm:h-56 shrink-0 overflow-hidden rounded-xl border border-(--border-color) bg-black/10 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                      padding="none"
+                      className="group relative aspect-4/3 h-48 sm:h-56 shrink-0 overflow-hidden bg-(--bg-subtle) hover:-translate-y-1 transition duration-300"
                     >
                       <Image
                         src={img.imageUrl}
@@ -114,7 +117,7 @@ export default function GallerySection({ images }: GallerySectionProps) {
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
-                    </div>
+                    </Card>
                   );
                 })}
               </motion.div>

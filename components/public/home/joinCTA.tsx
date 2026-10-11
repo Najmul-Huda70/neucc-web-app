@@ -1,15 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import Card from "@/components/ui/card/Card";
+import Button from "@/components/ui/Button";
 
 type JoinCTAProps = {
-  /** Where the "Join the Club" button goes (your membership page or form). */
   href?: string;
 };
 
-// Edit these to match how membership really works at your club.
 const WHY_JOIN = [
   {
     title: "Learn by building",
@@ -30,6 +29,7 @@ const WHY_JOIN = [
 ];
 
 const HOW_TO_JOIN = [
+  { title: "Enter your email address to receive OTP", desc: "verify your identity." },
   { title: "Fill out the membership form", desc: "It takes a couple of minutes." },
   { title: "Get approved by the committee", desc: "We review applications regularly." },
   { title: "Start joining events", desc: "Register for workshops, contests, and more." },
@@ -63,118 +63,134 @@ export default function JoinCTA({ href = "/membership" }: JoinCTAProps) {
   return (
     <section
       aria-labelledby="join-title"
-      className="mx-auto w-full max-w-6xl px-6 py-12 sm:px-8 lg:py-20"
+      className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20 bg-(--bg-app)"
     >
       <motion.div
         variants={panelVariants}
         initial={initial}
         whileInView="visible"
         viewport={{ once: true, amount: 0.25 }}
-        className="relative grid overflow-hidden bg-neutral-950 text-white lg:grid-cols-2"
       >
-        {/* Soft amber glow, same accent as the hero */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-32 -top-32 size-96 rounded-full bg-amber-400/15 blur-3xl"
-        />
+        <Card
+          padding="none"
+          className="relative grid overflow-hidden lg:grid-cols-2 border border-(--border-color) bg-(--card-bg)"
+        >
+          {/* Subtle Ambient Accent Glow */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-32 -top-32 size-96 rounded-full bg-(--accent)/10 blur-3xl"
+          />
 
-        {/* Why join */}
-        <div className="relative p-8 sm:p-12 lg:p-14">
-          <h2
-            id="join-title"
-            className="font-serif text-4xl tracking-tight sm:text-5xl"
-          >
-            Join the Computer Club
-          </h2>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-neutral-300">
-            Learn by building, compete with peers, and meet people who share your interest in
-            technology.
-          </p>
-
-          <ul className="mt-8 space-y-5">
-            {WHY_JOIN.map((item, i) => (
-              <motion.li
-                key={item.title}
-                custom={i}
-                variants={itemVariants}
-                initial={initial}
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.4 }}
-                className="flex gap-4"
+          {/* Left Column: Why Join */}
+          <div className="relative p-6 sm:p-10 lg:p-12 space-y-6">
+            <div className="space-y-3">
+              <h2
+                id="join-title"
+                className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-(--text-primary) tracking-tight"
               >
-                <span aria-hidden className="mt-2.5 h-0.5 w-5 shrink-0 bg-amber-400" />
-                <div>
-                  <h3 className="text-base font-medium">{item.title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-neutral-400">{item.desc}</p>
-                </div>
-              </motion.li>
-            ))}
-          </ul>
-        </div>
+                Join the Computer Club
+              </h2>
+              <p className="max-w-md text-xs sm:text-sm md:text-base leading-relaxed text-(--text-muted) font-medium">
+                Learn by building, compete with peers, and meet people who share your interest in
+                technology.
+              </p>
+            </div>
 
-        {/* How to join */}
-        <div className="relative border-t border-white/10 p-8 sm:p-12 lg:border-l lg:border-t-0 lg:p-14">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-neutral-400">
-            How to join
-          </p>
+            <ul className="space-y-4 pt-2">
+              {WHY_JOIN.map((item, i) => (
+                <motion.li
+                  key={item.title}
+                  custom={i}
+                  variants={itemVariants}
+                  initial={initial}
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.4 }}
+                  className="flex gap-3"
+                >
+                  <CheckCircle2
+                    size={18}
+                    className="mt-0.5 shrink-0 text-(--accent)"
+                  />
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-(--text-primary)">
+                      {item.title}
+                    </h3>
+                    <p className="mt-0.5 text-xs sm:text-sm leading-relaxed text-(--text-muted)">
+                      {item.desc}
+                    </p>
+                  </div>
+                </motion.li>
+              ))}
+            </ul>
+          </div>
 
-          <ol className="relative mt-8 space-y-8">
-            <motion.span
-              aria-hidden
-              variants={lineVariants}
+          {/* Right Column: How to Join */}
+          <div className="relative border-t border-(--border-color) p-6 sm:p-10 lg:border-l lg:border-t-0 lg:p-12 bg-(--bg-subtle)/40 flex flex-col justify-between">
+            <div>
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-(--text-secondary)">
+                How to join
+              </p>
+
+              <ol className="relative mt-6 space-y-6">
+                <motion.span
+                  aria-hidden
+                  variants={lineVariants}
+                  initial={initial}
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.4 }}
+                  className="absolute bottom-4 left-[17px] top-4 w-px origin-top bg-(--border-color)"
+                />
+                {HOW_TO_JOIN.map((step, i) => (
+                  <motion.li
+                    key={step.title}
+                    custom={i}
+                    variants={itemVariants}
+                    initial={initial}
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.4 }}
+                    className="relative flex gap-4"
+                  >
+                    <span className="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border border-(--border-color) bg-(--card-bg) font-mono text-xs font-bold text-(--text-primary) shadow-xs">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div className="pt-1">
+                      <h3 className="text-sm sm:text-base font-bold text-(--text-primary)">
+                        {step.title}
+                      </h3>
+                      <p className="mt-0.5 text-xs sm:text-sm text-(--text-muted)">
+                        {step.desc}
+                      </p>
+                    </div>
+                  </motion.li>
+                ))}
+              </ol>
+            </div>
+
+            {/* Central Button Integration */}
+            <motion.div
+              custom={WHY_JOIN.length}
+              variants={itemVariants}
               initial={initial}
               whileInView="visible"
               viewport={{ once: true, amount: 0.4 }}
-              className="absolute bottom-4 left-[17px] top-4 w-px origin-top bg-white/15"
-            />
-            {HOW_TO_JOIN.map((step, i) => (
-              <motion.li
-                key={step.title}
-                custom={i}
-                variants={itemVariants}
-                initial={initial}
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.4 }}
-                className="relative flex gap-5"
-              >
-                <span className="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border border-amber-400/50 bg-neutral-950 font-mono text-xs text-amber-400">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <div className="pt-1">
-                  <h3 className="text-base font-medium">{step.title}</h3>
-                  <p className="mt-1 text-sm text-neutral-400">{step.desc}</p>
-                </div>
-              </motion.li>
-            ))}
-          </ol>
-
-          <motion.div
-            custom={WHY_JOIN.length}
-            variants={itemVariants}
-            initial={initial}
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.4 }}
-            className="mt-10"
-          >
-            <motion.div
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              className="inline-block"
+              className="mt-8 pt-4"
             >
-              <Link
+              <Button
                 href={href}
-                className="group inline-flex items-center gap-2 rounded-full bg-amber-400 px-7 py-3.5 text-sm font-semibold text-black transition-colors hover:bg-amber-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                variant="primary"
+                size="lg"
+                className="w-full sm:w-auto gap-2 group"
               >
-                Join the Club
+                <span>Join the Club</span>
                 <ArrowRight
                   size={16}
                   aria-hidden
                   className="transition-transform duration-300 group-hover:translate-x-1"
                 />
-              </Link>
+              </Button>
             </motion.div>
-          </motion.div>
-        </div>
+          </div>
+        </Card>
       </motion.div>
     </section>
   );
