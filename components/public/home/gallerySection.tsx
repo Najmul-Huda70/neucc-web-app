@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Card from "@/components/ui/card/Card";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 export interface GalleryImage {
   galleryId: string;
@@ -36,19 +37,17 @@ export default function GallerySection({ images }: GallerySectionProps) {
   const row2Images = row2.length > 0 ? [...row2, ...row2, ...row2] : [];
 
   return (
-    <section className="py-6 sm:py-10 bg-(--bg-app) overflow-hidden">
+    <section className="w-full overflow-hidden bg-(--bg-app)">
       <div className="space-y-12">
-        {/* Header */}
-        <div className="text-center space-y-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-(--text-primary) tracking-tight">
-            Life at NEUCC
-          </h2>
-          <p className="text-xs sm:text-sm md:text-base text-(--text-muted) font-medium">
-            Glimpses of our activities, events, and memorable moments
-          </p>
+        {/* Header Section with max-w-6xl alignment */}
+        <div className="mx-auto w-full max-w-6xl px-6 sm:px-8">
+          <SectionHeader
+            title="Life at NEUCC"
+            subtitle="Glimpses of our activities, events, and memorable moments"
+          />
         </div>
 
-        {/* Gallery Motion Container */}
+        {/* Gallery Motion Container (Full Width Marquee) */}
         <div className="relative w-full overflow-hidden space-y-4 sm:space-y-6">
           {/* Left & Right Gradient Overlay */}
           <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-(--bg-app) to-transparent z-10 pointer-events-none" />

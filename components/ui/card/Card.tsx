@@ -18,7 +18,7 @@ export default function Card({
 }: CardProps) {
   // Base Structural Layout
   const baseClasses =
-    "group relative rounded-2xl border border-(--border-color) bg-(--card-bg) overflow-hidden transition-all duration-300 shadow-2xs";
+    "group relative rounded-sm border border-(--border-color) bg-(--card-bg) overflow-hidden transition-all duration-300 shadow-2xs";
 
   // Standardized Padding Sizes
   const paddingClasses = {

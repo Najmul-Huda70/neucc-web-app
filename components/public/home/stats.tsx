@@ -37,7 +37,6 @@ const barVariants: Variants = {
   }),
 };
 
-// Counts up from 0 once the number scrolls into view.
 function CountUp({ value }: { value: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.8 });
@@ -71,11 +70,8 @@ export default function Stats({ members, eventsHosted, yearsActive, sponsors }: 
   ];
 
   return (
-    <section
-      aria-label="Club statistics"
-className="mx-auto w-full max-w-6xl px-6 pb-12 sm:px-8 lg:pb-16"    >
-      {/* Hairline grid: gap-px over a border-colored background draws the dividers */}
-      <dl className="grid grid-cols-2 gap-px overflow-hidden border border-(--border-color) bg-(--border-color) lg:grid-cols-4">
+    <section aria-label="Club statistics" className="mx-auto w-full max-w-6xl px-6 sm:px-8">
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-(--border-color) bg-(--border-color) lg:grid-cols-4">
         {items.map(({ value, label }, i) => (
           <motion.div
             key={label}
@@ -84,7 +80,7 @@ className="mx-auto w-full max-w-6xl px-6 pb-12 sm:px-8 lg:pb-16"    >
             initial={initial}
             whileInView="visible"
             viewport={{ once: true, amount: 0.4 }}
-            className="flex flex-col-reverse justify-end gap-3 bg-(--bg-app) px-6 py-10 sm:px-8"
+            className="flex flex-col-reverse justify-end gap-3 bg-(--card-bg) px-6 py-10 sm:px-8"
           >
             <dt className="font-mono text-xs uppercase tracking-[0.18em] text-(--text-muted)">
               {label}
@@ -96,7 +92,7 @@ className="mx-auto w-full max-w-6xl px-6 pb-12 sm:px-8 lg:pb-16"    >
                 initial={initial}
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.4 }}
-                className="mb-5 block h-0.5 w-10 origin-left bg-amber-400"
+                className="mb-5 block h-0.5 w-10 origin-left bg-(--text-secondary)"
                 aria-hidden
               />
               <span className="font-serif text-5xl tracking-tight text-(--text-primary) sm:text-6xl">

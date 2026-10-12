@@ -58,15 +58,18 @@ export default async function Home() {
     getAllMessages(),
     getPublicEvents({ page: 1, pageSize: 6 }),
     getPublicSponsors(),
-    getPublicGalleryImages(), // Fetching gallery images in parallel
+    getPublicGalleryImages(),
   ]);
 
   const firstYear = firstCommittee._min.year ?? new Date().getFullYear();
   const yearsActive = Math.max(1, new Date().getFullYear() - firstYear + 1);
 
   return (
-    <main>
+    <main className="space-y-20 sm:space-y-28 pb-20 sm:pb-28">
+      {/* 1. Hero Section (প্যাডিং রিমুভ করার জন্য হিরো কম্পোনেন্টের নিজস্ব টপ মার্জিন সামঞ্জস্য রাখতে পারেন) */}
       <HeroSlider initialSlides={heroImages} />
+
+      {/* বাকি সেকশনগুলোতে সমান স্পেস বজায় রাখতে space-y ক্লাস কাজ করবে */}
       <WhatWeDo />
       <Stats
         members={members}
@@ -77,8 +80,8 @@ export default async function Home() {
       <LeadershipMessages messages={messages} />
       <RecentEvents events={publicEventsData.items} />
       <GallerySection images={galleryImages} />
-       <SponsorsSection sponsors={sponsorsList} />
-        <ExecutivesSection />
+      <SponsorsSection sponsors={sponsorsList} />
+      <ExecutivesSection />
       <JoinCTA />
     </main>
   );

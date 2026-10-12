@@ -9,17 +9,14 @@ html {
   --bg-app: #fefefa;            /* Warm off-white background */
   --card-bg: #ffffff;           /* Clean white surface for cards */
   --card-hover: #f8f8f2;        /* Soft card hover state */
-  --bg-subtle: #edede4;         /* Stat cards / Subtle sections background */
   --border-color: #e5e5e0;      /* Gentle structural borders */
 
   /* =========================================================
      2. Typography & Brand Accents
      ========================================================= */
   --text-primary: #111111;      /* Deep black for main headings */
-  --text-secondary: #288c83;    /* Brand Pine Teal for sub-titles */
+  --text-secondary: #288c83;    /* Brand Pine Teal for sub-titles & highlights */
   --text-muted: #737373;        /* Neutral gray for captions & dates */
-  --text-important: #991b1b;    /* Maroon/Red for urgent highlights & logo accent */
-  --accent: #d97706;            /* Gold/Amber accent */
 
   /* =========================================================
      3. Buttons & Interactive Controls
@@ -62,7 +59,6 @@ html {
   --focus-ring: rgba(40, 140, 131, 0.25);
   --overlay-bg: rgba(17, 17, 17, 0.5);
 }
-
 body {
   background-color: var(--bg-app);
   color: var(--text-primary);
