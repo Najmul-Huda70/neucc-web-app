@@ -15,7 +15,7 @@ export default function LeadershipMessages({ messages }: LeadershipMessagesProps
     .sort((a, b) => a.displayOrder - b.displayOrder);
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 sm:px-8 space-y-16">
+    <section className="mx-auto w-full max-w-7xl px-6 sm:px-8 space-y-16">
       {/* Section 1: Chairperson Message */}
       {chairmanMessage && (
         <div className="space-y-8">

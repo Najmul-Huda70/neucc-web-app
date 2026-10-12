@@ -39,8 +39,8 @@ export default function GallerySection({ images }: GallerySectionProps) {
   return (
     <section className="w-full overflow-hidden bg-(--bg-app)">
       <div className="space-y-12">
-        {/* Header Section with max-w-6xl alignment */}
-        <div className="mx-auto w-full max-w-6xl px-6 sm:px-8">
+        {/* Header Section with max-w-7xl alignment */}
+        <div className="mx-auto w-full max-w-7xl px-6 sm:px-8">
           <SectionHeader
             title="Life at NEUCC"
             subtitle="Glimpses of our activities, events, and memorable moments"

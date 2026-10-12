@@ -14,7 +14,7 @@ export default function RecentEvents({ events }: RecentEventsProps) {
   if (!latestEvents || latestEvents.length === 0) return null;
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 sm:px-8 space-y-12">
+    <section className="mx-auto w-full max-w-7xl px-6 sm:px-8 space-y-12">
       {/* Reusable Section Header */}
       <SectionHeader
         title="Recent and Upcoming Events"

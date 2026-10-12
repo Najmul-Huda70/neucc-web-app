@@ -73,7 +73,7 @@ export default function WhatWeDo({ counts = {} }: WhatWeDoProps) {
   const initial = reduceMotion ? "visible" : "hidden";
 
   return (
-    <section aria-labelledby="what-we-do-title" className="mx-auto w-full max-w-6xl px-6 sm:px-8">
+    <section aria-labelledby="what-we-do-title" className="mx-auto w-full max-w-7xl px-6 sm:px-8">
       <motion.div
         variants={headerVariants}
         initial={initial}

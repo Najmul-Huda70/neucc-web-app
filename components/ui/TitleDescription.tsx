@@ -1,6 +1,8 @@
 import React from "react";
 
 type TitleDescriptionProps = {
+  /** Optional element ID (useful for aria-labelledby) */
+  id?: string;
   /** The main heading title */
   title: string;
   /** The description or subtitle paragraph */
@@ -16,6 +18,7 @@ type TitleDescriptionProps = {
 };
 
 export default function TitleDescription({
+  id,
   title,
   description,
   as = "h3",
@@ -29,7 +32,8 @@ export default function TitleDescription({
     <div className={`space-y-2.5 ${className}`}>
       {/* Title with Serif font and Primary text token */}
       <HeadingTag
-        className={`font-serif text-2xl tracking-tight text-(--text-primary)  transition-colors duration-200 ${titleClassName}`}
+        id={id}
+        className={`font-serif text-2xl tracking-tight text-(--text-primary) transition-colors duration-200 ${titleClassName}`}
       >
         {title}
       </HeadingTag>

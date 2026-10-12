@@ -70,7 +70,7 @@ export default function Stats({ members, eventsHosted, yearsActive, sponsors }: 
   ];
 
   return (
-    <section aria-label="Club statistics" className="mx-auto w-full max-w-6xl px-6 sm:px-8">
+    <section aria-label="Club statistics" className="mx-auto w-full max-w-7xl px-6 sm:px-8">
       <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-(--border-color) bg-(--border-color) lg:grid-cols-4">
         {items.map(({ value, label }, i) => (
           <motion.div

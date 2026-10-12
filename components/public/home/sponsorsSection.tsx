@@ -17,7 +17,7 @@ export default function SponsorsSection({ sponsors }: SponsorsSectionProps) {
 
   return (
     <section className="w-full bg-(--bg-app) overflow-hidden">
-      <div className="mx-auto w-full max-w-6xl px-6 sm:px-8 space-y-12">
+      <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 space-y-12">
         {/* Reusable Section Header */}
         <SectionHeader
           title="Our Sponsors and Partners"

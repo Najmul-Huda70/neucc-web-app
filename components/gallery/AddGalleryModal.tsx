@@ -16,7 +16,7 @@ type Props = {
   onCreated: (newItem: AdminGalleryImage) => void;
 };
 
-// Canvas Helper for generating cropped image blob
+// Canvas Helper for generating cropped image blob/dataURL
 async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
   const image = new window.Image();
   image.src = imageSrc;
@@ -125,11 +125,36 @@ export default function AddGalleryModal({ onClose, onCreated }: Props) {
 
     setSaving(true);
     try {
+      let uploadedImageUrl = finalImage;
+
+      // blob: ba data:image/ দিয়ে শুরু হলে এটিকে /api/uploads রুটের মাধ্যমে Cloudinary-তে পাঠানো হবে
+      if (finalImage.startsWith("blob:") || finalImage.startsWith("data:image/")) {
+        const resBlob = await fetch(finalImage);
+        const blob = await resBlob.blob();
+        const file = new File([blob], "gallery-image.jpg", { type: "image/jpeg" });
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const uploadRes = await fetch("/api/uploads", {
+          method: "POST",
+          body: formData,
+        });
+
+        const uploadJson = await uploadRes.json();
+        if (!uploadRes.ok || !uploadJson.success) {
+          throw new Error(uploadJson.message || "Failed to upload image to Cloudinary.");
+        }
+
+        uploadedImageUrl = uploadJson.data.url;
+      }
+
+      // Cloudinary URL পাওয়ার পর ডাটাবেজের /api/gallery রুটে ডেটা সংরক্ষণ
       const res = await fetch("/api/gallery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          imageUrl: finalImage,
+          imageUrl: uploadedImageUrl,
           caption,
           location,
           date: date || null,
@@ -146,9 +171,9 @@ export default function AddGalleryModal({ onClose, onCreated }: Props) {
       } else {
         alert(json.message || "Failed to add image.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Error saving image to gallery.");
+      alert(err?.message || "Error saving image to gallery.");
     } finally {
       setSaving(false);
     }
@@ -170,7 +195,7 @@ export default function AddGalleryModal({ onClose, onCreated }: Props) {
 
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
 
-        {/* Image Cropper View (Matching provided screenshot design) */}
+        {/* Image Cropper View */}
         {imageUrl ? (
           isCropMode ? (
             <div className="space-y-4 mb-4">
@@ -188,7 +213,7 @@ export default function AddGalleryModal({ onClose, onCreated }: Props) {
                 />
               </div>
 
-              {/* Zoom Slider Control (Screenshot Layout) */}
+              {/* Zoom Slider Control */}
               <div className="space-y-1 px-1">
                 <div className="flex items-center justify-between text-xs font-semibold">
                   <span className="flex items-center gap-1.5">
@@ -345,7 +370,7 @@ export default function AddGalleryModal({ onClose, onCreated }: Props) {
             disabled={saving || !imageUrl}
             className="flex items-center gap-1 px-4 py-2 rounded-md bg-(--btn-primary-bg) text-(--btn-primary-text) text-xs font-semibold disabled:opacity-50 cursor-pointer"
           >
-            {saving && <Loader2 size={14} className="animate-spin" />} Save Image
+            {saving && <Loader2 size={14} className="animate-spin" />} {saving ? "Uploading..." : "Save Image"}
           </button>
         </div>
 

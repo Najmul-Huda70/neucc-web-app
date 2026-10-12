@@ -1,88 +1,84 @@
 import HeroSlider from "@/components/public/home/hero";
 import JoinCTA from "@/components/public/home/joinCTA";
-import Stats from "@/components/public/home/stats";
 import WhatWeDo from "@/components/public/home/whatWeDo";
 import LeadershipMessages from "@/components/public/home/leadershipMessages";
 import RecentEvents from "@/components/public/home/recentEvents";
 import SponsorsSection from "@/components/public/home/sponsorsSection";
 import GallerySection from "@/components/public/home/gallerySection";
-import { prisma } from "@/lib/prisma";
+import StatsSection from "@/components/public/home/stats";
+import ExecutivesSection from "@/components/public/home/executivesSection";
+
 import { getHeroGalleryImages, getPublicGalleryImages } from "@/lib/services/gallery";
 import { getAllMessages } from "@/lib/services/messages";
 import { getPublicEvents } from "@/lib/services/events";
 import { getPublicSponsors } from "@/lib/services/sponsors";
+import { getCachedHomeStats } from "@/lib/services/stats";
 import type { Metadata } from "next";
-import ExecutivesSection from "@/components/public/home/executivesSection";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "NEU Computer Club | Department of CSE",
   description:
     "Official website of NEU Computer Club (NEUCC), Department of CSE, North East University Bangladesh. Explore our events, workshops, galleries, and executive committees.",
-  openGraph: {
-    title: "NEU Computer Club | Department of CSE",
-    description:
-      "Official website of NEU Computer Club (NEUCC), Department of CSE, North East University Bangladesh.",
-    type: "website",
-    url: "/",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "NEU Computer Club | Department of CSE",
-    description:
-      "Official website of NEU Computer Club (NEUCC), Department of CSE, North East University Bangladesh.",
-  },
 };
 
 export default async function Home() {
-  const heroImages = await getHeroGalleryImages();
-
-  // Optimized Parallel Data Fetching
   const [
-    members,
-    eventsHosted,
-    firstCommittee,
-    sponsorsCount,
-    messages,
-    publicEventsData,
-    sponsorsList,
-    galleryImages,
+    heroImages,
+    stats
   ] = await Promise.all([
-    prisma.user.count({ where: { status: "ACTIVE" } }),
-    prisma.events.count({
-      where: { status: { in: ["PUBLISHED", "COMPLETED"] } },
-    }),
-    prisma.committee.aggregate({ _min: { year: true } }),
-    prisma.sponsor.count({
-      where: { eventSponsors: { some: { isPublic: true } } },
-    }),
-    getAllMessages(),
-    getPublicEvents({ page: 1, pageSize: 6 }),
-    getPublicSponsors(),
-    getPublicGalleryImages(),
+    getHeroGalleryImages(),
+    getCachedHomeStats(),
   ]);
-
-  const firstYear = firstCommittee._min.year ?? new Date().getFullYear();
-  const yearsActive = Math.max(1, new Date().getFullYear() - firstYear + 1);
-
   return (
-    <main className="space-y-20 sm:space-y-28 pb-20 sm:pb-28">
-      {/* 1. Hero Section (প্যাডিং রিমুভ করার জন্য হিরো কম্পোনেন্টের নিজস্ব টপ মার্জিন সামঞ্জস্য রাখতে পারেন) */}
+    <>
       <HeroSlider initialSlides={heroImages} />
-
-      {/* বাকি সেকশনগুলোতে সমান স্পেস বজায় রাখতে space-y ক্লাস কাজ করবে */}
       <WhatWeDo />
-      <Stats
-        members={members}
-        eventsHosted={eventsHosted}
-        yearsActive={yearsActive}
-        sponsors={sponsorsCount}
+      <StatsSection
+        members={stats.members}
+        eventsHosted={stats.eventsHosted}
+        yearsActive={stats.yearsActive}
+        sponsors={stats.sponsorsCount}
       />
-      <LeadershipMessages messages={messages} />
-      <RecentEvents events={publicEventsData.items} />
-      <GallerySection images={galleryImages} />
-      <SponsorsSection sponsors={sponsorsList} />
+      <Suspense fallback={<div>Loading Leadership Messages...</div>}>
+        <AsyncLeadershipContent />
+      </Suspense>
+      <Suspense fallback={<div>Loading Recent Events...</div>}>
+        <AsyncRecentEvents />
+      </Suspense>
+      <Suspense fallback={<div>Loading Gallery...</div>}>
+        <AsyncGallerySection />
+      </Suspense>
+      <Suspense fallback={<div>Loading Sponsors...</div>}>
+        <AsyncSponsorsSection />
+      </Suspense>
       <ExecutivesSection />
       <JoinCTA />
-    </main>
+    </>
+  );
+}
+
+async function AsyncLeadershipContent() {
+  const messages = await getAllMessages();
+  return (
+      <LeadershipMessages messages={messages} />
+  );
+}
+async function AsyncRecentEvents() {
+  const events = await getPublicEvents();
+  return (
+      <RecentEvents events={events.items} />
+  );
+}
+async function AsyncGallerySection() {
+  const galleryImages = await getPublicGalleryImages();
+  return (
+      <GallerySection images={galleryImages} />
+  );
+}
+async function AsyncSponsorsSection() {
+  const sponsors = await getPublicSponsors();
+  return (
+      <SponsorsSection sponsors={sponsors} />
   );
 }

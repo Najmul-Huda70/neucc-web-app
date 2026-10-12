@@ -1,88 +1,211 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import CommitteeFilters from "@/components/dashboard/committee/CommitteeFilters";
-import JoinBanner from "@/components/public/JoinBanner";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import ExecutiveGrid from "@/components/dashboard/committee/ExecutiveGrid";
-import { Committee } from "@/lib/types";
+import JoinBanner from "@/components/public/JoinBanner";
+import Button from "@/components/ui/Button"; // আপনার Reusable Button Import
+import { getPublicCommittees } from "@/lib/services/committees";
 
 type Props = {
-  initialCommittees: Committee[];
+  initialCommittees: Awaited<ReturnType<typeof getPublicCommittees>>;
 };
 
 export default function CommitteeClientPage({ initialCommittees }: Props) {
-  const [committees] = useState<Committee[]>(initialCommittees);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Default initial selection setup
-  const firstCommittee = committees[0];
-  const initialType = firstCommittee ? String(firstCommittee.type || "EXECUTIVE") : "EXECUTIVE";
-  const initialYear = firstCommittee ? String(firstCommittee.year ?? "") : "";
+  // URL parameters থেকে বর্তমান সিলেক্টেড মানগুলো নেওয়া
+  const initialType = searchParams.get("type") || "";
+  const initialYear = searchParams.get("year") || "";
 
-  const [selectedType, setSelectedType] = useState<string>(initialType);
-  const [selectedyear, setSelectedyear] = useState<string>(initialYear);
-
-  // Get unique types
+  // ১. ইউনিক কমিটি টাইপগুলো বের করা
   const availableTypes = Array.from(
-    new Set(committees.map((c) => String(c.type)))
+    new Set(initialCommittees.map((c) => String(c.type)))
   );
-
   if (availableTypes.length === 0) {
     availableTypes.push("EXECUTIVE", "ELECTION", "ADVISORY");
   }
 
-  // Filter valid years for currently selected type
-  const availableyears = Array.from(
+  const currentType = availableTypes.includes(initialType)
+    ? initialType
+    : availableTypes[0];
+
+  // ২. সিলেক্টেড টাইপের অধীনে উপলব্ধ বছরগুলো বের করা
+  const availableYears = Array.from(
     new Set(
-      committees
-        .filter((c) => String(c.type).toLowerCase() === selectedType.toLowerCase())
+      initialCommittees
+        .filter((c) => String(c.type).toLowerCase() === currentType.toLowerCase())
         .map((c) => String(c.year))
     )
-  );
+  ).sort((a, b) => Number(b) - Number(a)); // ডিসেন্ডিং অর্ডার (যেমন: 2026, 2025...)
 
-  // Auto-switch year when selectedType changes if current year is not available
-  useEffect(() => {
-    if (availableyears.length > 0 && !availableyears.includes(selectedyear)) {
-      setSelectedyear(availableyears[0]);
+  const currentYear =
+    availableYears.includes(initialYear) || availableYears.length === 0
+      ? initialYear || availableYears[0] || ""
+      : availableYears[0];
+
+  // URL Parameter আপডেট করা
+  const updateQuery = (type: string, year: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("type", type);
+    if (year) {
+      params.set("year", year);
+    } else {
+      params.delete("year");
     }
-  }, [selectedType, availableyears, selectedyear]);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
-  // Match active committee based on selected type and year
-  const activeCommittee = committees.find(
+  // বছর নেভিগেশন (< এবং >)
+  const handleYearScroll = (direction: "left" | "right") => {
+    const currentIndex = availableYears.indexOf(currentYear);
+    if (currentIndex === -1) return;
+
+    if (direction === "left" && currentIndex < availableYears.length - 1) {
+      updateQuery(currentType, availableYears[currentIndex + 1]);
+    } else if (direction === "right" && currentIndex > 0) {
+      updateQuery(currentType, availableYears[currentIndex - 1]);
+    }
+  };
+
+  // একটিভ কমিটি নির্ধারণ
+  const activeCommittee = initialCommittees.find(
     (c) =>
-      String(c.type).toLowerCase() === selectedType.toLowerCase() &&
-      String(c.year) === selectedyear
+      String(c.type).toLowerCase() === currentType.toLowerCase() &&
+      String(c.year) === currentYear
   );
+
+  // পোস্টগুলোকে প্রথম ২টি এবং বাকি অংশে ভাগ করা
+  const posts = activeCommittee?.posts || [];
+  const topTwoPosts = posts.slice(0, 2);
+  const remainingPosts = posts.slice(2);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-4 space-y-6 bg-(--bg-app) text-(--text-primary)">
-      {committees.length > 0 && (
-        <CommitteeFilters
-          selectedType={selectedType}
-          setSelectedType={setSelectedType}
-          selectedyear={selectedyear}
-          setSelectedyear={setSelectedyear}
-          types={availableTypes}
-          years={availableyears}
-        />
+    <div className="">
+      {/* =========================================================
+          1. Header Section: Title (Left) & Type Buttons (Right)
+         ========================================================= */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+        <h1 className="text-2xl font-black tracking-tight text-(--text-primary) sm:text-3xl">
+          Committee
+        </h1>
+
+        {/* Executive / Election Type Buttons using Button Component */}
+        <div className="flex items-center gap-1.5 rounded-xl border border-(--border-color) bg-(--card-bg) p-1 shadow-2xs self-start sm:self-auto">
+          {availableTypes.map((type) => {
+            const isActive = currentType.toLowerCase() === type.toLowerCase();
+            return (
+              <Button
+                key={type}
+                variant={isActive ? "primary" : "ghost"}
+                size="sm"
+                onClick={() => {
+                  const firstYearForType =
+                    initialCommittees
+                      .filter(
+                        (c) =>
+                          String(c.type).toLowerCase() === type.toLowerCase()
+                      )
+                      .map((c) => String(c.year))[0] || "";
+                  updateQuery(type, firstYearForType);
+                }}
+                className={`capitalize font-bold text-xs ${
+                  !isActive ? "text-(--text-muted) hover:text-(--text-primary)" : ""
+                }`}
+              >
+                {type.toLowerCase()}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* =========================================================
+          2. Year Filter Navigation (< year year year >)
+         ========================================================= */}
+      {initialCommittees.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {/* Previous Year Button (<) */}
+          {availableYears.length > 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleYearScroll("left")}
+              aria-label="Older Year"
+              className="p-2"
+            >
+              <ChevronLeft size={15} />
+            </Button>
+          )}
+
+          {/* Year Pills */}
+          {availableYears.map((yr) => {
+            const isActive = currentYear === yr;
+            return (
+              <Button
+                key={yr}
+                variant={isActive ? "primary" : "outline"}
+                size="sm"
+                onClick={() => updateQuery(currentType, yr)}
+                className="font-semibold text-xs"
+              >
+                {yr}
+              </Button>
+            );
+          })}
+
+          {/* Next Year Button (>) */}
+          {availableYears.length > 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleYearScroll("right")}
+              aria-label="Newer Year"
+              className="p-2"
+            >
+              <ChevronRight size={15} />
+            </Button>
+          )}
+
+          {availableYears.length === 0 && (
+            <span className="text-xs text-(--text-muted)">No years available</span>
+          )}
+        </div>
       )}
 
+      {/* =========================================================
+          3. Grid Content Layout (Matching Wireframe Layout)
+         ========================================================= */}
       {!activeCommittee ? (
-        <div className="text-center p-12 border border-dashed border-(--btn-secondary-border) rounded-3xl bg-(--stat-card-bg) my-10">
-          <h3 className="text-base font-semibold text-(--text-primary)">
+        <div className="text-center p-16 border border-dashed border-(--border-color) rounded-3xl bg-(--card-bg) my-6">
+          <h3 className="text-sm font-bold text-(--text-primary)">
             No Committee Found
           </h3>
-          <p className="text-xs text-(--text-secondary) mt-1">
-            There is no committee configured for {selectedType} ({selectedyear}).
+          <p className="text-xs text-(--text-muted) mt-1">
+            There is no committee configured for {currentType} ({currentYear}).
           </p>
         </div>
       ) : (
-        <ExecutiveGrid
-          posts={activeCommittee.posts}
-          title={`${activeCommittee.type} Committee - ${selectedyear}`}
-        />
-      )}
+        <div className="space-y-8">
+          {/* Cards Layout matching wireframe */}
+          <div className="space-y-6">
+            {/* First Row: Top 2 Leadership Cards */}
+            {topTwoPosts.length > 0 && (
+              <div className="max-w-4xl mx-auto">
+                <ExecutiveGrid posts={topTwoPosts} title="" />
+              </div>
+            )}
 
-      <JoinBanner />
+            {/* Sub-sequent Rows: Remaining Member Cards */}
+            {remainingPosts.length > 0 && (
+              <div>
+                <ExecutiveGrid posts={remainingPosts} title="" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,43 +1,84 @@
 import { prisma } from "@/lib/prisma";
 
+
+
 export const publicGallerySelect = {
+
   galleryId: true,
+
   imageUrl: true,
+
   caption: true,
+
   location: true,
+
   date: true,
+
   isHero: true,
+
   isPublic: true,
+
   eventId: true,
+
   event: {
+
     select: {
+
       title: true,
+
       slug: true,
+
     },
+
   },
+
 };
 
+
+
 // Public Gallery Page Images
+
 export async function getPublicGalleryImages() {
+
   try {
+
     const images = await prisma.gallery.findMany({
+
       where: {
+
         isPublic: true,
+
         isHero: false,
+
       },
+
       orderBy: { createdAt: "desc" },
+
       select: publicGallerySelect,
+
     });
 
+
+
     return images;
+
   } catch (error) {
+
     console.error("Error fetching public gallery images:", error);
+
     return [];
+
   }
+
 }
 
+
+
 // Public Hero Slider Images (SSR Ready)
-export async function getHeroGalleryImages() {
+
+import { unstable_cache } from "next/cache";
+
+async function fetchHeroGalleryImages() {
   try {
     const images = await prisma.gallery.findMany({
       where: {
@@ -58,7 +99,17 @@ export async function getHeroGalleryImages() {
 
     return images;
   } catch (error) {
-    console.error("Error in getHeroGalleryImages:", error);
+    console.error("Error in fetchHeroGalleryImages:", error);
     return [];
   }
 }
+
+// Cached Hero Gallery Images (30 Minutes Cache)
+export const getHeroGalleryImages = unstable_cache(
+  async () => fetchHeroGalleryImages(),
+  ["hero-gallery-images-cache"],
+  {
+    revalidate: 1800, // 30 minutes
+    tags: ["hero-gallery"],
+  }
+);

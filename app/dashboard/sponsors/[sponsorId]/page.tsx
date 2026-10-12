@@ -56,7 +56,7 @@ export default async function SponsorDetailsPage({
   const { sponsorId } = await params;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       <Suspense fallback={<SponsorDetailsLoading />}>
         <SponsorDetailsContainer sponsorId={sponsorId} />
       </Suspense>

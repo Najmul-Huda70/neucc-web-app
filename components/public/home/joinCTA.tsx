@@ -4,6 +4,7 @@ import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import Card from "@/components/ui/card/Card";
 import Button from "@/components/ui/Button";
+import TitleDescription from "@/components/ui/TitleDescription";
 
 type JoinCTAProps = {
   href?: string;
@@ -63,7 +64,7 @@ export default function JoinCTA({ href = "/membership" }: JoinCTAProps) {
   return (
     <section
       aria-labelledby="join-title"
-      className="mx-auto w-full max-w-6xl px-6 sm:px-8 bg-(--bg-app)"
+      className="mx-auto w-full max-w-7xl px-6 sm:px-8 bg-(--bg-app)"
     >
       <motion.div
         variants={panelVariants}
@@ -83,18 +84,15 @@ export default function JoinCTA({ href = "/membership" }: JoinCTAProps) {
 
           {/* Left Column: Why Join */}
           <div className="relative p-6 sm:p-10 lg:p-12 space-y-6">
-            <div className="space-y-3">
-              <h2
-                id="join-title"
-                className="font-serif text-2xl sm:text-3xl md:text-4xl font-extrabold text-(--text-primary) tracking-tight"
-              >
-                Join the Computer Club
-              </h2>
-              <p className="max-w-md text-xs sm:text-sm md:text-base leading-relaxed text-(--text-muted) font-medium">
-                Learn by building, compete with peers, and meet people who share your interest in
-                technology.
-              </p>
-            </div>
+            {/* Title & Description using Reusable Component */}
+            <TitleDescription
+              id="join-title"
+              title="Join the Computer Club"
+              description="Learn by building, compete with peers, and meet people who share your interest in technology."
+              as="h2"
+              titleClassName="font-serif text-2xl sm:text-3xl md:text-4xl font-extrabold text-(--text-primary) tracking-tight"
+              descClassName="max-w-md text-xs sm:text-sm md:text-base leading-relaxed text-(--text-muted) font-medium"
+            />
 
             <ul className="space-y-4 pt-2">
               {WHY_JOIN.map((item, i) => (
