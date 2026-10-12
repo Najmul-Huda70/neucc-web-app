@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyRole } from "@/lib/auth";
+import { revalidateTag } from "next/cache";
 
 // GET: Public & Admin Gallery Fetch
 export async function GET() {
@@ -84,7 +85,9 @@ export async function POST(req: Request) {
         },
       },
     });
-
+if (isHero) {
+      revalidateTag("hero-gallery","max");
+    }
     return NextResponse.json({ success: true, data: newGalleryItem }, { status: 201 });
   } catch (error) {
     console.error("Error creating gallery item:", error);

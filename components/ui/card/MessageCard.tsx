@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { User } from "lucide-react";
 import Card from "@/components/ui/card/Card";
+import TitleDescription from "@/components/ui/TitleDescription";
 
 export interface MessageItem {
   messageId: string;
@@ -53,15 +54,12 @@ export default function MessageCard({
           </div>
         </div>
 
-        {/* Name & Designation Header */}
-        <div className="space-y-1">
-          <h3 className="text-base sm:text-lg font-bold text-(--text-primary)">
-            {item.name}
-          </h3>
-          <p className="text-xs sm:text-sm font-medium text-(--text-secondary)">
-            {item.designation}
-          </p>
-        </div>
+        {/* Name & Designation using TitleDescription Component */}
+        <TitleDescription
+          title={item.name}
+          description={item.designation}
+          as="h3"
+        />
 
         {/* Message Content Body */}
         <p className="text-xs sm:text-sm leading-relaxed text-(--text-muted) italic pt-2">

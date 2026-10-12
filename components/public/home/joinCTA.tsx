@@ -4,6 +4,7 @@ import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import Card from "@/components/ui/card/Card";
 import Button from "@/components/ui/Button";
+import TitleDescription from "@/components/ui/TitleDescription";
 
 type JoinCTAProps = {
   href?: string;
@@ -63,7 +64,7 @@ export default function JoinCTA({ href = "/membership" }: JoinCTAProps) {
   return (
     <section
       aria-labelledby="join-title"
-      className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20 bg-(--bg-app)"
+      className="mx-auto w-full max-w-7xl px-6 sm:px-8 bg-(--bg-app)"
     >
       <motion.div
         variants={panelVariants}
@@ -73,28 +74,25 @@ export default function JoinCTA({ href = "/membership" }: JoinCTAProps) {
       >
         <Card
           padding="none"
-          className="relative grid overflow-hidden lg:grid-cols-2 border border-(--border-color) bg-(--card-bg)"
+          className="relative grid overflow-hidden rounded-sm border border-(--border-color) bg-(--card-bg) lg:grid-cols-2"
         >
-          {/* Subtle Ambient Accent Glow */}
+          {/* Subtle Ambient Teal Accent Glow */}
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-32 -top-32 size-96 rounded-full bg-(--accent)/10 blur-3xl"
+            className="pointer-events-none absolute -right-32 -top-32 size-96 rounded-full bg-(--text-secondary)/10 blur-3xl"
           />
 
           {/* Left Column: Why Join */}
           <div className="relative p-6 sm:p-10 lg:p-12 space-y-6">
-            <div className="space-y-3">
-              <h2
-                id="join-title"
-                className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-(--text-primary) tracking-tight"
-              >
-                Join the Computer Club
-              </h2>
-              <p className="max-w-md text-xs sm:text-sm md:text-base leading-relaxed text-(--text-muted) font-medium">
-                Learn by building, compete with peers, and meet people who share your interest in
-                technology.
-              </p>
-            </div>
+            {/* Title & Description using Reusable Component */}
+            <TitleDescription
+              id="join-title"
+              title="Join the Computer Club"
+              description="Learn by building, compete with peers, and meet people who share your interest in technology."
+              as="h2"
+              titleClassName="font-serif text-2xl sm:text-3xl md:text-4xl font-extrabold text-(--text-primary) tracking-tight"
+              descClassName="max-w-md text-xs sm:text-sm md:text-base leading-relaxed text-(--text-muted) font-medium"
+            />
 
             <ul className="space-y-4 pt-2">
               {WHY_JOIN.map((item, i) => (
@@ -109,7 +107,7 @@ export default function JoinCTA({ href = "/membership" }: JoinCTAProps) {
                 >
                   <CheckCircle2
                     size={18}
-                    className="mt-0.5 shrink-0 text-(--accent)"
+                    className="mt-0.5 shrink-0 text-(--text-secondary)"
                   />
                   <div>
                     <h3 className="text-sm sm:text-base font-bold text-(--text-primary)">
@@ -179,7 +177,7 @@ export default function JoinCTA({ href = "/membership" }: JoinCTAProps) {
                 href={href}
                 variant="primary"
                 size="lg"
-                className="w-full sm:w-auto gap-2 group"
+                className="w-full sm:w-auto gap-2 group cursor-pointer"
               >
                 <span>Join the Club</span>
                 <ArrowRight

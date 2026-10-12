@@ -30,7 +30,7 @@ export default function Button({
 }: ButtonProps) {
   // Base Structural Styling
   const baseClasses =
-    "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 select-none cursor-pointer disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
+    "inline-flex items-center justify-center font-semibold rounded-sm transition-all duration-200 select-none cursor-pointer disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)";
 
   // Size Variations
   const sizeClasses = {
@@ -87,7 +87,7 @@ export default function Button({
     <button className={combinedClasses} disabled={disabled || isLoading} {...props}>
       {isLoading ? (
         <div className="flex items-center gap-2">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <span className="h-4 w-4 animate-spin rounded-sm border-2 border-current border-t-transparent" />
           <span>{children}</span>
         </div>
       ) : (

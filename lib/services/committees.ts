@@ -9,6 +9,7 @@ export const publicCommitteeSelect = {
   posts: {
     orderBy: { createdAt: "asc" as const },
     select: {
+      postId: true,
       postTitle: true,
       status: true,
       user_posts: {

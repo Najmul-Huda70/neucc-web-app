@@ -31,45 +31,48 @@ export default function GalleryCard({ image, onClick }: GalleryCardProps) {
   return (
     <div onClick={onClick} className="h-full cursor-pointer">
       <Card padding="none" className="h-full flex flex-col justify-between">
-        <div>
-          {/* Image Container with Event Tag Overlay */}
-          <div className="relative aspect-4/3 w-full overflow-hidden bg-(--bg-subtle)">
-            <Image
-              src={image.imageUrl}
-              alt={cardTitle}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            />
+        {/* Top Section: Image & Title Container */}
+        <div className="flex flex-col flex-1 justify-between">
+          <div>
+            {/* Image Container with Event Tag Overlay */}
+            <div className="relative aspect-4/3 w-full overflow-hidden bg-(--bg-subtle)">
+              <Image
+                src={image.imageUrl}
+                alt={cardTitle}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              />
 
-            {/* Event Tag Overlay */}
-            {image.event && (
-              <span className="absolute top-2.5 left-2.5 rounded-md bg-black/60 backdrop-blur-md px-2 py-1 text-[10px] font-semibold text-white">
-                {image.event.title}
-              </span>
-            )}
-          </div>
+              {/* Event Tag Overlay */}
+              {image.event && (
+                <span className="absolute top-2.5 left-2.5 rounded-md bg-black/60 backdrop-blur-md px-2 py-1 text-[10px] font-semibold text-white">
+                  {image.event.title}
+                </span>
+              )}
+            </div>
 
-          {/* Card Body Title */}
-          <div className="p-3.5">
-            <h3 className="line-clamp-2 text-xs font-bold text-(--text-primary) group-hover:text-(--text-secondary) transition-colors">
-              {cardTitle}
-            </h3>
+            {/* Card Body Title */}
+            <div className="p-3.5">
+              <h3 className="line-clamp-2 text-xs font-bold text-(--text-primary) group-hover:text-(--text-secondary) transition-colors">
+                {cardTitle}
+              </h3>
+            </div>
           </div>
         </div>
 
-        {/* Footer Meta Details */}
-        <div className="mx-3.5 mb-3.5 flex flex-wrap items-center justify-between text-[11px] text-(--text-muted) pt-2 border-t border-(--border-color)">
+        {/* Footer Meta Details (Always stays at bottom aligned) */}
+        <div className="mx-3.5 mb-3.5 flex items-center justify-between min-h-[28px] text-[11px] text-(--text-muted) pt-2 border-t border-(--border-color)">
           {image.location ? (
             <span className="flex items-center gap-1">
-              <MapPin size={12} className="text-(--accent) shrink-0" />
+              <MapPin size={12} className="text-(--text-secondary) shrink-0" />
               <span className="truncate max-w-[120px]">{image.location}</span>
             </span>
           ) : (
-            <span />
+            <span /> /* Empty span to preserve flex justify-between space */
           )}
 
-          {image.date && (
+          {image.date ? (
             <span className="flex items-center gap-1 font-mono">
               <Calendar size={12} className="shrink-0" />
               {new Date(image.date).toLocaleDateString("en-US", {
@@ -78,6 +81,8 @@ export default function GalleryCard({ image, onClick }: GalleryCardProps) {
                 year: "numeric",
               })}
             </span>
+          ) : (
+            <span />
           )}
         </div>
       </Card>

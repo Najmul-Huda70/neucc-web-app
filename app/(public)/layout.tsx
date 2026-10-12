@@ -9,8 +9,10 @@ export default function PublicLayout({
   return (
     <>
       <Navbar />
-      <main>{children}</main>
-      <Footer/>
+      <main className="space-y-20 sm:space-y-28 pb-20 sm:pb-28">
+        {children}
+      </main>
+      <Footer />
     </>
   );
 }

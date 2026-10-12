@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Button from "@/components/ui/Button";
-import  { SponsorCard, SponsorItem } from "@/components/ui/card";
+import { SponsorCard, SponsorItem } from "@/components/ui/card";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 interface SponsorsSectionProps {
   sponsors: SponsorItem[];
@@ -16,17 +16,13 @@ export default function SponsorsSection({ sponsors }: SponsorsSectionProps) {
   if (!activeSponsors || activeSponsors.length === 0) return null;
 
   return (
-    <section className="py-16 sm:py-24 bg-(--bg-app) overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-(--text-primary) tracking-tight">
-            Our Sponsors & Partners
-          </h2>
-          <p className="text-xs sm:text-sm md:text-base text-(--text-muted) font-medium">
-            Proudly supported by visionary organizations empowering our tech community
-          </p>
-        </div>
+    <section className="w-full bg-(--bg-app) overflow-hidden">
+      <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 space-y-12">
+        {/* Reusable Section Header */}
+        <SectionHeader
+          title="Our Sponsors and Partners"
+          subtitle="Proudly supported by visionary organizations empowering our tech community"
+        />
 
         {/* Horizontal Scroll Wrapper using Reusable SponsorCards */}
         <div className="w-full overflow-x-auto no-scrollbar">
@@ -43,7 +39,7 @@ export default function SponsorsSection({ sponsors }: SponsorsSectionProps) {
             href="/sponsors#become-sponsor"
             variant="primary"
             size="md"
-            className="gap-2"
+            className="gap-2 cursor-pointer"
           >
             <span>Become a Sponsor</span>
             <ArrowRight size={16} />

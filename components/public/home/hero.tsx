@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ActionLink from "@/components/ui/ActionLink";
 
 export type HeroSlide = {
   galleryId: string;
@@ -52,10 +52,8 @@ export default function HeroSlider({ initialSlides }: Props) {
     : null;
 
   return (
-    <section className="relative w-full bg-neutral-950 overflow-hidden select-none">
+    <section className="relative w-full bg-(--bg-app) overflow-hidden select-none">
       <div className="relative w-full aspect-[2.2/1] min-h-[350px] max-h-[750px] flex items-center justify-center">
-        
-        {/* Background Images with Motion */}
         <AnimatePresence mode="popLayout">
           <motion.div
             key={current.galleryId}
@@ -73,12 +71,10 @@ export default function HeroSlider({ initialSlides }: Props) {
               className="object-cover w-full h-full"
               sizes="100vw"
             />
-            {/* Gradient Overlay for better readability when bottom aligned */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/30" />
           </motion.div>
         </AnimatePresence>
 
-        {/* Text Overlay - Lower Positioned (`justify-end` & bottom padding) */}
         <div className="relative z-20 flex h-full w-full flex-col items-center justify-end px-4 pb-14 sm:pb-20 lg:pb-24 text-center text-white">
           <AnimatePresence mode="wait">
             <motion.div
@@ -93,47 +89,46 @@ export default function HeroSlider({ initialSlides }: Props) {
                 {current.caption || "NEU Computer Club"}
               </h1>
 
-              <div className="mt-2 sm:mt-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[11px] sm:text-xs md:text-sm font-medium tracking-wider text-white/90">
+              <div className="mt-2 sm:mt-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[11px] sm:text-xs md:text-sm font-sans font-medium tracking-wider text-white/90">
                 {current.location && (
                   <span className="flex items-center gap-1">
-                    <MapPin size={13} className="text-amber-400 shrink-0" />
+                    <MapPin size={13} className="text-(--text-secondary) shrink-0" />
                     {current.location}
                   </span>
                 )}
 
                 {current.location && formattedDate && <span className="opacity-40">—</span>}
 
-                {formattedDate && <span>{formattedDate}</span>}
+                {formattedDate && (
+                  <span className="font-mono text-xs text-white/90">{formattedDate}</span>
+                )}
               </div>
 
               <div className="mt-3 sm:mt-5">
-                <Link
+                <ActionLink
                   href="/events"
-                  className="inline-flex items-center gap-2 border-b border-white/70 pb-0.5 text-[11px] sm:text-xs md:text-sm font-medium tracking-widest text-white uppercase transition-all duration-300 hover:border-amber-400 hover:text-amber-400 hover:gap-3"
-                >
-                  <span>Explore Events</span>
-                  <ArrowRight size={13} />
-                </Link>
+                  label="EXPLORE EVENTS"
+                  className="text-white border-white/70 hover:border-(--text-secondary)"
+                />
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Bottom Controls */}
         {initialSlides.length > 1 && (
           <div className="absolute bottom-3 sm:bottom-6 right-3 sm:right-8 z-30 flex items-center gap-2 sm:gap-4">
             <button
               onClick={prevSlide}
               aria-label="Previous Slide"
-              className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white transition-all hover:border-white hover:bg-black/70 active:scale-95 cursor-pointer backdrop-blur-sm"
+              className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white transition-all hover:border-(--text-secondary) hover:bg-black/70 active:scale-95 cursor-pointer backdrop-blur-sm"
             >
               <ChevronLeft size={14} className="sm:w-4 sm:h-4" />
             </button>
 
-            <div className="flex items-center gap-2 text-[10px] sm:text-xs font-mono tracking-widest text-white/80">
+            <div className="flex items-center gap-2 text-[10px] sm:text-xs font-mono tracking-widest text-white/90">
               <div className="relative h-0.5 w-8 sm:w-16 bg-white/30 overflow-hidden rounded-full">
                 <motion.div
-                  className="absolute left-0 top-0 h-full bg-amber-400"
+                  className="absolute left-0 top-0 h-full bg-(--text-secondary)"
                   initial={{ width: 0 }}
                   animate={{ width: `${((currentSlide + 1) / initialSlides.length) * 100}%` }}
                   transition={{ duration: 0.4, ease: "easeInOut" }}
@@ -147,7 +142,7 @@ export default function HeroSlider({ initialSlides }: Props) {
             <button
               onClick={nextSlide}
               aria-label="Next Slide"
-              className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-amber-400 text-black transition-all hover:bg-amber-300 active:scale-95 cursor-pointer"
+              className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-(--btn-primary-bg) text-white transition-all hover:bg-(--btn-primary-hover) active:scale-95 cursor-pointer shadow-xs"
             >
               <ChevronRight size={14} className="sm:w-4 sm:h-4" />
             </button>

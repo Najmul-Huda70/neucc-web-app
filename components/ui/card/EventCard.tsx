@@ -4,6 +4,7 @@ import { Calendar, CalendarDays, Check, MapPin, Share2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import Card from "./Card";
+import TitleDescription from "../TitleDescription";
 
 export type PublicEventCardData = {
   eventId: string;
@@ -18,7 +19,7 @@ export type PublicEventCardData = {
   committee: { type: string; year: number };
 };
 
-// তারিখ ফরম্যাট করার হেল্পার ফাংশন (সিনট্যাক্স ঠিক করা হয়েছে)
+// তারিখ ফরম্যাট করার হেল্পার ফাংশন
 function formatEventDate(startDate?: string | Date | null, endDate?: string | Date | null) {
   if (!startDate) return null;
 
@@ -32,7 +33,6 @@ function formatEventDate(startDate?: string | Date | null, endDate?: string | Da
   if (!endDate) return startFormatted;
 
   const end = new Date(endDate);
-  // যদি একই দিনে শুরু ও শেষ হয়
   if (start.toDateString() === end.toDateString()) {
     return startFormatted;
   }
@@ -46,10 +46,21 @@ function formatEventDate(startDate?: string | Date | null, endDate?: string | Da
   return `${startFormatted} – ${endFormatted}`;
 }
 
+// Event Status (Upcoming / Past) Check Helper Function
+function getEventStatus(startDate?: string | Date | null, endDate?: string | Date | null) {
+  const now = new Date();
+  const start = startDate ? new Date(startDate) : now;
+  const end = endDate ? new Date(endDate) : start;
+
+  if (start >= now || end >= now) {
+    return "UPCOMING";
+  }
+  return "PAST";
+}
+
 export default function EventCard({ event }: { event: PublicEventCardData }) {
   const [copied, setCopied] = useState(false);
 
-  // Copy URL handler (stopPropagation দিয়ে পেজে রিডাইরেক্ট হওয়া আটকানো হয়েছে)
   const handleCopy = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -59,13 +70,14 @@ export default function EventCard({ event }: { event: PublicEventCardData }) {
     try {
       await navigator.clipboard.writeText(eventUrl);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000); // ২ সেকেন্ড পর রিসেট হবে
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy link:", err);
     }
   };
 
   const formattedDate = formatEventDate(event.startDate, event.endDate);
+  const eventStatus = getEventStatus(event.startDate, event.endDate);
 
   return (
     <Card 
@@ -95,15 +107,33 @@ export default function EventCard({ event }: { event: PublicEventCardData }) {
 
         {/* Content Body */}
         <div className="p-5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-(--text-secondary)">
-            {event.type}
-          </p>
-          <h3 className="mt-2 text-lg font-black leading-tight text-(--text-primary) group-hover:text-(--text-secondary) transition-colors">
-            {event.title}
-          </h3>
-          <p className="mt-2 line-clamp-3 text-sm leading-6 text-(--text-muted)">
-            {event.shortDescription}
-          </p>
+          {/* Header Row: Event Type (Left) & Status Badge (Right) */}
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-(--text-secondary)">
+              {event.type}
+            </p>
+
+            {/* Upcoming / Past Badge */}
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide ${
+                eventStatus === "UPCOMING"
+                  ? "bg-(--success-bg) text-(--success-text)"
+                  : "bg-(--btn-secondary-bg) text-(--text-muted)"
+              }`}
+            >
+              {eventStatus === "UPCOMING" ? "Upcoming" : "Past"}
+            </span>
+          </div>
+
+          {/* Reusable Title & Description Component */}
+          <TitleDescription
+            title={event.title}
+            description={event.shortDescription}
+            as="h3"
+            className="mt-2 space-y-2"
+            titleClassName="text-lg font-black leading-tight font-sans tracking-normal group-hover:text-(--text-secondary)"
+            descClassName="line-clamp-3 text-sm leading-6"
+          />
 
           {/* Date & Venue Section */}
           <div className="mt-4 flex flex-col gap-1.5 text-xs text-(--text-muted)">
@@ -133,7 +163,7 @@ export default function EventCard({ event }: { event: PublicEventCardData }) {
           {event.committee.type} Committee · {event.committee.year}
         </p>
 
-        {/* Copy Button with Icon + Text Feedback */}
+        {/* Copy Button */}
         <button
           onClick={handleCopy}
           type="button"
