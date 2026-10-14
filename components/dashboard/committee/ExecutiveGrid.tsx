@@ -25,7 +25,7 @@ export default function ExecutiveGrid({ posts, title }: ExecutiveGridProps) {
   const restMembers = posts.slice(2);
 
   return (
-    <div className="space-y-8 my-8">
+    <div>
       {/* Section Title */}
       <div className="border-b-2 border-(--text-secondary) w-fit pb-1">
         <h3 className="text-lg font-bold text-(--text-secondary)">

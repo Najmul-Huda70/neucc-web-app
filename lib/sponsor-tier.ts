@@ -8,13 +8,13 @@ export type SponsorTierKey =
   | "BRONZE"
   | "PARTNER";
 
-/** Shape returned by the Prisma query in app/(public)/sponsors/page.tsx */
+/** Extended / Partial Shape returned by Prisma queries */
 export type SponsorRow = {
   sponsorId: string;
   name: string;
   logoUrl: string | null;
   website: string | null;
-  eventSponsors: {
+  eventSponsors?: {
     tier: SponsorTierKey | null;
     displayOrder: number;
     event: { title: string; slug: string };
@@ -94,19 +94,34 @@ export function buildTieredSponsors(rows: SponsorRow[]): TieredSponsor[] {
   const result: TieredSponsor[] = [];
 
   for (const row of rows) {
-    if (seen.has(row.sponsorId) || row.eventSponsors.length === 0) continue;
+    if (seen.has(row.sponsorId)) continue;
     seen.add(row.sponsorId);
 
-    const tiers = row.eventSponsors.map((es) => es.tier ?? "PARTNER");
-    const best = tiers.reduce((a, b) => (TIER_RANK[a] <= TIER_RANK[b] ? a : b));
+    const eventSponsors = row.eventSponsors || [];
+
+    // Safe handling for sponsors without explicit eventSponsors relation
+    const tiers = eventSponsors.map((es) => es.tier ?? "PARTNER");
+    const best =
+      tiers.length > 0
+        ? tiers.reduce((a, b) => (TIER_RANK[a] <= TIER_RANK[b] ? a : b))
+        : "PARTNER";
 
     const eventSeen = new Set<string>();
     const events: SponsoredEvent[] = [];
-    for (const es of row.eventSponsors) {
-      if (eventSeen.has(es.event.slug)) continue;
+    for (const es of eventSponsors) {
+      if (!es.event?.slug || eventSeen.has(es.event.slug)) continue;
       eventSeen.add(es.event.slug);
-      events.push({ title: es.event.title, slug: es.event.slug, tier: es.tier ?? "PARTNER" });
+      events.push({
+        title: es.event.title,
+        slug: es.event.slug,
+        tier: es.tier ?? "PARTNER",
+      });
     }
+
+    const minOrder =
+      eventSponsors.length > 0
+        ? Math.min(...eventSponsors.map((es) => es.displayOrder ?? 0))
+        : 0;
 
     result.push({
       sponsorId: row.sponsorId,
@@ -114,7 +129,7 @@ export function buildTieredSponsors(rows: SponsorRow[]): TieredSponsor[] {
       logoUrl: row.logoUrl,
       website: row.website,
       tier: best,
-      order: Math.min(...row.eventSponsors.map((es) => es.displayOrder)),
+      order: minOrder,
       events,
     });
   }
