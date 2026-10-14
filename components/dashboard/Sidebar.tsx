@@ -53,6 +53,11 @@ export default function Sidebar({
       roles: ["ADMIN"],
     },
     {
+      label:" System Settings",
+      href: "/dashboard/system-settings",
+      roles: ["ADMIN"],
+    },
+    {
       label: "Profile Settings",
       href: "/dashboard/profile",
       roles: ["ADMIN", "MODERATOR", "MEMBER"],

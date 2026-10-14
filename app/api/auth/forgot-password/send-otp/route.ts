@@ -2,13 +2,25 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendPasswordResetOtpEmail } from "@/lib/mailer";
 
+// Helper function to safely mask email
+function maskEmail(email: string): string {
+  const [localPart, domain] = email.split("@");
+  if (!domain) return email;
+
+  if (localPart.length <= 2) {
+    return `${localPart[0]}***@${domain}`;
+  }
+  return `${localPart.substring(0, 2)}${"*".repeat(localPart.length - 2)}@${domain}`;
+}
+
 export async function POST(req: Request) {
   try {
-    const { identifier } = await req.json(); // User ID or Email
+    const body = await req.json().catch(() => null);
+    const identifier = body?.identifier;
 
-    if (!identifier) {
+    if (!identifier || typeof identifier !== "string") {
       return NextResponse.json(
-        { message: "User ID or Email is required" },
+        { message: "Valid User ID or Email is required" },
         { status: 400 }
       );
     }
@@ -39,11 +51,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6 Digit Random OTP জেনারেট করা
+    // 6 Digit Crypto/Random OTP জেনারেট করা
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 Minutes validity
 
-    // ডাটাবেজে OTP সেভ করা
+    // ডাটাবেজে OTP আপডেট করা
     await prisma.user.update({
       where: { userId: user.userId },
       data: {
@@ -52,7 +64,7 @@ export async function POST(req: Request) {
       },
     });
 
-    // ইমেইল মেলিং ফাংশন কল
+    // ইমেইল পাঠানো
     await sendPasswordResetOtpEmail({
       email: user.email,
       name: user.name,
@@ -62,14 +74,14 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         message: "OTP sent successfully to your registered email",
-        emailMasked: user.email.replace(/(.{2})(.*)(?=@)/, (gp1, gp2, gp3) => gp2 + "*".repeat(gp3.length)),
+        emailMasked: maskEmail(user.email),
         userId: user.userId,
         resetOtpExpiresAt: otpExpiresAt.toISOString(),
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Send OTP Error:", error);
+    console.error("Send Password Reset OTP Error:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

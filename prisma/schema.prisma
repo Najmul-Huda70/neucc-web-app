@@ -200,6 +200,16 @@ model Message {
 
   @@map("messages")
 }
+
+// ─────────────────────────────────────────────
+// System Settings
+// ─────────────────────────────────────────────
+model SystemSetting {
+  id                 String   @id @default(cuid())
+  isMembershipOpen   Boolean  @default(false) // Membership registration control
+  updatedAt          DateTime @updatedAt
+  @@map("system_settings")
+}
 // ─────────────────────────────────────────────
 // Enums
 // ─────────────────────────────────────────────
