@@ -38,6 +38,11 @@ export default function Sidebar({
       roles: ["ADMIN", "MODERATOR"],
     },
     {
+      label: "Sarok Management",
+      href: "/dashboard/sarok",
+      roles: ["ADMIN"],
+    },
+    {
       label: "Gallery Management",
       href: "/dashboard/gallery",
       roles: ["ADMIN", "MODERATOR"],

@@ -28,7 +28,6 @@ export default function DeleteConfirmationModal({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // ইনপুট টাইটেল ও অরিজিনাল টাইটেল হুবহু মিললে তবেই ডিলিট বাটন একটিভ হবে
   const isMatch = typedTitle.trim() === itemTitle.trim();
 
   const handleModalClose = () => {
@@ -54,15 +53,13 @@ export default function DeleteConfirmationModal({
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || `Failed to delete ${itemType.toLowerCase()}`);
+        throw new Error(data.message || data.error || `Failed to delete ${itemType.toLowerCase()}`);
       }
 
-      // ✅ SUCCESS: টোস্ট শো করবে এবং মোডাল বন্ধ হবে
       toast.success(`${itemType} "${itemTitle}" permanently deleted!`);
       if (onSuccess) onSuccess();
       handleModalClose();
     } catch (err: any) {
-      // ❌ ERROR: মোডাল বন্ধ হবে না, ইন-মোডাল এরর অ্যালার্টে মেসেজ শো করবে
       setErrorMessage(err.message || "An unexpected error occurred.");
     } finally {
       setIsLoading(false);
@@ -75,18 +72,19 @@ export default function DeleteConfirmationModal({
       onClose={handleModalClose}
       title={`Delete ${itemType}`}
       maxWidth="md"
-      errorMessage={errorMessage}
-      isLoading={isLoading}
-      onSubmit={handleDeleteSubmit}
-      showFooter={true}
-      submitText={`Delete ${itemType}`}
-      submitVariant="danger"
-      isSubmitDisabled={!isMatch}
+      showFooter={false} // কাস্টম ফুটারের জন্য ফলস রাখা হলো
     >
-      <div className="space-y-4">
+      <form onSubmit={handleDeleteSubmit} className="space-y-4">
+        {/* Error Alert inside Modal */}
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-medium">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Warning Box */}
-        <div className="bg-(--danger-bg) border border-(--danger-border) text-(--danger-text) rounded-xl p-3.5 flex items-start gap-3">
-          <AlertTriangle size={20} className="shrink-0 text-(--text-important) mt-0.5" />
+        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl p-3.5 flex items-start gap-3">
+          <AlertTriangle size={20} className="shrink-0 text-rose-500 mt-0.5" />
           <div className="text-xs space-y-1">
             <p className="font-bold">This action cannot be undone!</p>
             <p className="leading-relaxed">
@@ -97,7 +95,7 @@ export default function DeleteConfirmationModal({
           </div>
         </div>
 
-        {/* Confirmation Type-to-Confirm Input */}
+        {/* Input */}
         <div className="space-y-2 pt-1">
           <label className="text-xs text-(--text-muted) block leading-normal">
             To confirm, type <span className="font-bold text-(--text-primary) select-all">"{itemTitle}"</span> in the box below:
@@ -107,14 +105,33 @@ export default function DeleteConfirmationModal({
             value={typedTitle}
             onChange={(e) => {
               setTypedTitle(e.target.value);
-              if (errorMessage) setErrorMessage(null); // টাইপ শুরু করলে এরর হাইড হবে
+              if (errorMessage) setErrorMessage(null);
             }}
             placeholder={itemTitle}
             disabled={isLoading}
-            className="w-full bg-(--input-bg) border border-(--input-border) text-(--text-primary) text-sm rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-(--focus-ring) transition disabled:opacity-50"
+            className="w-full bg-(--input-bg) border border-(--border-color) text-(--text-primary) text-sm rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-rose-500 transition disabled:opacity-50"
           />
         </div>
-      </div>
+
+        {/* Custom Visible Buttons */}
+        <div className="flex justify-end gap-2 border-t border-(--border-color) pt-4 mt-6">
+          <button
+            type="button"
+            onClick={handleModalClose}
+            disabled={isLoading}
+            className="px-4 py-2 rounded-xl border border-(--border-color) text-xs font-semibold text-(--text-secondary) hover:bg-(--bg-app)"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={!isMatch || isLoading}
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-40 transition-all cursor-pointer shadow-sm"
+          >
+            {isLoading ? "Deleting..." : `Delete ${itemType}`}
+          </button>
+        </div>
+      </form>
     </Modal>
   );
 }
