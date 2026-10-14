@@ -3,6 +3,7 @@ import * as bcrypt from "bcryptjs";
 import { CommitteeType, EventStatus, EventType, Role, Status } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { sendNewAccountCredentials } from "@/lib/mailer";
+import { seedSarokCategories } from "./seeds/sarok"; // সিড ফাংশন ইম্পোর্ট করা হলো
 
 const cardBannerUrl = "/image/upcomming-events.webp";
 const detailBannerUrl = "/image/upcomming-events.webp";
@@ -33,7 +34,8 @@ function buildEvents(committeeId: string) {
         shortDescription: `Join our ${type.toLowerCase()} event organized by the NEU Computer Club.`,
         description: `# ${type.charAt(0)}${type.slice(1).toLowerCase()} Event ${eventIndex + 1}: Masterclass & Interactive Session
 
-- Welcome to the **NEU Computer Club** official *${type.toLowerCase()}* event! This session is designed to give students hands-on technical skills and deep architectural knowledge.
+- Welcome to the **NEU Computer Club** official *
+- ${type.toLowerCase()}event! This session is designed to give students hands-on technical skills and deep architectural knowledge.
 
 ---
 
@@ -112,6 +114,9 @@ async function main() {
 
   const result = await prisma.$transaction(
     async (tx) => {
+      // ১. সারোক ক্যাটাগরিগুলো সিড করা হলো
+      await seedSarokCategories(tx);
+
       const committee = await tx.committee.upsert({
         where: { type_year: { type: CommitteeType.EXECUTIVE, year: 2026 } },
         update: { status: Status.ACTIVE },

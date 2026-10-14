@@ -38,6 +38,11 @@ export default function Sidebar({
       roles: ["ADMIN", "MODERATOR"],
     },
     {
+      label: "Sarok Management",
+      href: "/dashboard/sarok",
+      roles: ["ADMIN"],
+    },
+    {
       label: "Gallery Management",
       href: "/dashboard/gallery",
       roles: ["ADMIN", "MODERATOR"],
@@ -50,6 +55,11 @@ export default function Sidebar({
     {
       label: "Messages",
       href: "/dashboard/messages",
+      roles: ["ADMIN"],
+    },
+    {
+      label:" System Settings",
+      href: "/dashboard/system-settings",
       roles: ["ADMIN"],
     },
     {

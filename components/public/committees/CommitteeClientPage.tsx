@@ -3,8 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ExecutiveGrid from "@/components/dashboard/committee/ExecutiveGrid";
-import JoinBanner from "@/components/public/JoinBanner";
-import Button from "@/components/ui/Button"; // আপনার Reusable Button Import
+import Button from "@/components/ui/Button"; 
 import { getPublicCommittees } from "@/lib/services/committees";
 
 type Props = {
@@ -92,7 +91,7 @@ export default function CommitteeClientPage({ initialCommittees }: Props) {
         </h1>
 
         {/* Executive / Election Type Buttons using Button Component */}
-        <div className="flex items-center gap-1.5 rounded-xl border border-(--border-color) bg-(--card-bg) p-1 shadow-2xs self-start sm:self-auto">
+        <div className="flex items-center gap-1.5 rounded-xl bg-(--card-bg) self-start sm:self-auto">
           {availableTypes.map((type) => {
             const isActive = currentType.toLowerCase() === type.toLowerCase();
             return (

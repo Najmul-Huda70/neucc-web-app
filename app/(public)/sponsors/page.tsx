@@ -5,8 +5,9 @@ import SponsorshipTiers from "@/components/public/sponsors/SponsorshipTiers";
 import WhySponsorUs from "@/components/public/sponsors/Whypartnersection";
 import { prisma } from "@/lib/prisma";
 import { buildTieredSponsors } from "@/lib/sponsor-tier";
+import { getPublicSponsors } from "@/lib/services/sponsors";
 
-// 🌐 Dynamic SEO Metadata
+// Dynamic SEO Metadata
 export const metadata: Metadata = {
   title: "Sponsor Us | NEU Computer Club",
   description:
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
     title: "Sponsor Us | NEU Computer Club",
     description:
       "Partner with North East University Bangladesh CSE Dept. Computer Club to sponsor workshops, contests, and tech events that empower future software engineers.",
-    url: "https://neu.ac.bd/sponsors", // আপনার প্রজেক্টের সঠিক ডোমেইন দিন
+    url: "https://neu.ac.bd/sponsors",
     siteName: "NEU Computer Club",
     locale: "en_US",
     type: "website",
@@ -37,53 +38,18 @@ export const metadata: Metadata = {
   },
 };
 
-// Not stored in the DB, so edit this number by hand.
-const STUDENTS_REACHED = "5000+";
-
 export default async function PublicSponsorsPage() {
-  // Everything the page needs is fetched once, here, then passed down as props.
-  const [distinctEvents, eventsHosted, sponsorRows] = await Promise.all([
-    // Unique event types (used in the hero subtitle and the "event formats" stat)
+  // Unnecessary eventsHosted count query remove kore sudhu dorkari data rakha holo
+  const [distinctEvents, sponsorRows] = await Promise.all([
+    // Unique event types
     prisma.events.findMany({
       where: { status: { in: ["PUBLISHED", "COMPLETED"] } },
       select: { type: true },
       distinct: ["type"],
     }),
 
-    // Events the club has hosted or is hosting
-    prisma.events.count({
-      where: { status: { in: ["PUBLISHED", "COMPLETED"] } },
-    }),
-
-    // Sponsors with at least one confirmed (public) sponsorship on a public event
-    prisma.sponsor.findMany({
-      where: {
-        eventSponsors: {
-          some: {
-            isPublic: true,
-            event: { status: { in: ["PUBLISHED", "COMPLETED"] } },
-          },
-        },
-      },
-      select: {
-        sponsorId: true,
-        name: true,
-        logoUrl: true,
-        website: true,
-        eventSponsors: {
-          where: {
-            isPublic: true,
-            event: { status: { in: ["PUBLISHED", "COMPLETED"] } },
-          },
-          select: {
-            tier: true,
-            displayOrder: true,
-            event: { select: { title: true, slug: true } },
-          },
-          orderBy: { event: { startDate: "desc" } },
-        },
-      },
-    }),
+    // Fetching sponsors via public service helper
+    getPublicSponsors(),
   ]);
 
   const eventTypes = distinctEvents.map((e) => e.type);

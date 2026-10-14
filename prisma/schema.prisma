@@ -64,11 +64,11 @@ model Committee {
   posts       Post[]
   user_posts  UserPost[]
   events      Events[]
+  notices     Notice[]  
 
   @@unique([type, year])
   @@map("committees")
 }
-
 model Post {
   postId      String     @id @default(uuid())
   postTitle   String
@@ -199,6 +199,47 @@ model Message {
   createdAt DateTime @default(now())
 
   @@map("messages")
+}
+
+// ─────────────────────────────────────────────
+// System Settings
+// ─────────────────────────────────────────────
+model SystemSetting {
+  id                 String   @id @default(cuid())
+  isMembershipOpen   Boolean  @default(false) // Membership registration control
+  updatedAt          DateTime @updatedAt
+  @@map("system_settings")
+}
+
+// ─────────────────────────────────────────────
+// Notice Board
+// ─────────────────────────────────────────────
+model Sarok {
+  code       String   @id 
+  name       String   @unique
+  shortName  String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  notices    Notice[]
+
+  @@map("categories")
+}
+model Notice {
+  noticeId      String   @id @default(uuid())
+  noticeNo      String   @unique // যেমন: NEU-CSE-CC/GA/2026/01
+  subject       String   // নোটিশের বিষয়
+  shortName     String   // Category-র shortName (যেমন: GA, EM)
+  committeeId   String   // কোন কমিটির অধীনে নোটিশটি দেওয়া হচ্ছে
+  signatoryId   String   // যিনি নোটিশ জারি করেছেন (Committee Member ID)
+  isPublic      Boolean  @default(true)
+  noticeFileUrl String?  // Cloudinary PDF URL
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt  
+
+  committee     Committee @relation(fields: [committeeId], references: [committeeId], onDelete: Cascade)
+  sarok      Sarok  @relation(fields: [shortName], references: [shortName], onDelete: Cascade)
+
+  @@map("notices")
 }
 // ─────────────────────────────────────────────
 // Enums

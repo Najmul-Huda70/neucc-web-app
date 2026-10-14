@@ -1,18 +1,29 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendMembershipOtpEmail } from "@/lib/mailer";
+import { getSystemSettings } from "@/lib/services/system-settings";
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    // 1. Check if membership registration is open
+    const settingsRes = await getSystemSettings();
+    if (!settingsRes.success || !settingsRes.data?.isMembershipOpen) {
+      return NextResponse.json(
+        { error: "Membership registration is currently closed by the admin." },
+        { status: 403 }
+      );
+    }
 
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    const body = await req.json().catch(() => null);
+    const email = body?.email;
+
+    if (!email || typeof email !== "string") {
+      return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
     }
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // ১. ইমেইল ইতোমধ্যে নিবন্ধিত কিনা চেক
+    // 2. Check if email already registered
     const existingUser = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
@@ -24,18 +35,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // ২. OTP এবং Expiry সময় তৈরি
+    // 3. Generate OTP & Expiry (5 mins)
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 Minutes
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    // ৩. OtpVerification টেবিলে Upsert (বা আলাদা টেবিলে সেভ)
+    // 4. Upsert to OtpVerification table
     await prisma.otpVerification.upsert({
       where: { email: cleanEmail },
       update: { otp, expiresAt },
       create: { email: cleanEmail, otp, expiresAt },
     });
 
-    // ৪. ইমেইল পাঠানো
+    // 5. Send Email
     await sendMembershipOtpEmail({ email: cleanEmail, otp });
 
     return NextResponse.json(
